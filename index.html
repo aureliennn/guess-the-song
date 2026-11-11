@@ -625,10 +625,9 @@ function drawMap(){
   g.fillStyle = '#fff'; g.strokeStyle = '#000'; g.lineWidth = 1; g.beginPath(); g.arc(X(ball.x), Z(ball.z), 2.5, 0, 7); g.fill(); g.stroke();
 }
 let last = performance.now();
-function frame(ts){
-  const dt = Math.min(.05, (ts - last)/1000); last = ts; stT += dt; const time = ts/1000;
+function tick(dt){
+  stT += dt;
   if (hintT > 0 && (hintT -= dt) <= 0) hint('');
-  const inMatch = state !== 'menu' && state !== 'load';
   if (state === 'intro') { if (stT > 2.4) { elMsg.classList.add('hide'); sfx.whistle(); setState('play'); } }
   else if (state === 'play') simulate(dt);
   else if (state === 'goal') {
@@ -638,6 +637,14 @@ function frame(ts){
     players.forEach(p => { p.vx *= .9; p.vz *= .9; });
     if (stT > 2.8) { elMsg.classList.add('hide'); if (golden) endMatch(); else kickoff(kickTeam); }
   }
+}
+// Outil de test : fait avancer le match sans attendre l'affichage
+window.ncDebug = { step(n){ for (let i = 0; i < (n || 1); i++) tick(1/60); return this.info(); },
+  info(){ return { state, half, clock:+clock.toFixed(1), score:teams.map(t => t.score), ball:[+ball.x.toFixed(1), +ball.z.toFixed(1)], owner:ball.owner ? ball.owner.tm.i + ':' + ball.owner.j : null, ctrl:ctrl ? ctrl.j : null }; } };
+function frame(ts){
+  const dt = Math.min(.05, (ts - last)/1000); last = ts; const time = ts/1000;
+  tick(dt);
+  const inMatch = state !== 'menu' && state !== 'load';
   if (inMatch) {
     players.forEach(p => { const a = p.actor; a.root.visible = true; a.root.position.set(p.x, 0, p.z); a.root.rotation.y = p.face;
       a.tilt.rotation.z = -p.lean*1.1; a.tilt.rotation.x = p.stun > 0 ? .55 : p.lunge > 0 ? -.5 : 0; a.tilt.position.y = p.stun > 0 ? -.25 : 0;
@@ -666,7 +673,7 @@ function ready(){
   if (proto) sets = [0, 1, 2, 3, 4].map(makeSet);
   actors = [0, 1].map(t => HOME.map((h, j) => makeActor(proto ? sets[t*2 + (j ? 0 : 1)] : null)));
   preview = makeActor(proto ? sets[4] : null); preview.root.position.set(0, 0, 52);
-  const ped = new T.Mesh(new T.CylinderGeometry(1, 1.1, .12, 40), new T.MeshLambertMaterial({ color:0x1a2546 })); ped.position.set(0, -.06, 52); scene.add(ped);
+  const ped = new T.Mesh(new T.CylinderGeometry(1, 1.1, .12, 40), new T.MeshLambertMaterial({ color:0x1a2546 })); ped.position.set(0, -.03, 52); scene.add(ped);
   const pl = new T.PointLight(0xffffff, .9, 12); pl.position.set(-1, 3, 55.5); scene.add(pl);
   showMenu();
 }
