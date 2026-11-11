@@ -117,6 +117,8 @@ button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
 @keyframes emoUp{from{opacity:0;transform:translateY(20px) scale(.6)}15%{opacity:1;transform:none}to{opacity:0;transform:translateY(-190px)}}
 #count{position:fixed;inset:0;z-index:18;display:grid;place-items:center;font-family:Unbounded,sans-serif;font-weight:800;font-size:min(42vw,230px);color:#fff;text-shadow:0 0 60px var(--acc);background:rgba(4,2,10,.55);pointer-events:none}
 select.inp{appearance:none;-webkit-appearance:none;min-width:0}select.inp option{background:#160e2c;color:#f4f0ff}
+.prof{display:flex;gap:8px;flex-wrap:wrap;margin:-6px 0 16px}.prof:empty{display:none}.prof span{padding:6px 11px;border-radius:999px;background:rgba(255,255,255,.07);font-size:12px;font-weight:600}
+.daily{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:14px 16px;margin-top:16px;border-radius:16px;border:1px solid var(--gold);background:linear-gradient(92deg,rgba(255,209,102,.16),rgba(184,107,255,.12));transition:transform .15s}.daily:hover{transform:translateY(-2px)}.daily .e{font-size:28px}.daily .a{color:var(--mut);font-size:13px}
 #notes{position:fixed;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(4,2,10,.72)}
 #notes .box{width:min(520px,100%);max-height:86dvh;overflow:auto;-webkit-overflow-scrolling:touch;padding:22px}
 #notes h2{font-size:22px;margin-bottom:4px}#notes ul{list-style:none;display:grid;gap:8px;margin:14px 0 18px}#notes li{padding:9px 12px;border-radius:12px;background:rgba(255,255,255,.05);font-size:14px;line-height:1.35}#notes li b{display:block}#notes .btn{width:100%}
@@ -137,6 +139,7 @@ select.inp{appearance:none;-webkit-appearance:none;min-width:0}select.inp option
   <div class="box glass">
     <h1 class="logo">GUESS THE SONG</h1>
     <p class="sub">Un extrait démarre, quatre réponses s'affichent. Plus tu réponds vite, plus tu marques — et chaque bonne réponse d'affilée fait grimper le multiplicateur.</p>
+    <div class="prof" id="profile"></div>
     <div class="seg" id="tabs" style="margin-bottom:16px"><button type="button" data-t="play" class="on">🎮 Jouer</button><button type="button" data-t="lb">🌍 Classement</button><button type="button" data-t="disc">🎧 Découvrir</button><button type="button" data-t="rev">⭐ Avis</button></div>
     <div id="tabRev" class="hide">
       <form id="revForm"><div class="row"><input class="inp" id="revName" maxlength="16" placeholder="Ton pseudo" style="max-width:200px;flex:none"><div id="revStars" role="group" aria-label="Note"></div></div>
@@ -151,10 +154,12 @@ select.inp{appearance:none;-webkit-appearance:none;min-width:0}select.inp option
     </div>
     <div id="tabPlay">
     <div class="row">
+      <div class="seg" id="kind"></div>
       <div class="seg" id="gmode"></div>
       <div class="seg" id="diff"></div>
       <span style="color:var(--mut);font-size:13px" id="diffTxt"></span>
     </div>
+    <button class="daily" id="dailyBtn" type="button"></button>
     <div class="lbl">Choisis une catégorie</div>
     <div class="cats" id="cats"></div>
     <div class="lbl">Ou un artiste</div>
@@ -192,7 +197,7 @@ select.inp{appearance:none;-webkit-appearance:none;min-width:0}select.inp option
 <div id="sb" class="glass hide"></div>
 <div id="count" class="hide"></div>
 <div id="end" class="screen hide"><div class="box glass" id="endBox"></div></div>
-<div id="notes" class="hide"><div class="box glass"><div class="lbl" style="margin-top:0">Notes de version · v2.2</div><h2>Quoi de neuf ?</h2><ul><li><b>⚔️ Multijoueur complet</b>Salons privés (code ou lien d'invitation) ou publics, jusqu'à 8 joueurs, classement en direct.</li><li><b>🎛️ Salon de l'hôte</b>Catégorie, mode et difficulté réglés dans le salon, compte à rebours, exclusion d'un joueur, victoires cumulées.</li><li><b>😂 Réactions</b>Envoie des émojis aux autres joueurs pendant la partie.</li><li><b>🚪 Portes 3D</b>Choisis ta réponse en touchant une porte, puis traverse-la pour passer au titre suivant.</li><li><b>🎨 Un thème par porte</b>Couleurs et décor 3D changent à chaque manche.</li><li><b>🎤 Titre ou artiste</b>Deux façons de jouer, plus la recherche d'un artiste précis (corrigée).</li><li><b>🌍 Classement mondial et avis</b>Publie ton score et note le jeu.</li><li><b>🎧 Réécoute</b>Retrouve les titres de ta partie à la fin, et l'onglet Découvrir.</li><li><b>📱 Téléphone</b>Affichage revu pour iPhone et Android, son débloqué sur iOS.</li></ul><button class="btn" id="notesOk">C'est parti ▶</button></div></div>
+<div id="notes" class="hide"><div class="box glass"><div class="lbl" style="margin-top:0">Notes de version · v2.3</div><h2>Quoi de neuf ?</h2><ul><li><b>📅 Défi du jour</b>Les 10 mêmes titres pour tout le monde, un seul essai, et un classement du jour.</li><li><b>❤️ Mode Survie</b>Trois vies, les titres s'enchaînent jusqu'à la troisième erreur.</li><li><b>⭐ Profil</b>Niveau, parties jouées, précision et meilleure série affichés sur l'accueil.</li><li><b>⚔️ Multijoueur complet</b>Salons privés (code ou lien d'invitation) ou publics, jusqu'à 8 joueurs, classement en direct.</li><li><b>🎛️ Salon de l'hôte</b>Catégorie, mode et difficulté réglés dans le salon, compte à rebours, exclusion d'un joueur, victoires cumulées.</li><li><b>😂 Réactions</b>Envoie des émojis aux autres joueurs pendant la partie.</li><li><b>🚪 Portes 3D</b>Choisis ta réponse en touchant une porte, puis traverse-la pour passer au titre suivant.</li><li><b>🎨 Un thème par porte</b>Couleurs et décor 3D changent à chaque manche.</li><li><b>🎤 Titre ou artiste</b>Deux façons de jouer, plus la recherche d'un artiste précis (corrigée).</li><li><b>🌍 Classement mondial et avis</b>Publie ton score et note le jeu.</li><li><b>🎧 Réécoute</b>Retrouve les titres de ta partie à la fin, et l'onglet Découvrir.</li><li><b>📱 Téléphone</b>Affichage revu pour iPhone et Android, son débloqué sur iOS.</li></ul><button class="btn" id="notesOk">C'est parti ▶</button></div></div>
 <div id="tip" class="glass hide"></div>
 <div id="toast" class="glass hide"></div>
 <audio id="au" crossorigin="anonymous" preload="auto"></audio>
@@ -232,8 +237,9 @@ const DIFFS = [{id:'easy', n:'Facile', s:20}, {id:'norm', n:'Normal', s:14}, {id
 const MULT = [1, 1.5, 2, 2.5, 3], ROUNDS = 10;
 // Base du classement mondial : URL d'une Firebase Realtime Database (vide = classement local a l'appareil).
 const DB_URL = 'https://guess-the-song-27134-default-rtdb.europe-west1.firebasedatabase.app';
-let best = ls.get('gs_best', {}), diff = ls.get('gs_diff', 'norm'), gmode = ls.get('gs_mode', 'title');
-const artMode = () => gmode === 'artist' && S.cat && !S.cat.q, bestKey = id => id + ':' + diff + (gmode === 'artist' ? ':a' : '');
+let best = ls.get('gs_best', {}), diff = ls.get('gs_diff', 'norm'), gmode = ls.get('gs_mode', 'title'), kind = ls.get('gs_kind', 'classic'), lbMode = 'all';
+const artMode = () => gmode === 'artist' && S.cat && !S.cat.q, bestKey = (id, k) => id + ':' + diff + (gmode === 'artist' ? ':a' : '') + ((k || kind) === 'survie' ? ':s' : '');
+function fresh(t){ const ex = +(/exp=(\d+)/.exec(t.preview || '') || [])[1]; return t.id && ex && ex - Date.now() / 1000 < 40 ? jp('track/' + t.id).then(d => { if (d && d.preview) t.preview = d.preview; }).catch(() => {}) : Promise.resolve(); }
 
 function jp(path){
   return new Promise((res, rej) => {
@@ -267,12 +273,12 @@ async function loadPool(cat){
     const title = clean(t.title_short || t.title), k = norm(title);
     if (!k || seen.has(k)) continue;
     seen.add(k);
-    out.push({title, artist: t.artist.name, preview: t.preview, cover: t.album && (t.album.cover_big || t.album.cover_medium) || '', link: t.link || 'https://www.deezer.com'});
+    out.push({id: t.id, title, artist: t.artist.name, preview: t.preview, cover: t.album && (t.album.cover_big || t.album.cover_medium) || '', link: t.link || 'https://www.deezer.com'});
   }
   return out;
 }
 function buildRounds(pool){
-  const p = shuffle(pool.slice()), n = Math.min(ROUNDS, p.length - 3);
+  const p = shuffle(pool.slice()), n = S.kind === 'survie' ? p.length - 3 : Math.min(ROUNDS, p.length - 3);
   S.spare = p.slice(n);
   return p.slice(0, n).map(t => makeRound(t, pool));
 }
@@ -394,7 +400,7 @@ function addOrb(r, idx){
   const gl = new THREE.Sprite(new THREE.SpriteMaterial({map: dotTex, color: col, transparent: true, opacity: r.ok ? .8 : .3, blending: THREE.AdditiveBlending, depthWrite: false})); gl.scale.setScalar(3.6); m.add(gl);
   const a = idx / ROUNDS * Math.PI * 2 - orbG.rotation.y + Math.PI / 2;
   m.userData = {r, idx, sz, t: 0, pulse: 0, to: new THREE.Vector3(Math.cos(a) * 5.3, 2.5 + Math.sin(idx * 1.7) * .55, Math.sin(a) * 5.3)};
-  m.position.set(0, .6, 0); orbG.add(m); orbs.push(m);
+  m.position.set(0, .6, 0); orbG.add(m); orbs.push(m); if (orbs.length > ROUNDS) { const o = orbs.shift(); orbG.remove(o); o.material.dispose(); o.children[0].material.dispose(); }
 }
 function clearOrbs(){ orbs.forEach(o => { orbG.remove(o); o.material.dispose(); o.children[0].material.dispose(); }); orbs = []; }
 
@@ -543,11 +549,16 @@ function renderHome(){
   $('diff').innerHTML = DIFFS.map(d => '<button type="button" data-d="' + d.id + '" class="' + (d.id === diff ? 'on' : '') + '">' + d.n + '</button>').join('');
   $('gmode').innerHTML = [['title', '🎵 Trouver le titre'], ['artist', '🎤 Trouver l\'artiste']].map(m => '<button type="button" data-m="' + m[0] + '" class="' + (m[0] === gmode ? 'on' : '') + '">' + m[1] + '</button>').join('');
   if (!$('duelName').value) $('duelName').value = ls.get('gs_name', '');
+  $('kind').innerHTML = [['classic', '🎯 Classique · 10 titres'], ['survie', '❤️ Survie · 3 vies']].map(m => '<button type="button" data-k="' + m[0] + '" class="' + (m[0] === kind ? 'on' : '') + '">' + m[1] + '</button>').join('');
+  const dd = dailyDone(); $('dailyBtn').innerHTML = '<span class="e">📅</span><span><b>Défi du jour</b><br><span class="a">' + (dd ? 'Déjà joué aujourd\'hui : ' + Number(dd.score | 0).toLocaleString('fr-FR') + ' points · voir le classement du jour' : 'Les 10 mêmes titres pour tout le monde · un seul essai par jour') + '</span></span>';
+  $('profile').innerHTML = statsHtml();
   $('diffTxt').textContent = DIFFS.find(d => d.id === diff).s + ' secondes par extrait';
   $('cats').innerHTML = CATS.map(c => '<button class="cat" data-c="' + c.id + '"><span class="e">' + c.e + '</span><span class="n">' + c.n + '</span><span class="b">' + (best[bestKey(c.id)] ? 'Record : ' + best[bestKey(c.id)].toLocaleString('fr-FR') : 'Pas encore joué') + '</span></button>').join('');
 }
 $('diff').onclick = e => { const d = e.target.dataset.d; if (!d) return; diff = d; ls.set('gs_diff', d); sfx.click(); renderHome(); };
 $('gmode').onclick = e => { const m = e.target.dataset.m; if (!m) return; gmode = m; ls.set('gs_mode', m); sfx.click(); renderHome(); };
+$('kind').onclick = e => { const k = e.target.dataset.k; if (!k) return; kind = k; ls.set('gs_kind', k); sfx.click(); renderHome(); };
+$('dailyBtn').onclick = () => startDaily();
 $('cats').onclick = e => { const b = e.target.closest('.cat'); if (b) startGame(CATS.find(c => c.id === b.dataset.c)); };
 $('artForm').onsubmit = e => { e.preventDefault(); const q = $('artist').value.trim(); if (q.length < 2) { toast('Écris le nom d\'un artiste.'); return; } startGame({id: 'a_' + norm(q), n: q, e: '🎙️', q}); };
 
@@ -558,28 +569,31 @@ async function startGame(cat){
   try { pool = await loadPool(cat); } catch(e) { S.phase = 'idle'; toast(e.message === 'artist' ? 'Artiste introuvable : vérifie l\'orthographe.' : 'Impossible de charger les musiques. Vérifie ta connexion et réessaie.'); return; }
   if (pool.length < 8) { S.phase = 'idle'; toast(cat.q ? 'Pas assez de titres trouvés pour « ' + cat.n + ' ».' : 'Pas assez de titres dans cette catégorie pour le moment.'); return; }
   $('toast').classList.add('hide');
-  published = false; Object.assign(S, {cat, pool, i: 0, score: 0, shown: 0, streak: 0, best: 0, good: 0, jok: 2, fails: 0, dur: DIFFS.find(d => d.id === diff).s});
+  published = false; Object.assign(S, {cat, pool, kind, lives: 3, daily: null, i: 0, score: 0, shown: 0, streak: 0, best: 0, good: 0, jok: 2, fails: 0, dur: DIFFS.find(d => d.id === diff).s});
   S.rounds = buildRounds(pool); clearOrbs(); setTheme(0); setScore3D(0); $('hScore').textContent = '0';
   show('game'); startRound();
 }
 function startRound(){
   clearTimeout(nextTO); const r = S.rounds[S.i]; S.phase = 'load'; S.jokUsed = false; setLabel(''); setTheme(S.i);
-  $('hRound').textContent = (S.i + 1) + '/' + S.rounds.length; comboHud();
+  hudRound(); comboHud();
   $('status').innerHTML = '<div class="msg"><span class="eq"><i></i><i></i><i></i><i></i></span>Chargement de l\'extrait…</div>';
   $('bar').classList.remove('low'); $('bar').firstElementChild.style.transform = 'scaleX(1)';
   $('answers').innerHTML = r.ch.map((c, k) => '<button class="ans wait" data-k="' + k + '" disabled><span class="k">' + (k + 1) + '</span><span><span class="t">' + esc(c.title) + '</span><br><span class="a">' + esc(c.artist) + '</span></span></button>').join('');
   $('nextBtn').classList.add('hide'); jokerBtn(); doorsShow(r); setHov(-1);
-  au.src = r.t.preview; const p = au.play(); if (p && p.catch) p.catch(() => {});
-  clearTimeout(loadTO); loadTO = setTimeout(broken, 8000);
+  const go = () => { if (S.rounds[S.i] !== r || S.phase !== 'load' || S.screen !== 'game') return; au.src = r.t.preview; const p = au.play(); if (p && p.catch) p.catch(() => {}); };
+  fresh(r.t).then(go, go);
+  clearTimeout(loadTO); loadTO = setTimeout(broken, 9000);
 }
+function hudRound(){ $('hRound').textContent = S.kind === 'survie' ? 'Titre ' + (S.i + 1) + ' · ' + '❤️'.repeat(Math.max(0, S.lives)) + '🖤'.repeat(Math.max(0, 3 - S.lives)) : (S.i + 1) + '/' + S.rounds.length; }
 function jokerBtn(){ const b = $('joker'); b.textContent = '50/50 (' + S.jok + ')'; b.disabled = S.jok < 1 || S.jokUsed || S.phase === 'reveal'; }
 function comboHud(pop){ const h = $('hCombo'); h.textContent = S.streak > 0 ? '🔥 ×' + String(MULT[Math.min(S.streak, 4)]).replace('.', ',') : ''; if (pop) { h.classList.add('pop'); setTimeout(() => h.classList.remove('pop'), 220); } }
 function broken(){
   if (S.screen !== 'game' || S.phase !== 'load') return;
   clearTimeout(loadTO);
   if (R) { S.phase = 'play'; S.t0 = performance.now(); answer(-1); return; }
-  if (++S.fails > 4 || !S.spare.length) { toast('La lecture des extraits est bloquée. Clique sur une catégorie pour relancer.'); goHome(); return; }
-  S.rounds[S.i] = makeRound(S.spare.pop(), S.pool); startRound();
+  if (++S.fails > 4) { toast('La lecture des extraits est bloquée. Clique sur une catégorie pour relancer.'); goHome(); return; }
+  if (S.spare.length) S.rounds[S.i] = makeRound(S.spare.pop(), S.pool); else S.rounds.splice(S.i, 1);
+  if (S.i >= S.rounds.length) end(); else startRound();
 }
 au.addEventListener('error', broken);
 au.addEventListener('playing', () => {
@@ -595,7 +609,7 @@ setInterval(() => {
 function answer(k){
   if (S.phase !== 'play') return;
   const r = S.rounds[S.i], left = Math.max(0, 1 - (performance.now() - S.t0) / (S.dur * 1000)), ok = k === r.correct; let pts = 0, m = 1;
-  if (ok) { m = MULT[Math.min(S.streak, 4)]; pts = Math.round((100 + 900 * left) * m / 10) * 10; S.score += pts; S.streak++; S.best = Math.max(S.best, S.streak); S.good++; } else S.streak = 0;
+  if (ok) { m = MULT[Math.min(S.streak, 4)]; pts = Math.round((100 + 900 * left) * m / 10) * 10; S.score += pts; S.streak++; S.best = Math.max(S.best, S.streak); S.good++; S.fails = 0; } else { S.streak = 0; if (S.kind === 'survie') { S.lives--; hudRound(); } }
   r.ok = ok; r.pts = pts; S.phase = 'reveal'; roomPush();
   document.querySelectorAll('.ans').forEach((b, j) => { b.disabled = true; if (j === r.correct) b.classList.add('ok'); else if (j === k) b.classList.add('bad'); else b.classList.add('out'); });
   $('status').innerHTML = '<div class="rv"><img src="' + esc(r.t.cover) + '" alt=""><div><div class="t">' + esc(r.t.title) + '</div><div class="a">' + esc(r.t.artist) + ' · <a href="' + esc(r.t.link) + '" target="_blank" rel="noopener">Écouter sur Deezer ↗</a></div></div><div class="p" style="color:' + (ok ? 'var(--ok)' : 'var(--bad)') + '">' + (ok ? '+' + pts : k < 0 ? 'Trop tard' : 'Raté') + (ok && m > 1 ? '<small>combo ×' + String(m).replace('.', ',') + '</small>' : '') + '</div></div>';
@@ -603,7 +617,7 @@ function answer(k){
   const fl = $('flash'); fl.style.transition = 'none'; fl.style.background = ok ? 'radial-gradient(circle at 50% 40%,rgba(61,255,162,.28),transparent 65%)' : 'radial-gradient(circle at 50% 40%,rgba(255,77,109,.32),transparent 65%)'; fl.style.opacity = 1; requestAnimationFrame(() => { fl.style.transition = 'opacity .7s'; fl.style.opacity = 0; });
   if (ok) { sfx.ok(S.streak - 1); burst(90 + S.streak * 40, S.streak >= 3 ? '#ffd166' : '#3dffa2', 5 + S.streak); floatText('+' + pts, S.streak >= 3 ? '#ffd166' : '#3dffa2', 2); if (S.streak >= 2) floatText('COMBO ×' + String(MULT[Math.min(S.streak, 4)]).replace('.', ','), '#ff9f43', 3.6); setScore3D(S.score); spin = 7; }
   else { sfx.bad(); shake = 1; }
-  $('nextBtn').textContent = S.i + 1 >= S.rounds.length ? 'Résultats ▶' : 'Passer la porte ▶'; $('nextBtn').classList.remove('hide');
+  $('nextBtn').textContent = S.i + 1 >= S.rounds.length || (S.kind === 'survie' && S.lives <= 0) ? 'Résultats ▶' : 'Passer la porte ▶'; $('nextBtn').classList.remove('hide');
   nextTO = setTimeout(next, ok ? 3200 : 5200);
 }
 let fly = null;
@@ -618,7 +632,7 @@ function next(){
 }
 function advance(){
   if (fly) { fly = null; cam.position.set(0, 9, 19); const fl = $('flash'); fl.style.transition = 'opacity .7s'; fl.style.opacity = 0; }
-  if (++S.i >= S.rounds.length) end(); else startRound();
+  if (++S.i >= S.rounds.length || (S.kind === 'survie' && S.lives <= 0)) end(); else startRound();
 }
 function joker(){
   if (S.phase !== 'play' || S.jok < 1 || S.jokUsed) return;
@@ -627,20 +641,21 @@ function joker(){
 }
 function end(){
   S.phase = 'idle'; au.pause(); doorsHide(); roomPush(true); sfx.end(); burst(400, '#ffd166', 9); hueT = 45;
-  const key = bestKey(S.cat.id), rec = S.score > (best[key] || 0) && S.score > 0; if (rec) { best[key] = S.score; ls.set('gs_best', best); }
-  const g = S.good, n = S.rounds.length, rank = g === n ? '👑 Oreille absolue' : g >= n * .8 ? '🎧 DJ résident' : g >= n * .6 ? '🎶 Mélomane' : g >= n * .4 ? '📻 Auditeur du dimanche' : '🙉 Il va falloir réviser';
-  $('endBox').innerHTML = '<div class="lbl" style="margin-top:0">' + esc(S.cat.e + ' ' + S.cat.n) + ' · ' + DIFFS.find(d => d.id === diff).n + (artMode() ? ' · Artiste' : '') + '</div><div class="big">' + S.score.toLocaleString('fr-FR') + '</div><div class="rank">' + rank + '</div>' + (rec ? '<div style="color:var(--gold);font-weight:700">★ Nouveau record !</div>' : best[key] ? '<div style="color:var(--mut);font-size:13px">Record : ' + best[key].toLocaleString('fr-FR') + '</div>' : '') +
+  const key = bestKey(S.cat.id, S.kind), rec = S.score > (best[key] || 0) && S.score > 0; if (rec) { best[key] = S.score; ls.set('gs_best', best); }
+  const sv = S.kind === 'survie', g = S.good, n = sv ? Math.min(S.i, S.rounds.length) : S.rounds.length; addStats(n); if (S.daily) ls.set('gs_daily', {date: S.daily, score: S.score});
+  const rank = sv ? (g >= 30 ? '👑 Increvable' : g >= 20 ? '🎧 Marathonien du son' : g >= 10 ? '🎶 Bonne endurance' : g >= 5 ? '📻 Ça chauffe' : '🙉 Trop court !') : g === n ? '👑 Oreille absolue' : g >= n * .8 ? '🎧 DJ résident' : g >= n * .6 ? '🎶 Mélomane' : g >= n * .4 ? '📻 Auditeur du dimanche' : '🙉 Il va falloir réviser';
+  $('endBox').innerHTML = '<div class="lbl" style="margin-top:0">' + esc(S.cat.e + ' ' + S.cat.n) + ' · ' + DIFFS.find(d => d.id === diff).n + (artMode() ? ' · Artiste' : '') + (sv ? ' · Survie' : '') + '</div><div class="big">' + S.score.toLocaleString('fr-FR') + '</div><div class="rank">' + rank + '</div>' + (rec ? '<div style="color:var(--gold);font-weight:700">★ Nouveau record !</div>' : best[key] ? '<div style="color:var(--mut);font-size:13px">Record : ' + best[key].toLocaleString('fr-FR') + '</div>' : '') +
     '<div class="stats"><div><b>' + g + '/' + n + '</b>bonnes réponses</div><div><b>' + S.best + '</b>meilleure série</div></div>' +
-    (S.score > 0 ? '<form class="row" id="pubForm" style="justify-content:center"><input class="inp" id="pseudo" maxlength="16" placeholder="Ton pseudo" style="max-width:200px;flex:none" value="' + esc(ls.get('gs_name', '')) + '"><button class="btn" type="submit">Publier mon score 🌍</button></form><div class="note" id="pubMsg">' + (DB_URL ? 'Ton pseudo et ton score seront visibles dans le classement mondial.' : 'Classement enregistré sur cet appareil pour l\'instant.') + '</div>' : '') + '<div class="note" style="margin-bottom:-6px">Réécoute les titres de la partie :</div><div class="recap">' + S.rounds.map((r, ri) => '<div><img src="' + esc(r.t.cover) + '" alt=""><div>' + esc(r.t.title) + '<br><span class="a">' + esc(r.t.artist) + '</span></div><span style="color:' + (r.ok ? 'var(--ok)' : 'var(--bad)') + '">' + (r.ok ? '+' + r.pts : '✗') + '</span><button class="pl" data-r="' + ri + '" aria-label="Réécouter">▶</button></div>').join('') + '</div>' +
-    (R ? '<div class="lbl">Classement du salon ' + R.code + '</div><div class="list" id="roomRank" style="max-height:26dvh;margin-bottom:14px">' + rankHtml() + '</div><div class="row" style="justify-content:center"><button class="btn" id="again">Retour au salon</button><button class="btn ghost" id="menu">Quitter le salon</button></div>' : '<div class="row" style="justify-content:center"><button class="btn" id="again">Rejouer ▶</button><button class="btn ghost" id="menu">Changer de catégorie</button></div>') + '<p style="color:var(--mut);font-size:12px;margin-top:12px">Astuce : les orbes autour du vinyle sont tes réponses — clique dessus.</p>';
-  if ($('pubForm')) $('pubForm').onsubmit = publish; $('again').onclick = () => R ? toLobby() : startGame(S.cat); $('menu').onclick = goHome; show('end');
+    (S.score > 0 ? '<form class="row" id="pubForm" style="justify-content:center"><input class="inp" id="pseudo" maxlength="16" placeholder="Ton pseudo" style="max-width:200px;flex:none" value="' + esc(ls.get('gs_name', '')) + '"><button class="btn" type="submit">Publier mon score 🌍</button></form><div class="note" id="pubMsg">' + (S.daily ? 'Ton pseudo et ton score seront visibles dans le classement du jour.' : 'Ton pseudo et ton score seront visibles dans le classement mondial.') + '</div>' : '') + '<div class="note" style="margin-bottom:-6px">Réécoute les titres de la partie :</div><div class="recap">' + S.rounds.slice(0, n).map((r, ri) => '<div><img src="' + esc(r.t.cover) + '" alt=""><div>' + esc(r.t.title) + '<br><span class="a">' + esc(r.t.artist) + '</span></div><span style="color:' + (r.ok ? 'var(--ok)' : 'var(--bad)') + '">' + (r.ok ? '+' + r.pts : '✗') + '</span><button class="pl" data-r="' + ri + '" aria-label="Réécouter">▶</button></div>').join('') + '</div>' +
+    (R ? '<div class="lbl">Classement du salon ' + R.code + '</div><div class="list" id="roomRank" style="max-height:26dvh;margin-bottom:14px">' + rankHtml() + '</div><div class="row" style="justify-content:center"><button class="btn" id="again">Retour au salon</button><button class="btn ghost" id="menu">Quitter le salon</button></div>' : S.daily ? '<div class="row" style="justify-content:center"><button class="btn" id="again">Classement du jour</button><button class="btn ghost" id="menu">Accueil</button></div>' : '<div class="row" style="justify-content:center"><button class="btn" id="again">Rejouer ▶</button><button class="btn ghost" id="menu">Changer de catégorie</button></div>') + '<p style="color:var(--mut);font-size:12px;margin-top:12px">Astuce : les orbes autour du vinyle sont tes réponses — clique dessus.</p>';
+  if ($('pubForm')) $('pubForm').onsubmit = publish; $('again').onclick = () => { if (R) toLobby(); else if (S.daily) { goHome(); lbMode = 'day'; setTab('lb'); } else startGame(S.cat); }; $('menu').onclick = goHome; show('end');
 }
-function goHome(){ leaveRoom(); clearTimeout(nextTO); if (fly) { fly = null; $('flash').style.opacity = 0; } clearTimeout(loadTO); S.phase = 'idle'; S.streak = 0; au.pause(); doorsHide(); discNow = -1; recNow = -1; setTheme(0); setLabel(''); clearOrbs(); renderHome(); show('home'); }
+function goHome(){ leaveRoom(); clearTimeout(nextTO); if (fly) { fly = null; $('flash').style.opacity = 0; } clearTimeout(loadTO); S.phase = 'idle'; S.streak = 0; au.pause(); doorsHide(); discNow = -1; recNow = -1; diff = ls.get('gs_diff', 'norm'); gmode = ls.get('gs_mode', 'title'); setTheme(0); setLabel(''); clearOrbs(); renderHome(); show('home'); }
 $('answers').onmouseover = e => { const b = e.target.closest('.ans'); if (b) setHov(+b.dataset.k); }; $('answers').onmouseleave = () => setHov(-1);
 $('answers').onclick = e => { const b = e.target.closest('.ans'); if (b && !b.disabled) answer(+b.dataset.k); };
 let recNow = -1;
 function recBtns(){ document.querySelectorAll('.recap .pl').forEach(b => { b.textContent = +b.dataset.r === recNow ? '❚❚' : '▶'; }); }
-$('endBox').addEventListener('click', e => { const b = e.target.closest('.recap .pl'); if (!b) return; const i = +b.dataset.r; initAudio(); if (i === recNow) { au.pause(); recNow = -1; } else { recNow = i; const t = S.rounds[i].t; au.src = t.preview; const p = au.play(); if (p && p.catch) p.catch(() => {}); setLabel(t.cover); } recBtns(); });
+$('endBox').addEventListener('click', e => { const b = e.target.closest('.recap .pl'); if (!b) return; const i = +b.dataset.r; initAudio(); if (i === recNow) { au.pause(); recNow = -1; } else { recNow = i; const t = S.rounds[i].t, go = () => { if (recNow !== i) return; au.src = t.preview; const p = au.play(); if (p && p.catch) p.catch(() => {}); }; fresh(t).then(go, go); setLabel(t.cover); } recBtns(); });
 au.addEventListener('ended', () => { if (recNow >= 0) { recNow = -1; recBtns(); } });
 $('joker').onclick = joker; $('nextBtn').onclick = next; $('quit').onclick = goHome;
 $('vol').value = vol; $('vol').oninput = e => setVol(+e.target.value);
@@ -780,7 +795,7 @@ function countdown(cb){
 function startOnlineGame(m, rounds){
   if (!R) return; const cat = CATS.find(c => c.id === m.catId) || CATS[0];
   diff = DIFFS.some(d => d.id === m.diff) ? m.diff : 'norm'; gmode = m.mode === 'artist' ? 'artist' : 'title'; published = false; clearTimeout(nextTO); clearTimeout(loadTO); fly = null; $('flash').style.opacity = 0; recNow = -1;
-  Object.assign(S, {cat: {id: 'duel', n: 'Duel · ' + cat.n, e: '⚔️'}, pool: [], spare: [], i: 0, score: 0, shown: 0, streak: 0, best: 0, good: 0, jok: 2, fails: 0, phase: 'idle', dur: DIFFS.find(d => d.id === diff).s});
+  Object.assign(S, {cat: {id: 'duel', n: 'Duel · ' + cat.n, e: '⚔️'}, pool: [], spare: [], kind: 'classic', lives: 3, daily: null, i: 0, score: 0, shown: 0, streak: 0, best: 0, good: 0, jok: 2, fails: 0, phase: 'idle', dur: DIFFS.find(d => d.id === diff).s});
   S.rounds = rounds.slice(0, ROUNDS).map(r => ({t: r.t, ch: r.ch, correct: r.correct | 0, ok: null, pts: 0}));
   roomPush(); clearOrbs(); setTheme(0); setScore3D(0); $('hScore').textContent = '0'; R.sbSig = ''; show('game'); startRound(); drawBoard();
 }
@@ -812,14 +827,40 @@ $('pubRooms').onclick = e => { const b = e.target.closest('[data-code]'); if (b)
 setInterval(() => { if (!document.hidden) drawPubRooms(); }, 8000); drawPubRooms();
 { const q = new URLSearchParams(location.search).get('salon'); if (q && /^[A-Za-z]{4}$/.test(q)) { $('duelCode').value = q.toUpperCase(); setTimeout(() => { toast('Salon ' + q.toUpperCase() + ' : entre ton pseudo puis clique sur Rejoindre.'); $('duelName').scrollIntoView({block: 'center'}); }, 700); } }
 /* ---------------- Classement ---------------- */
-async function lbFetch(){
+const today = () => new Date().toISOString().slice(0, 10);
+const dailyDone = () => { const d = ls.get('gs_daily', null); return d && d.date === today() ? d : null; };
+async function startDaily(){
+  if (S.phase === 'fetch') return; const done = dailyDone();
+  if (done) { lbMode = 'day'; setTab('lb'); toast('Défi déjà joué aujourd\'hui. Reviens demain pour un nouveau défi !'); return; }
+  initAudio(); sfx.click(); S.phase = 'fetch'; toast('Chargement du défi du jour…'); const date = today();
+  try {
+    let rounds = await db('daily/' + date + '/rounds');
+    if (!Array.isArray(rounds) || !rounds.length) {
+      const pool = await loadPool(CATS[0]); if (pool.length < 8) throw new Error('pool');
+      const mine = shuffle(pool.slice()).slice(0, ROUNDS).map(t => makeRound(t, pool)).map(r => ({t: r.t, ch: r.ch.map(c => ({title: c.title, artist: c.artist})), correct: r.correct}));
+      try { await db('daily/' + date + '/rounds', 'PUT', mine); rounds = mine; } catch(e) { rounds = await db('daily/' + date + '/rounds'); }
+    }
+    if (!Array.isArray(rounds) || !rounds.length) throw new Error('daily');
+    $('toast').classList.add('hide'); diff = 'norm'; gmode = 'title'; published = false; discNow = -1; recNow = -1;
+    Object.assign(S, {cat: {id: 'daily', n: 'Défi du jour', e: '📅'}, pool: [], spare: [], kind: 'classic', lives: 3, daily: date, i: 0, score: 0, shown: 0, streak: 0, best: 0, good: 0, jok: 2, fails: 0, dur: DIFFS.find(d => d.id === 'norm').s});
+    S.rounds = rounds.slice(0, ROUNDS).map(r => ({t: r.t, ch: r.ch, correct: r.correct | 0, ok: null, pts: 0}));
+    ls.set('gs_daily', {date, score: 0});
+    clearOrbs(); setTheme(0); setScore3D(0); $('hScore').textContent = '0'; show('game'); startRound();
+  } catch(e) { S.phase = 'idle'; toast('Impossible de charger le défi du jour. Réessaie.'); }
+}
+function addStats(n){ const st = ls.get('gs_stats', {games: 0, good: 0, total: 0, streak: 0, pts: 0}); st.games++; st.good += S.good; st.total += n; st.streak = Math.max(st.streak, S.best); st.pts += S.score; ls.set('gs_stats', st); }
+function statsHtml(){
+  const st = ls.get('gs_stats', null); if (!st || !st.games) return '';
+  return '<span>⭐ Niveau ' + (Math.floor(Math.sqrt(st.pts / 3000)) + 1) + '</span><span>🎮 ' + st.games + ' partie' + (st.games > 1 ? 's' : '') + '</span><span>🎯 ' + Math.round(st.good / Math.max(1, st.total) * 100) + ' % de bonnes réponses</span><span>🔥 Série max ' + st.streak + '</span><span>💎 ' + Number(st.pts).toLocaleString('fr-FR') + ' points cumulés</span>';
+}
+async function lbFetch(path){
   if (!DB_URL) return ls.get('gs_lb', []);
-  const r = await fetch(DB_URL + '/scores.json?orderBy=%22s%22&limitToLast=50'); if (!r.ok) throw new Error('db');
+  const r = await fetch(DB_URL + '/' + (path || 'scores') + '.json?orderBy=%22s%22&limitToLast=50'); if (!r.ok) throw new Error('db');
   return Object.values(await r.json() || {}).filter(e => e && typeof e.s === 'number' && typeof e.n === 'string').sort((a, b) => b.s - a.s);
 }
-async function lbPost(e){
+async function lbPost(e, path){
   if (!DB_URL) { const a = ls.get('gs_lb', []); a.push(e); a.sort((x, y) => y.s - x.s); ls.set('gs_lb', a.slice(0, 50)); return; }
-  const r = await fetch(DB_URL + '/scores.json', {method: 'POST', body: JSON.stringify(e)}); if (!r.ok) throw new Error('db');
+  const r = await fetch(DB_URL + '/' + (path || 'scores') + '.json', {method: 'POST', body: JSON.stringify(e)}); if (!r.ok) throw new Error('db');
 }
 let published = false;
 async function publish(ev){
@@ -828,14 +869,16 @@ async function publish(ev){
   if (n.length < 2) { msg.textContent = 'Choisis un pseudo d\'au moins 2 caractères.'; return; }
   ls.set('gs_name', n); published = true; msg.textContent = 'Envoi…';
   const reg = ((navigator.language || '').split('-')[1] || '').toUpperCase().slice(0, 2);
-  try { await lbPost({n, s: S.score, g: S.good, c: S.cat.n.slice(0, 30), d: diff, r: reg, t: Date.now()}); const a = await lbFetch(), i = a.findIndex(e => e.n === n && e.s === S.score); msg.innerHTML = '✓ Score publié' + (i >= 0 ? ' — tu es <b style="color:var(--gold)">n°' + (i + 1) + '</b> du classement.' : '.'); $('pubForm').classList.add('hide'); }
+  const path = S.daily ? 'daily/' + S.daily + '/scores' : 'scores';
+  try { await lbPost({n, s: S.score, g: S.good, k: S.kind === 'survie' ? 's' : 'c', c: S.cat.n.slice(0, 30), d: diff, r: reg, t: Date.now()}, path); const a = await lbFetch(path), i = a.findIndex(e => e.n === n && e.s === S.score); msg.innerHTML = '✓ Score publié' + (i >= 0 ? ' — tu es <b style="color:var(--gold)">n°' + (i + 1) + '</b> du classement' + (S.daily ? ' du jour.' : '.') : '.'); $('pubForm').classList.add('hide'); }
   catch(e) { published = false; msg.textContent = 'Envoi impossible pour le moment. Réessaie.'; }
 }
 async function renderLb(){
-  const el = $('tabLb'); el.innerHTML = '<div class="note">Chargement…</div>'; let a;
-  try { a = await lbFetch(); } catch(e) { el.innerHTML = '<div class="note">Classement indisponible pour le moment.</div>'; return; }
-  el.innerHTML = '<div class="note">' + (DB_URL ? 'Les 50 meilleurs scores, tous joueurs confondus.' : 'Scores enregistrés sur cet appareil. Le classement mondial s\'activera quand la base de données en ligne sera branchée.') + '</div><div class="list">' +
-    (a.length ? a.map((e, i) => '<div class="li' + (i < 3 ? ' top' : '') + '"><span class="rk">' + (i + 1) + '</span><div>' + esc(e.n) + (e.r ? ' <span class="a">' + esc(e.r) + '</span>' : '') + '<br><span class="a">' + esc(e.c || '') + ' · ' + esc((DIFFS.find(d => d.id === e.d) || {n: ''}).n) + ' · ' + (e.g | 0) + '/10</span></div><span class="sc">' + Number(e.s).toLocaleString('fr-FR') + '</span></div>').join('') : '<div class="note">Aucun score pour l\'instant. Joue une partie et publie le tien !</div>') + '</div>';
+  const el = $('tabLb'), day = lbMode === 'day', head = '<div class="seg"><button type="button" data-lb="all" class="' + (day ? '' : 'on') + '">🌍 Général</button><button type="button" data-lb="day" class="' + (day ? 'on' : '') + '">📅 Défi du jour</button></div>'; el.innerHTML = head + '<div class="note">Chargement…</div>'; let a;
+  try { a = await lbFetch(day ? 'daily/' + today() + '/scores' : 'scores'); } catch(e) { el.innerHTML = head + '<div class="note">Classement indisponible pour le moment.</div>'; return; }
+  if ((lbMode === 'day') !== day) return;
+  el.innerHTML = head + '<div class="note">' + (day ? 'Les meilleurs scores du défi d\'aujourd\'hui : mêmes titres pour tous, un essai par jour.' : 'Les 50 meilleurs scores, tous joueurs confondus.') + '</div><div class="list">' +
+    (a.length ? a.map((e, i) => '<div class="li' + (i < 3 ? ' top' : '') + '"><span class="rk">' + (i + 1) + '</span><div>' + esc(e.n) + (e.r ? ' <span class="a">' + esc(e.r) + '</span>' : '') + '<br><span class="a">' + esc(e.c || '') + ' · ' + esc((DIFFS.find(d => d.id === e.d) || {n: ''}).n) + ' · ' + (e.k === 's' ? 'Survie · ' + (e.g | 0) + ' trouvés' : (e.g | 0) + '/10') + '</span></div><span class="sc">' + Number(e.s).toLocaleString('fr-FR') + '</span></div>').join('') : '<div class="note">Aucun score pour l\'instant. Joue une partie et publie le tien !</div>') + '</div>';
 }
 /* ---------------- Avis ---------------- */
 let revStars = 5;
@@ -882,8 +925,9 @@ function setTab(t){
   document.querySelectorAll('#tabs button').forEach(b => b.classList.toggle('on', b.dataset.t === t));
   if (t === 'lb') renderLb(); if (t === 'rev') { $('revName').value = ls.get('gs_name', ''); drawStars(); renderRev(); } if (t === 'disc' && !discList.length) loadDisc('');
 }
+$('tabLb').addEventListener('click', e => { const m = e.target.dataset.lb; if (m && m !== lbMode) { lbMode = m; sfx.click(); renderLb(); } });
 $('tabs').onclick = e => { const t = e.target.dataset.t; if (t) { sfx.click(); setTab(t); } };
-const NOTES_V = '2.2';
+const NOTES_V = '2.3';
 function showNotes(on){ $('notes').classList.toggle('hide', !on); }
 $('notesOk').onclick = () => { ls.set('gs_notes', NOTES_V); initAudio(); sfx.click(); showNotes(false); };
 $('notesLink').onclick = e => { e.preventDefault(); showNotes(true); };
