@@ -36,8 +36,12 @@
   #hint { bottom:calc(14px + env(safe-area-inset-bottom)); left:50%; transform:translateX(-50%); background:var(--panel);
           border:1px solid var(--line); border-radius:999px; padding:8px 18px; font-size:clamp(11px,1.8vw,14px); font-weight:600;
           white-space:nowrap; max-width:96vw; overflow:hidden; text-overflow:ellipsis; }
-  #power { bottom:calc(60px + env(safe-area-inset-bottom)); left:50%; transform:translateX(-50%); width:min(60vw,300px); height:18px;
-           border-radius:999px; border:2px solid #fff; background:rgba(0,0,0,.5); overflow:hidden; }
+  #power { left:50%; top:50%; transform:translate(-50%,-100%); width:120px; height:14px;
+           border-radius:999px; border:2px solid #fff; background:rgba(0,0,0,.55); overflow:hidden; }
+  #toast { top:150px; left:50%; transform:translateX(-50%); background:var(--panel); border:1px solid var(--accent); border-radius:999px;
+           padding:8px 22px; font-size:clamp(15px,2.4vw,20px); font-weight:800; white-space:nowrap; animation:pop .25s ease-out; }
+  #toast small { font-weight:600; color:var(--mute); margin-left:8px; font-size:.8em; }
+  .binds input[type=range] { width:150px; accent-color:var(--accent); }
   #power i { display:block; height:100%; width:0; background:linear-gradient(90deg,#4be37a,#ffd23f 60%,#ff5a5a); }
   #map { top:86px; right:12px; width:150px; height:100px; border-radius:8px; border:1px solid var(--line); opacity:.9; }
   .hide { display:none !important; }
@@ -111,7 +115,8 @@
 <body>
 <canvas id="c"></canvas>
 <div id="brand" class="hud">⚽ NATIONS <span>CUP</span> 3D</div>
-<div id="topbtn"><button id="pause" class="hide">⏸ Pause</button><button id="mute">🔊 Son</button></div>
+<div id="topbtn"><button id="pause" class="hide">⏸ Pause</button><button id="mute">🔊 Son</button><button id="optB">⚙ Options</button></div>
+<div id="toast" class="hud hide"></div>
 <div id="score" class="hud hide"></div>
 <div id="tutoBox" class="hud hide"></div>
 <canvas id="map" class="hud hide" width="150" height="100"></canvas>
@@ -132,6 +137,10 @@ const cv = $('c'), ov = $('overlay'), elScore = $('score'), elMsg = $('msg'), el
 const rnd = (a,b) => a + Math.random()*(b-a), clamp = (v,a,b) => Math.max(a, Math.min(b, v)), lerp = (a,b,t) => a + (b-a)*t;
 const MODEL_URL = 'https://cdn.jsdelivr.net/gh/mrdoob/three.js@r128/examples/models/gltf/Xbot.glb';
 const coarse = matchMedia('(pointer:coarse)').matches;
+// Préférences gardées d'une visite à l'autre : volume, ambiance, caméra, équipe, difficulté
+let opt = { vol:.7, amb:true, cam:0, team:'', diff:0 };
+try { Object.assign(opt, JSON.parse(localStorage.getItem('nc_opt')) || {}); } catch (e) {}
+function saveOpt(){ try { localStorage.setItem('nc_opt', JSON.stringify(opt)); } catch (e) {} }
 
 /* ================= Données ================= */
 const L = 32, Wd = 21, GZ = 3.2, GH = 2.3, BR = .2, HALF = 100;
@@ -185,19 +194,22 @@ function controlsHtml(){ return fmt(`<div class="keys"><b>Se déplacer</b> {move
 if (navigator.keyboard && navigator.keyboard.getLayoutMap) navigator.keyboard.getLayoutMap().then(m => { m.forEach((v, k) => { if (/^Key|^Digit/.test(k)) layout[k] = v.toUpperCase(); }); if (state === 'menu') showMenu(); }).catch(() => {});
 
 /* ================= Son (entièrement synthétisé, donc libre de droits) ================= */
-let AC = null, master = null, crowdGain = null, muted = false;
+let AC = null, master = null, crowdGain = null, ambGain = null, muted = false;
+// Bruit "brun" : grave et doux (une rumeur lointaine), sans le souffle aigu du bruit blanc
+function brownBuf(sec){ const n = AC.sampleRate*sec, b = AC.createBuffer(1, n, AC.sampleRate), d = b.getChannelData(0), f = AC.sampleRate*.08; let v = 0;
+  for (let i = 0; i < n; i++) { v = (v + (Math.random()*2 - 1)*.04)*.995; d[i] = v*3*Math.min(1, i/f, (n - i)/f); } return b; }
 function noiseBuf(sec){ const b = AC.createBuffer(1, AC.sampleRate*sec, AC.sampleRate), d = b.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random()*2-1; return b; }
 function audioOn(){
   try {
     if (!AC) {
       AC = new (window.AudioContext || window.webkitAudioContext)();
-      master = AC.createGain(); master.gain.value = muted ? 0 : 1; master.connect(AC.destination);
+      master = AC.createGain(); master.gain.value = muted ? 0 : opt.vol; master.connect(AC.destination);
       // Foule : trois couches de bruit filtré, avec une houle lente
-      crowdGain = AC.createGain(); crowdGain.gain.value = .5; crowdGain.connect(master);
-      [[380, .5, .16], [900, .7, .09], [2200, .9, .03]].forEach(([f, q, v], i) => { const s = AC.createBufferSource(); s.buffer = noiseBuf(4 + i); s.loop = true;
-        const bp = AC.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = f; bp.Q.value = q; const g = AC.createGain(); g.gain.value = v;
-        const lfo = AC.createOscillator(), lg = AC.createGain(); lfo.frequency.value = .09 + i*.07; lg.gain.value = v*.45; lfo.connect(lg); lg.connect(g.gain); lfo.start();
-        s.connect(bp); bp.connect(g); g.connect(crowdGain); s.start(); });
+      ambGain = AC.createGain(); ambGain.gain.value = opt.amb ? 1 : 0; ambGain.connect(master);
+      crowdGain = AC.createGain(); crowdGain.gain.value = .5; crowdGain.connect(ambGain);
+      [[7, 380, .22], [11, 620, .1]].forEach(([sec, f, v]) => { const s = AC.createBufferSource(); s.buffer = brownBuf(sec); s.loop = true;
+        const lp = AC.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = f; const g = AC.createGain(); g.gain.value = v;
+        s.connect(lp); lp.connect(g); g.connect(crowdGain); s.start(); });
     }
     if (AC.state === 'suspended') AC.resume();
   } catch (e) { AC = null; }
@@ -218,22 +230,22 @@ const sfx = {
   kick: v => { v = v || .5; sTone(190, 42, .13, .3 + .6*v); sNoise(.05, 2600, .18 + .25*v, .003); },
   bounce: () => sTone(120, 60, .07, .14),
   tackle: () => { sNoise(.14, 420, .5, .008); sTone(95, 50, .1, .3); },
-  net: () => sNoise(.4, 3200, .22, .02, 0, 1800),
+  net: () => sNoise(.35, 2400, .09, .02, 0, 1400),
   click: () => sTone(600, 800, .06, .15), ok: () => { sTone(660, 660, .09, .16); sTone(990, 990, .14, .16, 'sine', .09); },
   // Sifflet d'arbitre : deux notes aiguës avec une roulette rapide
   whistle(n, long){ if (!AC) return; n = n || 1;
     for (let i = 0; i < n; i++) { const t = AC.currentTime + i*.3, dur = long && i === n - 1 ? .85 : .2;
-      const g = AC.createGain(); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(.08, t + .015); g.gain.setValueAtTime(.08, t + dur - .04); g.gain.linearRampToValueAtTime(0, t + dur);
+      const g = AC.createGain(); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(.045, t + .015); g.gain.setValueAtTime(.045, t + dur - .04); g.gain.linearRampToValueAtTime(0, t + dur);
       const trem = AC.createGain(); trem.gain.value = .6; const lfo = AC.createOscillator(), lg = AC.createGain(); lfo.frequency.value = 44; lg.gain.value = .4; lfo.connect(lg); lg.connect(trem.gain);
       [2380, 2860].forEach(f => { const o = AC.createOscillator(); o.type = 'square'; o.frequency.value = f; o.connect(trem); o.start(t); o.stop(t + dur); });
       trem.connect(g); g.connect(master); lfo.start(t); lfo.stop(t + dur); } },
-  cheer(){ sNoise(3.8, 650, .85, .25, 0, 1700); sNoise(3, 2400, .2, .4); [0, .55].forEach(d => { sTone(233, 233, .42, .06, 'sawtooth', d); sTone(311, 311, .42, .05, 'sawtooth', d); });
+  cheer(){ sNoise(3.2, 420, .38, .3, 0, 800); [0, .5].forEach(d => { sTone(233, 233, .4, .035, 'triangle', d); sTone(311, 311, .4, .03, 'triangle', d); });
     excite(1.5); setTimeout(() => excite(.8), 3500); },
-  groan(){ sNoise(1.8, 520, .5, .12, 0, 240); excite(.35); setTimeout(() => excite(.7), 2500); },
-  ooh: () => sNoise(1.1, 800, .4, .1, 0, 420),
-  drums: () => [0, .42, .84, 1.05, 1.26].forEach(d => { sTone(105, 45, .17, .26, 'sine', d); sNoise(.06, 1500, .14, .004, d); })
+  groan(){ sNoise(1.6, 360, .2, .15, 0, 220); excite(.35); setTimeout(() => excite(.7), 2500); },
+  ooh: () => sNoise(.9, 420, .14, .12, 0, 300),
+  drums: () => { if (opt.amb) [0, .42, .84, 1.05, 1.26].forEach(d => sTone(105, 45, .17, .12, 'sine', d)); }
 };
-$('mute').onclick = () => { muted = !muted; if (master) master.gain.value = muted ? 0 : 1; $('mute').textContent = muted ? '🔇 Muet' : '🔊 Son'; };
+$('mute').onclick = () => { muted = !muted; if (master) master.gain.value = muted ? 0 : opt.vol; $('mute').textContent = muted ? '🔇 Muet' : '🔊 Son'; };
 
 /* ================= Scène 3D ================= */
 const renderer = new T.WebGLRenderer({ canvas:cv, antialias:true });
@@ -359,7 +371,7 @@ function makeActor(set){
 
 /* ================= Caméra ================= */
 const MENU = { p:new T.Vector3(-1.7, 1.35, 57.2), l:new T.Vector3(-1.45, .85, 52) };
-const CAMS = [[25, 37], [34, 48], [17, 27]]; let camMode = 0;
+const CAMS = [[25, 37], [34, 48], [17, 27]]; let camMode = opt.cam % 3 || 0;
 const camL = MENU.l.clone(), camP = new T.Vector3(), camT = new T.Vector3(); camera.position.copy(MENU.p);
 function resize(){
   const w = window.innerWidth, h = window.innerHeight, a = w/h; renderer.setSize(w, h, false); camera.aspect = a;
@@ -369,7 +381,7 @@ function resize(){
 window.addEventListener('resize', resize); resize();
 
 /* ================= État ================= */
-let me = TEAMS[0], diff = 0, comp = null, cur = null, trophies = 0, tutoDone = false;
+let me = TEAMS.find(t => t.name === opt.team) || TEAMS[0], diff = [-1, 0, 1].includes(opt.diff) ? opt.diff : 0, comp = null, cur = null, trophies = 0, tutoDone = false;
 try { trophies = +localStorage.getItem('nc_trophies') || 0; tutoDone = !!localStorage.getItem('nc_tuto'); } catch (e) {}
 let state = 'load', stT = 0, half = 1, clock = 0, golden = false, kickTeam = 0, penT = 0, fk = null, exT = 0, drumT = 20, promptMode = 0;
 let sets = null, actors = null, preview = null, refs = [], teams = [], players = [], ctrl = null, wantSwitch = false, tuto = null, marks = [];
@@ -397,7 +409,7 @@ function updateHud(){
 /* ---------- Menu et panneaux ---------- */
 function pips(n){ let s = '<div class="pips">'; for (let i = 0; i < 5; i++) s += `<i class="${i < n ? 'on' : ''}"></i>`; return s + '</div>'; }
 function selectTeam(t){
-  me = t; paintCrowd(t.c1); if (proto) paintSet(sets[4], kitOf(t)); preview.recolor(kitOf(t));
+  me = t; opt.team = t.name; saveOpt(); paintCrowd(t.c1); if (proto) paintSet(sets[4], kitOf(t)); preview.recolor(kitOf(t));
   ov.querySelectorAll('.team').forEach((b, i) => b.classList.toggle('sel', TEAMS[i] === t));
   const c = ov.querySelector('.card'); if (!c) return;
   c.innerHTML = `<div class="head">${t.flag}${t.name}</div><div class="stat">Attaque ${pips(t.att)}</div><div class="stat">Défense ${pips(t.def)}</div>
@@ -409,16 +421,18 @@ function showMenu(){
   ov.className = 'menu';
   ov.innerHTML = `<div class="left"><h2>Choisis ta sélection</h2><p>Entraînement, puis phase de groupes, demi-finale et finale. Matchs à 7 contre 7.</p><div class="teams"></div>
     <div class="lab">Difficulté</div><div class="seg"><button data-d="-1">Facile</button><button data-d="0">Normal</button><button data-d="1">Difficile</button></div>
-    <div class="lab">Commandes</div><div class="seg" id="mPre"><button data-p="arrows">Flèches + lettres</button><button data-p="zqsd">ZQSD + JKL</button><button data-p="perso">Personnaliser…</button></div>${controlsHtml()}
-    <div class="links"><button id="mTuto">🎓 Entraînement</button><button id="mComp">🏆 Compétition directe</button><a href="penalty.html">Mode tirs au but ↗</a></div></div>
+    <div class="lab">Commandes</div><div class="seg" id="mPre"><button data-p="arrows">Flèches + lettres</button><button data-p="zqsd">ZQSD + JKL</button><button data-p="perso">Personnaliser…</button></div>
+    <div class="keys">${fmt('{move} bouger · {pass} passe · {shoot} tir · {lob} passe longue · {sprint} sprint')}</div>
+    <div class="links"><button id="mOpt">⚙ Options (son, caméra)</button><button id="mTuto">🎓 Entraînement</button><button id="mComp">🏆 Compétition directe</button><a href="penalty.html">Mode tirs au but ↗</a></div></div>
     <div class="right"><div class="card"></div></div>`;
   const grid = ov.querySelector('.teams');
   TEAMS.forEach(t => { const b = document.createElement('button'); b.className = 'team'; b.innerHTML = `${t.flag}<span>${t.name}</span>`;
     b.onclick = () => { audioOn(); sfx.click(); selectTeam(t); }; grid.appendChild(b); });
   ov.querySelectorAll('[data-d]').forEach(b => { b.classList.toggle('on', +b.dataset.d === diff);
-    b.onclick = () => { diff = +b.dataset.d; ov.querySelectorAll('[data-d]').forEach(x => x.classList.toggle('on', x === b)); }; });
+    b.onclick = () => { diff = opt.diff = +b.dataset.d; saveOpt(); ov.querySelectorAll('[data-d]').forEach(x => x.classList.toggle('on', x === b)); }; });
   ov.querySelectorAll('#mPre button').forEach(b => { b.classList.toggle('on', b.dataset.p === cfg.preset);
     b.onclick = () => { audioOn(); sfx.click(); if (b.dataset.p === 'perso') showControls(showMenu); else { setPreset(b.dataset.p); showMenu(); } }; });
+  $('mOpt').onclick = () => { audioOn(); sfx.click(); showOptions(showMenu); };
   $('mTuto').onclick = () => { audioOn(); sfx.whistle(); startTutorial(); }; $('mComp').onclick = () => { audioOn(); sfx.whistle(); startTournament(); };
   selectTeam(me);
 }
@@ -436,8 +450,32 @@ function confetti(){
 function resume(){ ov.className = 'hide'; keys.clear(); setState('play'); }
 function showPause(){
   setState('pause'); showPanel('', 'Pause', controlsHtml(), 'Reprendre ▶', resume, false, 'Quitter le match', showMenu);
-  const b = document.createElement('button'); b.className = 'btn alt'; b.textContent = 'Changer les commandes'; b.onclick = () => showControls(showPause); ov.querySelector('.panel').appendChild(b);
+  const b = document.createElement('button'); b.className = 'btn alt'; b.textContent = '⚙ Options (son, caméra, touches)'; b.onclick = () => showOptions(showPause); ov.querySelector('.panel').appendChild(b);
 }
+// Options : volume, ambiance, caméra, changement de joueur, touches, plein écran
+function showOptions(back){
+  ov.className = 'end';
+  ov.innerHTML = `<div class="panel"><h2>Options</h2><div class="binds">
+    <div><span>Volume</span><input id="oVol" type="range" min="0" max="100" value="${Math.round(opt.vol*100)}"></div>
+    <div><span>Ambiance du stade (bruit de foule)</span><button id="oAmb">${opt.amb ? 'Oui' : 'Non'}</button></div>
+    <div><span>Caméra</span><button id="oCam">${['Normale', 'Large', 'Proche'][camMode]}</button></div>
+    <div><span>Changement de joueur automatique</span><button id="oAuto">${cfg.auto ? 'Oui' : 'Non'}</button></div>
+    <div><span>Touches du clavier</span><button id="oKeys">Modifier…</button></div>
+    <div><span>Plein écran</span><button id="oFull">${document.fullscreenElement ? 'Quitter' : 'Activer'}</button></div>
+  </div><button class="btn">Valider</button></div>`;
+  const re = () => showOptions(back);
+  $('oVol').oninput = e => { opt.vol = e.target.value/100; saveOpt(); audioOn(); if (master && !muted) master.gain.value = opt.vol; };
+  $('oVol').onchange = () => sfx.kick(.5);
+  $('oAmb').onclick = () => { opt.amb = !opt.amb; saveOpt(); audioOn(); if (ambGain) ambGain.gain.value = opt.amb ? 1 : 0; re(); };
+  $('oCam').onclick = () => { camMode = opt.cam = (camMode + 1) % CAMS.length; saveOpt(); re(); };
+  $('oAuto').onclick = () => { cfg.auto = !cfg.auto; saveCfg(); re(); };
+  $('oKeys').onclick = () => showControls(re);
+  $('oFull').onclick = () => { try { document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen(); } catch (e) {} setTimeout(re, 400); };
+  ov.querySelector('.btn').onclick = () => { audioOn(); sfx.click(); back(); };
+}
+$('optB').onclick = () => { if (capture) return; if (state === 'menu') showOptions(showMenu); else if (state === 'play') { showPause(); showOptions(showPause); } else if (state === 'pause') showOptions(showPause); };
+let toastT = 0;
+function toast(html){ const t = $('toast'); t.innerHTML = html; t.classList.remove('hide'); t.style.animation = 'none'; void t.offsetWidth; t.style.animation = ''; clearTimeout(toastT); toastT = setTimeout(() => t.classList.add('hide'), 2000); }
 function togglePause(){ if (state === 'play') showPause(); else if (state === 'pause' && !capture) resume(); }
 // Écran de réglage : préréglages, une touche par action, changement de joueur automatique
 function showControls(back){
@@ -562,7 +600,7 @@ function restart(tm, x, z, label, rad){
   players.forEach(q => { if (q.tm === tm || q.isGK || q.off) return; const dx = q.x - x, dz = q.z - z, d = Math.hypot(dx, dz) || 1;
     if (d < rad) { q.x = clamp(x + dx/d*rad, -L, L); q.z = clamp(z + dz/d*rad, -Wd, Wd); q.vx = q.vz = 0; } });
   Object.assign(ball, { x, y:BR, z, vx:0, vy:0, vz:0, owner:p, last:tm, block:null }); teams.forEach(t => t.passTarget = null); charge = -1;
-  hint(`${label} pour ${tm.team.name}`, 2.2); sfx.whistle();
+  toast(`${label}<small>pour ${tm.team.name}</small>`); sfx.whistle();
 }
 function goal(tm){
   ball.owner = null; sfx.net(); tm.human ? sfx.cheer() : sfx.groan();
@@ -612,7 +650,7 @@ function tutoInit(){
 }
 function tutoAdvance(){
   if (!TUTO[tuto.step].done()) return false;
-  sfx.ok(); if (++tuto.step >= TUTO.length) finishTuto(); else tutoInit(); return true;
+  sfx.ok(); toast('✔ Bravo !<small>étape réussie</small>'); if (++tuto.step >= TUTO.length) finishTuto(); else tutoInit(); return true;
 }
 function tutoTick(){
   if (marks.length && ctrl) { const m = marks[0]; if (Math.hypot(ctrl.x - m[0], ctrl.z - m[1]) < 1.8 && (!m[2] || Math.hypot(ctrl.vx, ctrl.vz) > 6.3)) { marks.shift(); sfx.click(); } }
@@ -655,14 +693,17 @@ window.addEventListener('keydown', e => {
       cfg.binds[capture] = e.code; if (e.key && e.key.length === 1 && e.key !== ' ') cfg.labels[e.code] = e.key.toUpperCase(); cfg.preset = 'perso'; saveCfg(); }
     return showControls(capBack);
   }
+  if (state === 'menu' && e.code === 'Enter' && ov.className === 'menu') { const go = ov.querySelector('.card .btn'); if (go) go.click(); return; }
   const b = cfg.binds, bound = Object.values(b).includes(e.code);
   if (bound && state !== 'menu' && state !== 'load') e.preventDefault();
   if (e.repeat) return; keys.add(e.code); audioOn();
   if (e.code === b.shoot) shootDown(); else if (e.code === b.pass) passPress(); else if (e.code === b.lob) passPress(true);
-  else if (e.code === 'Escape' || e.code === 'KeyP' && !bound) togglePause(); else if (e.code === 'KeyC' && !bound) camMode = (camMode + 1) % CAMS.length;
+  else if (e.code === 'Escape' || e.code === 'KeyP' && !bound) togglePause(); else if (e.code === 'KeyC' && !bound) { camMode = opt.cam = (camMode + 1) % CAMS.length; saveOpt(); toast(`Caméra<small>${['normale', 'large', 'proche'][camMode]}</small>`); }
 });
 window.addEventListener('keyup', e => { keys.delete(e.code); if (e.code === cfg.binds.shoot) shootUp(); });
-window.addEventListener('blur', () => keys.clear());
+// Pause automatique quand on quitte la fenêtre ou l'onglet
+window.addEventListener('blur', () => { keys.clear(); if (state === 'play') showPause(); });
+document.addEventListener('visibilitychange', () => { if (document.hidden && state === 'play') showPause(); });
 function pollPad(){
   let g = null; try { g = navigator.getGamepads ? Array.from(navigator.getGamepads()).find(Boolean) : null; } catch (e) {}
   if (!g) { pad.x = pad.z = 0; pad.sprint = false; return; }
@@ -807,7 +848,7 @@ function simulate(dt){
     if (Math.abs(ball.z) < GZ && ball.y < GH) return goal(att);
     if (tuto) return tutoInit();
     if (ball.last === def) restart(att, s*(L - .4), Math.sign(ball.z || 1)*(Wd - .4), 'Corner');
-    else { const g = def.players[0]; g.x = s*(L - 2.5); g.z = 0; Object.assign(ball, { x:g.x, z:0, y:1, vx:0, vy:0, vz:0, owner:g, last:def, block:null }); gkTimer = 1.2; teams.forEach(t => t.passTarget = null); charge = -1; hint(`Sortie de but pour ${def.team.name}`, 2); sfx.whistle(); }
+    else { const g = def.players[0]; g.x = s*(L - 2.5); g.z = 0; Object.assign(ball, { x:g.x, z:0, y:1, vx:0, vy:0, vz:0, owner:g, last:def, block:null }); gkTimer = 1.2; teams.forEach(t => t.passTarget = null); charge = -1; toast(`Sortie de but<small>pour ${def.team.name}</small>`); sfx.whistle(); }
   } else if (Math.abs(ball.z) > Wd) { if (tuto) return tutoInit(); restart(other(ball.last || teams[0]), clamp(ball.x, -L + 1, L - 1), Math.sign(ball.z)*(Wd - .3), 'Touche'); }
 
   if (charge >= 0) { charge += dt; if (ball.owner !== ctrl) charge = -1; }
@@ -869,6 +910,7 @@ function frame(ts){
     ballMesh.rotation.z -= ball.vx*dt/BR*.5; ballMesh.rotation.x += ball.vz*dt/BR*.5;
     const c = ctrl && !ctrl.off ? ctrl : teams[0].players[6]; ctrlRing.visible = ctrlArrow.visible = true; ctrlRing.position.set(c.x, .03, c.z);
     ctrlArrow.position.set(c.x, 2.35 + Math.sin(time*5)*.08, c.z);
+    if (charge >= 0) { camP.set(c.x, 3.1, c.z).project(camera); elPower.style.left = (camP.x + 1)/2*window.innerWidth + 'px'; elPower.style.top = (1 - camP.y)/2*window.innerHeight + 'px'; }   // jauge de tir au-dessus du joueur
     let pm = null; if (state === 'play' && ctrl && ball.owner === ctrl && penT <= 0) { const [ax, az] = aimDir(); pm = bestPass(ctrl, ax, az); }
     passRing.visible = !!pm; if (pm) passRing.position.set(pm.x, .03, pm.z);
     const mk = tuto && marks[0]; markRing.visible = markArrow.visible = !!mk;
