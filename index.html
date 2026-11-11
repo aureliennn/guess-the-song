@@ -110,6 +110,13 @@ button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
 .note{font-size:13px;color:var(--mut);margin-top:10px}
 #answers{display:none}#panel{width:min(640px,100%);padding:12px 14px}#status{margin-bottom:8px;min-height:60px}#bar{margin-bottom:0}canvas#c{touch-action:none}
 #sb{position:fixed;top:58px;left:12px;padding:8px 12px;border-radius:14px;font-size:12px;font-weight:600;display:grid;gap:3px;max-width:200px;pointer-events:none}#sb b{color:var(--gold)}#sb span{color:var(--mut);font-weight:400}
+.chk{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--mut);cursor:pointer}.chk input{accent-color:var(--acc);width:17px;height:17px}
+.kick{flex:none;margin-left:8px;width:30px;height:30px;border-radius:50%;background:rgba(255,77,109,.2);color:var(--bad);font-weight:800}
+.emos{display:flex;gap:4px;justify-content:center;flex-wrap:wrap}.emos button{font-size:22px;line-height:1;padding:6px 8px;border-radius:10px;background:rgba(255,255,255,.07)}#sb .emos{pointer-events:auto;margin-top:4px;justify-content:flex-start}#sb .emos button{font-size:15px;padding:3px 4px}
+.emo{position:fixed;bottom:24%;z-index:15;pointer-events:none;font-weight:700;font-size:13px;text-align:center;text-shadow:0 2px 8px #000;animation:emoUp 2.6s ease-out forwards}.emo span{display:block;font-size:46px;line-height:1.1}
+@keyframes emoUp{from{opacity:0;transform:translateY(20px) scale(.6)}15%{opacity:1;transform:none}to{opacity:0;transform:translateY(-190px)}}
+#count{position:fixed;inset:0;z-index:18;display:grid;place-items:center;font-family:Unbounded,sans-serif;font-weight:800;font-size:min(42vw,230px);color:#fff;text-shadow:0 0 60px var(--acc);background:rgba(4,2,10,.55);pointer-events:none}
+select.inp{appearance:none;-webkit-appearance:none;min-width:0}select.inp option{background:#160e2c;color:#f4f0ff}
 #notes{position:fixed;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(4,2,10,.72)}
 #notes .box{width:min(520px,100%);max-height:86dvh;overflow:auto;-webkit-overflow-scrolling:touch;padding:22px}
 #notes h2{font-size:22px;margin-bottom:4px}#notes ul{list-style:none;display:grid;gap:8px;margin:14px 0 18px}#notes li{padding:9px 12px;border-radius:12px;background:rgba(255,255,255,.05);font-size:14px;line-height:1.35}#notes li b{display:block}#notes .btn{width:100%}
@@ -156,8 +163,10 @@ button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
       <button class="btn" type="submit">Jouer ▶</button>
     </form>
     <div class="lbl">⚔️ Duel en ligne</div>
-    <div class="row"><input class="inp" id="duelName" maxlength="16" placeholder="Ton pseudo" style="max-width:180px" autocomplete="off"><button class="btn" type="button" id="duelCreate">Créer un salon</button><input class="inp" id="duelCode" maxlength="4" placeholder="CODE" style="max-width:110px;text-transform:uppercase;text-align:center;letter-spacing:.2em" autocomplete="off"><button class="btn ghost" type="button" id="duelJoin">Rejoindre</button></div>
-    <div class="note">Crée un salon, donne le code à tes amis (jusqu'à 8 joueurs) : mêmes titres pour tous, classement en direct.</div>
+    <div class="row"><input class="inp" id="duelName" maxlength="16" placeholder="Ton pseudo" style="max-width:180px" autocomplete="off"><button class="btn" type="button" id="duelCreate">Créer un salon</button><input class="inp" id="duelCode" maxlength="4" placeholder="CODE" style="max-width:110px;text-transform:uppercase;text-align:center;letter-spacing:.2em" autocomplete="off"><button class="btn ghost" type="button" id="duelJoin">Rejoindre</button><label class="chk"><input type="checkbox" id="duelPub"> Salon public</label></div>
+    <div class="note">Crée un salon privé et donne le code ou le lien à tes amis, ou coche « Salon public » pour jouer avec n'importe qui (8 joueurs max).</div>
+    <div class="lbl">🌍 Salons publics ouverts</div>
+    <div class="list" id="pubRooms" style="max-height:220px;margin-top:0"></div>
     <div class="lbl">Comment ça marche</div>
     <div class="how">
       <div><b>⚡ Vitesse</b>De 1000 à 100 points selon ton temps de réponse.</div>
@@ -181,8 +190,9 @@ button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
 
 <div id="lobby" class="screen hide"><div class="box glass" id="lobbyBox"></div></div>
 <div id="sb" class="glass hide"></div>
+<div id="count" class="hide"></div>
 <div id="end" class="screen hide"><div class="box glass" id="endBox"></div></div>
-<div id="notes" class="hide"><div class="box glass"><div class="lbl" style="margin-top:0">Notes de version · v2.1</div><h2>Quoi de neuf ?</h2><ul><li><b>⚔️ Duel en ligne</b>Crée un salon, partage le code et affronte jusqu'à 7 amis en direct.</li><li><b>🚪 Portes 3D</b>Choisis ta réponse en touchant une porte, puis traverse-la pour passer au titre suivant.</li><li><b>🎨 Un thème par porte</b>Couleurs et décor 3D changent à chaque manche.</li><li><b>🎤 Titre ou artiste</b>Deux façons de jouer, plus la recherche d'un artiste précis (corrigée).</li><li><b>🌍 Classement mondial et avis</b>Publie ton score et note le jeu.</li><li><b>🎧 Réécoute</b>Retrouve les titres de ta partie à la fin, et l'onglet Découvrir.</li><li><b>📱 Téléphone</b>Affichage revu pour iPhone et Android, son débloqué sur iOS.</li></ul><button class="btn" id="notesOk">C'est parti ▶</button></div></div>
+<div id="notes" class="hide"><div class="box glass"><div class="lbl" style="margin-top:0">Notes de version · v2.2</div><h2>Quoi de neuf ?</h2><ul><li><b>⚔️ Multijoueur complet</b>Salons privés (code ou lien d'invitation) ou publics, jusqu'à 8 joueurs, classement en direct.</li><li><b>🎛️ Salon de l'hôte</b>Catégorie, mode et difficulté réglés dans le salon, compte à rebours, exclusion d'un joueur, victoires cumulées.</li><li><b>😂 Réactions</b>Envoie des émojis aux autres joueurs pendant la partie.</li><li><b>🚪 Portes 3D</b>Choisis ta réponse en touchant une porte, puis traverse-la pour passer au titre suivant.</li><li><b>🎨 Un thème par porte</b>Couleurs et décor 3D changent à chaque manche.</li><li><b>🎤 Titre ou artiste</b>Deux façons de jouer, plus la recherche d'un artiste précis (corrigée).</li><li><b>🌍 Classement mondial et avis</b>Publie ton score et note le jeu.</li><li><b>🎧 Réécoute</b>Retrouve les titres de ta partie à la fin, et l'onglet Découvrir.</li><li><b>📱 Téléphone</b>Affichage revu pour iPhone et Android, son débloqué sur iOS.</li></ul><button class="btn" id="notesOk">C'est parti ▶</button></div></div>
 <div id="tip" class="glass hide"></div>
 <div id="toast" class="glass hide"></div>
 <audio id="au" crossorigin="anonymous" preload="auto"></audio>
@@ -644,85 +654,163 @@ addEventListener('keydown', e => {
   else if (e.code === 'Escape') goHome();
 });
 /* ---------------- Duel en ligne ---------------- */
-let R = null;
+let R = null; const emoSeen = new Set();
 const PID = (() => { let p = null; try { p = sessionStorage.getItem('gs_pid'); } catch(e) {} if (!p) { p = Math.random().toString(36).slice(2, 10); try { sessionStorage.setItem('gs_pid', p); } catch(e) {} } return p; })();
 const db = (path, method, body) => fetch(DB_URL + '/' + path + '.json', method ? {method, body: JSON.stringify(body)} : undefined).then(r => { if (!r.ok) throw new Error('db'); return r.json(); });
-function roomName(){ const n = $('duelName').value.replace(/\s+/g, ' ').trim().slice(0, 16); if (n.length < 2) { toast('Choisis un pseudo d\'au moins 2 caractères.'); return null; } ls.set('gs_name', n); return n; }
+const SV = {'.sv': 'timestamp'}, EMOS = ['👏', '😂', '🔥', '😱', '😭', '🫡'];
+const rnow = () => Date.now() + (R ? R.off : 0);
+const alive = p => !!p && typeof p.n === 'string' && rnow() - (p.t || 0) < 30000;
+const newPlayer = n => ({n, s: 0, i: 0, g: 0, w: 0, gm: -1, done: false, t: SV});
+const modeName = m => m === 'artist' ? 'Trouver l\'artiste' : 'Trouver le titre';
+function roomName(){ const n = $('duelName').value.replace(/\s+/g, ' ').trim().slice(0, 16); if (n.length < 2) { toast('Choisis un pseudo d\'au moins 2 caractères.'); $('duelName').focus(); return null; } ls.set('gs_name', n); return n; }
 async function roomCreate(){
-  const n = roomName(); if (!n || R) return; initAudio(); sfx.click();
+  const n = roomName(); if (!n || R) return; initAudio(); sfx.click(); const pub = $('duelPub').checked;
   try {
     for (let k = 0; k < 6; k++) {
       const code = Array.from({length: 4}, () => 'ABCDEFGHJKLMNPQRSTUVWXYZ'[Math.random() * 24 | 0]).join('');
       if (await db('rooms/' + code + '/live/meta')) continue;
-      await db('rooms/' + code + '/live', 'PUT', {meta: {host: PID, state: 'lobby', game: 0, t: Date.now()}, players: {[PID]: {n, s: 0, i: 0, g: 0, done: false}}});
-      roomEnter(code, true, n); return;
+      await db('rooms/' + code + '/live', 'PUT', {meta: {host: PID, hn: n, state: 'lobby', game: 0, won: 0, pub, catId: 'top', diff, mode: gmode, t: SV}, players: {[PID]: newPlayer(n)}});
+      roomEnter(code, n); return;
     }
     toast('Impossible de créer un salon pour le moment. Réessaie.');
   } catch(e) { toast('Connexion au serveur impossible. Réessaie.'); }
 }
-async function roomJoin(){
+async function roomJoin(c){
   const n = roomName(); if (!n || R) return;
-  const code = $('duelCode').value.toUpperCase().replace(/[^A-Z]/g, '').slice(0, 4); if (code.length < 4) { toast('Entre le code à 4 lettres du salon.'); return; }
+  const code = String(c || $('duelCode').value).toUpperCase().replace(/[^A-Z]/g, '').slice(0, 4); if (code.length < 4) { toast('Entre le code à 4 lettres du salon.'); return; }
   initAudio(); sfx.click();
   try {
     const live = await db('rooms/' + code + '/live'); if (!live || !live.meta) { toast('Salon introuvable : vérifie le code.'); return; }
-    const pl = live.players || {}; if (Object.keys(pl).length >= 8 && !pl[PID]) { toast('Ce salon est complet (8 joueurs).'); return; }
-    await db('rooms/' + code + '/live/players/' + PID, 'PUT', {n, s: 0, i: 0, g: 0, done: false});
-    roomEnter(code, live.meta.host === PID, n);
+    if (live.meta.kick && live.meta.kick[PID]) { toast('Tu ne peux plus rejoindre ce salon.'); return; }
+    const pl = live.players || {}, t = Math.max(0, ...Object.values(pl).map(p => p && p.t || 0));
+    if (Object.values(pl).filter(p => p && t - (p.t || 0) < 30000).length >= 8 && !pl[PID]) { toast('Ce salon est complet (8 joueurs).'); return; }
+    await db('rooms/' + code + '/live/players/' + PID, 'PUT', newPlayer(n));
+    roomEnter(code, n);
   } catch(e) { toast('Connexion au serveur impossible. Réessaie.'); }
 }
-function roomEnter(code, host, n){ R = {code, host, n, live: null, game: -1, cat: CATS[0].id, sig: '', starting: false, launching: false, timer: 0}; show('lobby'); drawLobby(); roomPoll(); R.timer = setInterval(roomPoll, 1500); }
-function leaveRoom(){ if (!R) return; clearInterval(R.timer); R = null; $('sb').classList.add('hide'); }
+function roomEnter(code, n){
+  R = {code, n, host: false, live: null, game: -1, sig: '', starting: false, launching: false, timer: 0, off: 0, tick: 0, beatAt: Date.now()};
+  try { history.replaceState(null, '', location.pathname + '?salon=' + code); } catch(e) {}
+  show('lobby'); drawLobby(); roomPoll(); R.timer = setInterval(roomPoll, 1500);
+}
+function leaveRoom(kicked){
+  if (!R) return; clearInterval(R.timer); const code = R.code, wasHost = R.host, pub = R.live && R.live.meta && R.live.meta.pub; R = null;
+  $('sb').classList.add('hide'); $('count').classList.add('hide'); try { history.replaceState(null, '', location.pathname); } catch(e) {}
+  if (!kicked) fetch(DB_URL + '/rooms/' + code + '/live/players/' + PID + '.json', {method: 'DELETE', keepalive: true}).catch(() => {});
+  if (wasHost && pub) fetch(DB_URL + '/lobbies/' + code + '.json', {method: 'DELETE', keepalive: true}).catch(() => {});
+}
+addEventListener('pagehide', () => leaveRoom());
 async function roomPoll(){
-  if (!R) return; const code = R.code;
+  if (!R) return; const code = R.code; R.tick++;
   try {
-    const live = await db('rooms/' + code + '/live'); if (!R || R.code !== code || !live || !live.meta) return;
-    R.live = live; const m = live.meta;
-    if (R.game < 0) R.game = m.state === 'play' ? (m.game | 0) - 1 : (m.game | 0);
+    if (R.tick % 4 === 1 && R.live) { R.beatAt = Date.now(); db('rooms/' + code + '/live/players/' + PID, 'PATCH', {n: R.n, t: SV}).catch(() => {}); }
+    const live = await db('rooms/' + code + '/live'); if (!R || R.code !== code) return;
+    if (!live || !live.meta) { toast('Ce salon n\'existe plus.'); goHome(); return; }
+    const m = live.meta, pl = live.players || {};
+    if (m.kick && m.kick[PID]) { toast('L\'hôte t\'a retiré du salon.'); leaveRoom(true); goHome(); return; }
+    if (pl[PID] && pl[PID].t) R.off = pl[PID].t - R.beatAt;
+    R.live = live;
+    const al = Object.keys(pl).filter(id => alive(pl[id])).sort();
+    if (!alive(pl[m.host]) && al[0] === PID && m.host !== PID) { m.host = PID; m.hn = R.n; db('rooms/' + code + '/live/meta', 'PATCH', {host: PID, hn: R.n}).catch(() => {}); }
+    R.host = m.host === PID;
+    if (R.host && m.pub && R.tick % 4 === 1) db('lobbies/' + code, 'PUT', {n: m.hn || R.n, c: al.length, cat: (CATS.find(c => c.id === m.catId) || CATS[0]).n, p: m.state === 'play' && al.some(id => !pl[id].done) ? 1 : 0, t: SV}).catch(() => {});
+    if (R.host && m.state === 'play' && (m.won | 0) !== (m.game | 0) && al.length && al.every(id => pl[id].done && (pl[id].gm | 0) === (m.game | 0))) {
+      const win = al.slice().sort((a, b) => (pl[b].s | 0) - (pl[a].s | 0))[0]; m.won = m.game | 0;
+      db('rooms/' + code + '/live/meta', 'PATCH', {won: m.game | 0}).catch(() => {});
+      if (al.length > 1 && (pl[win].s | 0) > 0) db('rooms/' + code + '/live/players/' + win, 'PATCH', {w: (pl[win].w | 0) + 1}).catch(() => {});
+    }
+    for (const id in live.emo || {}) { const e = live.emo[id]; if (e && e.k && !emoSeen.has(e.k)) { emoSeen.add(e.k); if (rnow() - (e.t || 0) < 9000 && pl[id] && EMOS.includes(e.e)) floatEmo(pl[id].n, e.e); } }
+    if (R.game < 0) R.game = m.state === 'play' && rnow() - (m.st || 0) < 45000 ? (m.game | 0) - 1 : (m.game | 0);
     if (m.state === 'play' && (m.game | 0) !== R.game && !R.starting) {
       R.starting = true;
-      try { const rounds = await db('rooms/' + code + '/rounds'); if (R && R.code === code && Array.isArray(rounds) && rounds.length) { R.game = m.game | 0; startOnlineGame(m, rounds); } } finally { if (R) R.starting = false; }
+      try { const rounds = await db('rooms/' + code + '/rounds'); if (R && R.code === code && Array.isArray(rounds) && rounds.length) { R.game = m.game | 0; countdown(() => startOnlineGame(m, rounds)); } } finally { if (R) R.starting = false; }
     }
     if (S.screen === 'lobby') drawLobby(); drawBoard();
   } catch(e) {}
 }
-function roomPush(done){ if (!R) return; db('rooms/' + R.code + '/live/players/' + PID, 'PATCH', {n: R.n, s: S.score, i: S.i + (S.phase === 'reveal' ? 1 : 0), g: S.good, done: !!done}).catch(() => {}); }
-function roomPlayers(){ return Object.entries(R && R.live && R.live.players || {}).map(([id, p]) => Object.assign({id}, p)).sort((x, y) => (y.s | 0) - (x.s | 0)); }
-function rankHtml(){ return roomPlayers().map((p, k) => '<div class="li' + (k === 0 ? ' top' : '') + '"><span class="rk">' + (k + 1) + '</span><div>' + esc(p.n || '?') + (p.id === PID ? ' <span class="a">(toi)</span>' : '') + '<br><span class="a">' + (p.done ? 'Terminé' : (p.i | 0) > 0 ? 'Titre ' + Math.min((p.i | 0) + 1, ROUNDS) + '/' + ROUNDS : 'Prêt') + ' · ' + (p.g | 0) + ' bonnes</span></div><span class="sc">' + Number(p.s | 0).toLocaleString('fr-FR') + '</span></div>').join(''); }
+function roomPush(done){ if (!R) return; R.beatAt = Date.now(); db('rooms/' + R.code + '/live/players/' + PID, 'PATCH', {n: R.n, s: S.score, i: S.i + (S.phase === 'reveal' ? 1 : 0), g: S.good, gm: R.game, done: !!done, t: SV}).catch(() => {}); }
+function roomPlayers(){ return Object.entries(R && R.live && R.live.players || {}).filter(e => alive(e[1])).map(([id, p]) => Object.assign({id}, p)).sort((x, y) => (y.s | 0) - (x.s | 0) || String(x.n).localeCompare(String(y.n))); }
+function rankHtml(kick){
+  const m = R && R.live && R.live.meta || {}, g = m.game | 0;
+  return roomPlayers().map((p, k) => { const cur = (p.gm | 0) === g && m.state === 'play';
+    return '<div class="li' + (k === 0 ? ' top' : '') + '"><span class="rk">' + (cur && p.done && k < 3 ? ['🥇', '🥈', '🥉'][k] : k + 1) + '</span><div>' + (p.id === m.host ? '👑 ' : '') + esc(p.n || '?') + (p.id === PID ? ' <span class="a">(toi)</span>' : '') + (p.w ? ' <span class="a">🏆×' + (p.w | 0) + '</span>' : '') + '<br><span class="a">' + (cur ? (p.done ? 'Terminé' : 'Titre ' + Math.min((p.i | 0) + 1, ROUNDS) + '/' + ROUNDS) + ' · ' + (p.g | 0) + ' bonnes' : 'Prêt') + '</span></div><span class="sc">' + (cur ? Number(p.s | 0).toLocaleString('fr-FR') : '') + '</span>' + (kick && R.host && p.id !== PID ? '<button class="kick" data-kick="' + esc(p.id) + '" aria-label="Retirer ' + esc(p.n || '') + ' du salon">✕</button>' : '') + '</div>'; }).join('');
+}
+const emoBar = () => '<div class="emos">' + EMOS.map(e => '<button type="button" data-emo="' + e + '" aria-label="Réaction ' + e + '">' + e + '</button>').join('') + '</div>';
+function floatEmo(n, e){ const d = document.createElement('div'); d.className = 'emo'; d.innerHTML = '<span>' + esc(e) + '</span>' + esc(n); d.style.left = (12 + Math.random() * 62) + '%'; document.body.appendChild(d); setTimeout(() => d.remove(), 2600); }
+function sendEmo(e){ if (!R || !EMOS.includes(e)) return; const k = Math.random().toString(36).slice(2, 9); emoSeen.add(k); floatEmo(R.n, e); db('rooms/' + R.code + '/live/emo/' + PID, 'PUT', {e, k, t: SV}).catch(() => {}); }
+document.addEventListener('click', e => { const b = e.target.closest('[data-emo]'); if (b) sendEmo(b.dataset.emo); });
 function drawBoard(){
   const sb = $('sb'); if (!R || !R.live) { sb.classList.add('hide'); return; }
   sb.classList.toggle('hide', S.screen !== 'game');
-  if (S.screen === 'game') sb.innerHTML = roomPlayers().map((p, k) => '<div>' + (k === 0 ? '<b>' : '') + (k + 1) + '. ' + esc(p.n || '?') + (k === 0 ? '</b>' : '') + ' <span>' + Number(p.s | 0).toLocaleString('fr-FR') + (p.done ? ' ✓' : '') + '</span></div>').join('');
+  if (S.screen === 'game') { const h = roomPlayers().map((p, k) => '<div>' + (k === 0 ? '<b>' : '') + (k + 1) + '. ' + esc(p.n || '?') + (k === 0 ? '</b>' : '') + ' <span>' + Number(p.s | 0).toLocaleString('fr-FR') + (p.done ? ' ✓' : '') + '</span></div>').join(''); if (h !== R.sbSig) { R.sbSig = h; sb.innerHTML = h + emoBar(); } }
   const rr = $('roomRank'); if (rr && S.screen === 'end') rr.innerHTML = rankHtml();
 }
 function drawLobby(){
-  if (!R) return; const pl = roomPlayers(), sig = R.host + '|' + pl.map(p => p.id + p.n + p.s + p.done + p.i).join(',');
+  if (!R) return; const pl = roomPlayers(), m = R.live && R.live.meta || {}, cat = CATS.find(c => c.id === m.catId) || CATS[0], df = DIFFS.find(d => d.id === m.diff) || DIFFS[1];
+  const busy = m.state === 'play' ? pl.filter(p => (p.gm | 0) === (m.game | 0) && !p.done).length : 0;
+  const sig = [R.host, m.catId, m.diff, m.mode, m.pub, m.hn, busy, m.state].join('|') + pl.map(p => p.id + p.n + p.s + p.done + p.w + p.gm).join(',');
   if (sig === R.sig) return; R.sig = sig;
-  $('lobbyBox').innerHTML = '<div class="lbl" style="margin-top:0">⚔️ Salon de duel</div><div class="big" style="letter-spacing:.12em">' + R.code + '</div><p class="note">Donne ce code à tes amis : ils le tapent dans « Rejoindre » sur l\'accueil du site.</p><div class="lbl">Joueurs (' + pl.length + '/8)</div><div class="list" style="max-height:30dvh">' + (rankHtml() || '<div class="note">Connexion…</div>') + '</div>' +
-    (R.host ? '<div class="lbl">Catégorie de la partie</div><div class="row" style="justify-content:center"><select class="inp" id="lobbyCat" style="max-width:280px;flex:none">' + CATS.map(c => '<option value="' + c.id + '"' + (c.id === R.cat ? ' selected' : '') + '>' + c.e + ' ' + c.n + '</option>').join('') + '</select></div><p class="note">' + (gmode === 'artist' ? 'Trouver l\'artiste' : 'Trouver le titre') + ' · ' + DIFFS.find(d => d.id === diff).n + ' (réglages de ton accueil)</p><div class="row" style="justify-content:center;margin-top:14px"><button class="btn" id="lobbyGo">Lancer la partie ▶</button><button class="btn ghost" id="lobbyQuit">Quitter</button></div>'
-      : '<p class="note" style="margin:16px 0">En attente du lancement par l\'hôte…</p><button class="btn ghost" id="lobbyQuit">Quitter le salon</button>');
+  const opt = (v, cur, label) => '<option value="' + v + '"' + (v === cur ? ' selected' : '') + '>' + label + '</option>';
+  $('lobbyBox').innerHTML = '<div class="lbl" style="margin-top:0">⚔️ Salon de duel</div><div class="big" style="letter-spacing:.12em">' + R.code + '</div>' +
+    '<div class="row" style="justify-content:center;margin-top:10px"><button class="btn ghost" id="lobbyCopy">🔗 Copier le lien d\'invitation</button></div>' +
+    '<p class="note">' + (m.pub ? '🌍 Salon public : visible par tout le monde sur l\'accueil.' : '🔒 Salon privé : accessible seulement avec le code ou le lien.') + '</p>' +
+    '<div class="lbl">Joueurs (' + pl.length + '/8)</div><div class="list" style="max-height:28dvh;margin-bottom:10px">' + (rankHtml(true) || '<div class="note">Connexion…</div>') + '</div>' + emoBar() +
+    (R.host ? '<div class="lbl">Réglages de la partie</div><div class="row" style="justify-content:center"><select class="inp" id="lobbyCat" aria-label="Catégorie" style="max-width:210px;flex:none">' + CATS.map(c => opt(c.id, cat.id, c.e + ' ' + c.n)).join('') + '</select><select class="inp" id="lobbyMode" aria-label="Mode" style="max-width:190px;flex:none">' + opt('title', m.mode, '🎵 Trouver le titre') + opt('artist', m.mode, '🎤 Trouver l\'artiste') + '</select><select class="inp" id="lobbyDiff" aria-label="Difficulté" style="max-width:170px;flex:none">' + DIFFS.map(d => opt(d.id, df.id, d.n + ' · ' + d.s + ' s')).join('') + '</select></div>' +
+      '<div class="row" style="justify-content:center;margin-top:10px"><label class="chk"><input type="checkbox" id="lobbyPub"' + (m.pub ? ' checked' : '') + '> Salon public</label></div>' +
+      (busy ? '<p class="note">' + busy + ' joueur' + (busy > 1 ? 's' : '') + ' encore en jeu : relancer les fera recommencer.</p>' : '') +
+      '<div class="row" style="justify-content:center;margin-top:14px"><button class="btn" id="lobbyGo">' + (m.state === 'play' ? 'Nouvelle partie ▶' : 'Lancer la partie ▶') + '</button><button class="btn ghost" id="lobbyQuit">Quitter</button></div>'
+      : '<div class="lbl">Réglages de la partie</div><p class="note" style="margin-top:0">' + cat.e + ' ' + cat.n + ' · ' + modeName(m.mode) + ' · ' + df.n + ' (' + df.s + ' s)</p><p class="note" style="margin:14px 0">' + (busy ? 'Partie en cours…' : 'En attente du lancement par ' + esc(m.hn || 'l\'hôte') + '…') + '</p><button class="btn ghost" id="lobbyQuit">Quitter le salon</button>');
 }
 async function roomLaunch(){
-  if (!R || !R.host || R.launching || !R.live) return; R.launching = true; const code = R.code, cat = CATS.find(c => c.id === R.cat) || CATS[0]; toast('Préparation de la partie…');
+  if (!R || !R.host || R.launching || !R.live) return; R.launching = true; const code = R.code, m = R.live.meta, cat = CATS.find(c => c.id === m.catId) || CATS[0]; toast('Préparation de la partie…');
   try {
     const pool = await loadPool(cat); if (pool.length < 8) throw new Error('pool');
     const rounds = shuffle(pool.slice()).slice(0, ROUNDS).map(t => makeRound(t, pool)).map(r => ({t: r.t, ch: r.ch.map(c => ({title: c.title, artist: c.artist})), correct: r.correct}));
     await db('rooms/' + code + '/rounds', 'PUT', rounds);
-    await db('rooms/' + code + '/live/meta', 'PATCH', {state: 'play', game: (R.live.meta.game | 0) + 1, cat: cat.n, e: cat.e, diff, mode: gmode});
+    await db('rooms/' + code + '/live/meta', 'PATCH', {state: 'play', game: (m.game | 0) + 1, st: SV});
     $('toast').classList.add('hide'); roomPoll();
   } catch(e) { toast('Impossible de lancer la partie. Réessaie.'); }
   if (R) R.launching = false;
 }
+function countdown(cb){
+  const el = $('count'); let k = 3; el.classList.remove('hide');
+  const step = () => { if (!R) { el.classList.add('hide'); return; } if (k === 0) { el.classList.add('hide'); cb(); return; } el.textContent = k; tone(k === 1 ? 880 : 660, 0, .18, 'triangle'); k--; setTimeout(step, 750); };
+  step();
+}
 function startOnlineGame(m, rounds){
-  diff = DIFFS.some(d => d.id === m.diff) ? m.diff : 'norm'; gmode = m.mode === 'artist' ? 'artist' : 'title'; published = false; clearTimeout(nextTO); clearTimeout(loadTO); fly = null; $('flash').style.opacity = 0;
-  Object.assign(S, {cat: {id: 'duel', n: 'Duel · ' + String(m.cat || '').slice(0, 30), e: '⚔️'}, pool: [], spare: [], i: 0, score: 0, shown: 0, streak: 0, best: 0, good: 0, jok: 2, fails: 0, phase: 'idle', dur: DIFFS.find(d => d.id === diff).s});
+  if (!R) return; const cat = CATS.find(c => c.id === m.catId) || CATS[0];
+  diff = DIFFS.some(d => d.id === m.diff) ? m.diff : 'norm'; gmode = m.mode === 'artist' ? 'artist' : 'title'; published = false; clearTimeout(nextTO); clearTimeout(loadTO); fly = null; $('flash').style.opacity = 0; recNow = -1;
+  Object.assign(S, {cat: {id: 'duel', n: 'Duel · ' + cat.n, e: '⚔️'}, pool: [], spare: [], i: 0, score: 0, shown: 0, streak: 0, best: 0, good: 0, jok: 2, fails: 0, phase: 'idle', dur: DIFFS.find(d => d.id === diff).s});
   S.rounds = rounds.slice(0, ROUNDS).map(r => ({t: r.t, ch: r.ch, correct: r.correct | 0, ok: null, pts: 0}));
-  roomPush(); clearOrbs(); setTheme(0); setScore3D(0); $('hScore').textContent = '0'; show('game'); startRound(); drawBoard();
+  roomPush(); clearOrbs(); setTheme(0); setScore3D(0); $('hScore').textContent = '0'; R.sbSig = ''; show('game'); startRound(); drawBoard();
 }
 function toLobby(){ if (!R) return; au.pause(); recNow = -1; S.phase = 'idle'; clearOrbs(); setTheme(0); setLabel(''); R.sig = ''; show('lobby'); drawLobby(); }
-$('duelCreate').onclick = roomCreate; $('duelJoin').onclick = roomJoin;
-$('lobbyBox').addEventListener('click', e => { if (e.target.id === 'lobbyGo') roomLaunch(); else if (e.target.id === 'lobbyQuit') goHome(); });
-$('lobbyBox').addEventListener('change', e => { if (e.target.id === 'lobbyCat' && R) R.cat = e.target.value; });
+$('duelCreate').onclick = roomCreate; $('duelJoin').onclick = () => roomJoin();
+$('lobbyBox').addEventListener('click', e => {
+  const k = e.target.closest('[data-kick]');
+  if (k && R && R.host) { const id = k.dataset.kick; db('rooms/' + R.code + '/live/meta/kick/' + id, 'PUT', true).then(() => db('rooms/' + R.code + '/live/players/' + id, 'DELETE')).catch(() => {}); if (R.live && R.live.players) delete R.live.players[id]; R.sig = ''; drawLobby(); }
+  else if (e.target.id === 'lobbyGo') roomLaunch();
+  else if (e.target.id === 'lobbyQuit') goHome();
+  else if (e.target.id === 'lobbyCopy' && R) { const link = location.origin + location.pathname + '?salon=' + R.code; (navigator.clipboard ? navigator.clipboard.writeText(link) : Promise.reject()).then(() => toast('Lien copié : envoie-le à tes amis.'), () => toast(link)); }
+});
+$('lobbyBox').addEventListener('change', e => {
+  if (!R || !R.host || !R.live || !['lobbyCat', 'lobbyMode', 'lobbyDiff', 'lobbyPub'].includes(e.target.id)) return;
+  const key = {lobbyCat: 'catId', lobbyMode: 'mode', lobbyDiff: 'diff', lobbyPub: 'pub'}[e.target.id], patch = {[key]: key === 'pub' ? e.target.checked : e.target.value}, was = R.live.meta.pub;
+  Object.assign(R.live.meta, patch); db('rooms/' + R.code + '/live/meta', 'PATCH', patch).catch(() => {});
+  if (key === 'pub' && was && !patch.pub) db('lobbies/' + R.code, 'DELETE').catch(() => {}); if (key === 'pub' && !was && patch.pub) R.tick = 0;
+  R.sig = ''; drawLobby();
+});
+async function drawPubRooms(){
+  const el = $('pubRooms'); if (S.screen !== 'home' || R) return;
+  try {
+    const all = await db('lobbies') || {};
+    const a = Object.entries(all).filter(([c, v]) => v && /^[A-Z]{4}$/.test(c) && Math.abs(Date.now() - (v.t || 0)) < 60000 && (v.c | 0) < 8).sort((x, y) => y[1].t - x[1].t).slice(0, 8);
+    el.innerHTML = a.length ? a.map(([c, v]) => '<div class="li"><div>' + esc(String(v.n || '?').slice(0, 16)) + '<br><span class="a">' + esc(String(v.cat || '').slice(0, 30)) + ' · ' + (v.c | 0) + '/8' + (v.p ? ' · partie en cours' : '') + '</span></div><button class="btn ghost" data-code="' + c + '" style="margin-left:auto;padding:8px 14px;font-size:13px">Rejoindre</button></div>').join('') : '<div class="note" style="margin-top:0">Aucun salon public ouvert pour l\'instant. Crée le tien !</div>';
+  } catch(e) { el.innerHTML = ''; }
+}
+$('pubRooms').onclick = e => { const b = e.target.closest('[data-code]'); if (b) roomJoin(b.dataset.code); };
+setInterval(() => { if (!document.hidden) drawPubRooms(); }, 8000); drawPubRooms();
+{ const q = new URLSearchParams(location.search).get('salon'); if (q && /^[A-Za-z]{4}$/.test(q)) { $('duelCode').value = q.toUpperCase(); setTimeout(() => { toast('Salon ' + q.toUpperCase() + ' : entre ton pseudo puis clique sur Rejoindre.'); $('duelName').scrollIntoView({block: 'center'}); }, 700); } }
 /* ---------------- Classement ---------------- */
 async function lbFetch(){
   if (!DB_URL) return ls.get('gs_lb', []);
@@ -795,7 +883,7 @@ function setTab(t){
   if (t === 'lb') renderLb(); if (t === 'rev') { $('revName').value = ls.get('gs_name', ''); drawStars(); renderRev(); } if (t === 'disc' && !discList.length) loadDisc('');
 }
 $('tabs').onclick = e => { const t = e.target.dataset.t; if (t) { sfx.click(); setTab(t); } };
-const NOTES_V = '2.1';
+const NOTES_V = '2.2';
 function showNotes(on){ $('notes').classList.toggle('hide', !on); }
 $('notesOk').onclick = () => { ls.set('gs_notes', NOTES_V); initAudio(); sfx.click(); showNotes(false); };
 $('notesLink').onclick = e => { e.preventDefault(); showNotes(true); };
