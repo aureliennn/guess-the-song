@@ -124,7 +124,12 @@ button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
   <div class="box glass">
     <h1 class="logo">GUESS THE SONG</h1>
     <p class="sub">Un extrait démarre, quatre réponses s'affichent. Plus tu réponds vite, plus tu marques — et chaque bonne réponse d'affilée fait grimper le multiplicateur.</p>
-    <div class="seg" id="tabs" style="margin-bottom:16px"><button type="button" data-t="play" class="on">🎮 Jouer</button><button type="button" data-t="lb">🌍 Classement</button><button type="button" data-t="disc">🎧 Découvrir</button></div>
+    <div class="seg" id="tabs" style="margin-bottom:16px"><button type="button" data-t="play" class="on">🎮 Jouer</button><button type="button" data-t="lb">🌍 Classement</button><button type="button" data-t="disc">🎧 Découvrir</button><button type="button" data-t="rev">⭐ Avis</button></div>
+    <div id="tabRev" class="hide">
+      <form id="revForm"><div class="row"><input class="inp" id="revName" maxlength="16" placeholder="Ton pseudo" style="max-width:200px;flex:none"><div id="revStars" role="group" aria-label="Note"></div></div>
+      <div class="row" style="margin-top:10px"><input class="inp" id="revMsg" maxlength="240" placeholder="Ton avis sur le jeu…" autocomplete="off"><button class="btn" type="submit">Envoyer</button></div></form>
+      <div class="note" id="revInfo"></div><div class="list" id="revList"></div>
+    </div>
     <div id="tabLb" class="hide"></div>
     <div id="tabDisc" class="hide">
       <form class="row" id="discForm"><input class="inp" id="discQ" placeholder="Cherche un titre ou un artiste…" autocomplete="off" maxlength="60"><button class="btn" type="submit">Chercher</button></form>
@@ -276,6 +281,7 @@ const sfx = {
   ok(n){ [523, 659, 784, 1047].forEach((f, i) => tone(f * (1 + Math.min(n, 4) * .06), i * .07, .28, 'triangle')); },
   bad(){ tone(160, 0, .35, 'sawtooth', .1); tone(110, .1, .4, 'sawtooth', .1); },
   click(){ tone(880, 0, .08, 'sine', .08); },
+  whoosh(){ if (!AC) return; const o = AC.createOscillator(), a = AC.createGain(), t = AC.currentTime; o.type = 'sine'; o.frequency.setValueAtTime(180, t); o.frequency.exponentialRampToValueAtTime(1400, t + .8); a.gain.setValueAtTime(0, t); a.gain.linearRampToValueAtTime(.1 * vol / 100, t + .5); a.gain.exponentialRampToValueAtTime(.0001, t + .95); o.connect(a); a.connect(AC.destination); o.start(t); o.stop(t + 1); },
   orb(i){ tone([523, 587, 659, 784, 880, 988, 1047, 1175, 1319, 1568][i % 10], 0, .5, 'sine', .12); },
   end(){ [392, 523, 659, 784, 1047, 1319].forEach((f, i) => tone(f, i * .1, .5, 'triangle')); }
 };
@@ -467,6 +473,7 @@ function frame(now){
   shake = Math.max(0, shake - dt * 3);
   const orbit = inGame ? 0 : T * .12, tx = Math.sin(orbit) * dist + mx * 1.4 + (Math.random() - .5) * shake * .5, tz = Math.cos(orbit) * dist, ty = (portrait ? 8.5 : 6.6) - my * .7 + (Math.random() - .5) * shake * .4;
   cam.position.x += (tx - cam.position.x) * Math.min(1, dt * 3); cam.position.y += (ty - cam.position.y) * Math.min(1, dt * 3); cam.position.z += (tz - cam.position.z) * Math.min(1, dt * 3);
+  if (fly) { fly.t = Math.min(1, fly.t + dt / .95); const e = fly.t * fly.t * (3 - 2 * fly.t), e2 = fly.t * fly.t; cam.position.set(fly.from.x + (fly.x - fly.from.x) * e, fly.from.y + (2.4 - fly.from.y) * e, fly.from.z + (DZ - 3 - fly.from.z) * e2); cam.lookAt(fly.x * e, .5 + 1.9 * e, -1.5 + (DZ - 10 + 1.5) * e); } else
   cam.lookAt(0, inGame ? (portrait ? -3 : (innerWidth > 700 ? .5 : -.9)) : .8, inGame ? -1.5 : 0);
   if (bloom) bloom.strength = .4 + bass * .3;
   if (composer) composer.render(); else renderer.render(scene, cam);
@@ -537,10 +544,23 @@ function answer(k){
   const fl = $('flash'); fl.style.transition = 'none'; fl.style.background = ok ? 'radial-gradient(circle at 50% 40%,rgba(61,255,162,.28),transparent 65%)' : 'radial-gradient(circle at 50% 40%,rgba(255,77,109,.32),transparent 65%)'; fl.style.opacity = 1; requestAnimationFrame(() => { fl.style.transition = 'opacity .7s'; fl.style.opacity = 0; });
   if (ok) { sfx.ok(S.streak - 1); burst(90 + S.streak * 40, S.streak >= 3 ? '#ffd166' : '#3dffa2', 5 + S.streak); floatText('+' + pts, S.streak >= 3 ? '#ffd166' : '#3dffa2', 2); if (S.streak >= 2) floatText('COMBO ×' + String(MULT[Math.min(S.streak, 4)]).replace('.', ','), '#ff9f43', 3.6); setScore3D(S.score); spin = 7; }
   else { sfx.bad(); shake = 1; }
-  $('nextBtn').textContent = S.i + 1 >= S.rounds.length ? 'Résultats ▶' : 'Suivant ▶'; $('nextBtn').classList.remove('hide');
-  nextTO = setTimeout(next, ok ? 4200 : 5200);
+  $('nextBtn').textContent = S.i + 1 >= S.rounds.length ? 'Résultats ▶' : ok ? 'Passer la porte ▶' : 'Suivant ▶'; $('nextBtn').classList.remove('hide');
+  nextTO = setTimeout(next, ok ? 3200 : 5200);
 }
-function next(){ if (S.phase !== 'reveal') return; clearTimeout(nextTO); if (++S.i >= S.rounds.length) end(); else startRound(); }
+let fly = null;
+function next(){
+  if (S.phase !== 'reveal') return; clearTimeout(nextTO);
+  const r = S.rounds[S.i];
+  if (!r.ok) { advance(); return; }
+  S.phase = 'fly'; fly = {t: 0, x: doors[r.correct].G.position.x, from: cam.position.clone()}; sfx.whoosh();
+  const fl = $('flash'); fl.style.transition = 'none'; fl.style.background = 'radial-gradient(circle at 50% 45%,#ffffff,#3dffa2 70%)'; fl.style.opacity = 0;
+  requestAnimationFrame(() => { fl.style.transition = 'opacity .5s ease-in .45s'; fl.style.opacity = 1; });
+  nextTO = setTimeout(advance, 1000);
+}
+function advance(){
+  if (fly) { fly = null; cam.position.set(0, 9, 19); const fl = $('flash'); fl.style.transition = 'opacity .7s'; fl.style.opacity = 0; }
+  if (++S.i >= S.rounds.length) end(); else startRound();
+}
 function joker(){
   if (S.phase !== 'play' || S.jok < 1 || S.jokUsed) return;
   S.jok--; S.jokUsed = true; sfx.click(); const r = S.rounds[S.i];
@@ -556,7 +576,7 @@ function end(){
     '<div class="row" style="justify-content:center"><button class="btn" id="again">Rejouer ▶</button><button class="btn ghost" id="menu">Changer de catégorie</button></div><p style="color:var(--mut);font-size:12px;margin-top:12px">Astuce : les orbes autour du vinyle sont tes réponses — clique dessus.</p>';
   if ($('pubForm')) $('pubForm').onsubmit = publish; $('again').onclick = () => startGame(S.cat); $('menu').onclick = goHome; show('end');
 }
-function goHome(){ clearTimeout(nextTO); clearTimeout(loadTO); S.phase = 'idle'; S.streak = 0; au.pause(); doorsHide(); discNow = -1; hueT = HUES[0]; setLabel(''); clearOrbs(); renderHome(); show('home'); }
+function goHome(){ clearTimeout(nextTO); if (fly) { fly = null; $('flash').style.opacity = 0; } clearTimeout(loadTO); S.phase = 'idle'; S.streak = 0; au.pause(); doorsHide(); discNow = -1; hueT = HUES[0]; setLabel(''); clearOrbs(); renderHome(); show('home'); }
 $('answers').onmouseover = e => { const b = e.target.closest('.ans'); if (b) setHov(+b.dataset.k); }; $('answers').onmouseleave = () => setHov(-1);
 $('answers').onclick = e => { const b = e.target.closest('.ans'); if (b && !b.disabled) answer(+b.dataset.k); };
 $('joker').onclick = joker; $('nextBtn').onclick = next; $('quit').onclick = goHome;
@@ -596,6 +616,29 @@ async function renderLb(){
   el.innerHTML = '<div class="note">' + (DB_URL ? 'Les 50 meilleurs scores, tous joueurs confondus.' : 'Scores enregistrés sur cet appareil. Le classement mondial s\'activera quand la base de données en ligne sera branchée.') + '</div><div class="list">' +
     (a.length ? a.map((e, i) => '<div class="li' + (i < 3 ? ' top' : '') + '"><span class="rk">' + (i + 1) + '</span><div>' + esc(e.n) + (e.r ? ' <span class="a">' + esc(e.r) + '</span>' : '') + '<br><span class="a">' + esc(e.c || '') + ' · ' + esc((DIFFS.find(d => d.id === e.d) || {n: ''}).n) + ' · ' + (e.g | 0) + '/10</span></div><span class="sc">' + Number(e.s).toLocaleString('fr-FR') + '</span></div>').join('') : '<div class="note">Aucun score pour l\'instant. Joue une partie et publie le tien !</div>') + '</div>';
 }
+/* ---------------- Avis ---------------- */
+let revStars = 5;
+function drawStars(){ $('revStars').innerHTML = [1, 2, 3, 4, 5].map(i => '<button type="button" data-s="' + i + '" aria-label="' + i + ' sur 5" style="font-size:28px;line-height:1;padding:0 2px;color:' + (i <= revStars ? 'var(--gold)' : 'rgba(255,255,255,.25)') + '">★</button>').join(''); }
+$('revStars').onclick = e => { const v = +e.target.dataset.s; if (v) { revStars = v; drawStars(); } };
+async function revFetch(){
+  if (!DB_URL) return ls.get('gs_rev', []);
+  const r = await fetch(DB_URL + '/reviews.json?orderBy=%22t%22&limitToLast=40'); if (!r.ok) throw new Error('db');
+  return Object.values(await r.json() || {}).filter(e => e && typeof e.m === 'string' && typeof e.n === 'string').sort((a, b) => b.t - a.t);
+}
+async function renderRev(msg){
+  let a; try { a = await revFetch(); } catch(e) { $('revInfo').textContent = 'Avis indisponibles pour le moment.'; $('revList').innerHTML = ''; return; }
+  const avg = a.length ? (a.reduce((x, e) => x + (e.s | 0), 0) / a.length).toFixed(1).replace('.', ',') : null;
+  $('revInfo').innerHTML = (msg ? msg + ' ' : '') + (avg ? '<b style="color:var(--gold)">★ ' + avg + '/5</b> sur ' + a.length + ' avis. ' : 'Aucun avis pour l\'instant. ') + (DB_URL ? '' : 'Les avis restent sur cet appareil tant que la base de données en ligne n\'est pas branchée.');
+  $('revList').innerHTML = a.map(e => '<div class="li"><div><span style="color:var(--gold)">' + '★'.repeat(Math.max(1, Math.min(5, e.s | 0))) + '</span> <b>' + esc(e.n) + '</b> <span class="a">' + new Date(e.t).toLocaleDateString('fr-FR') + '</span><br>' + esc(e.m) + '</div></div>').join('');
+}
+$('revForm').onsubmit = async ev => {
+  ev.preventDefault(); const n = $('revName').value.replace(/\s+/g, ' ').trim().slice(0, 16), m = $('revMsg').value.replace(/\s+/g, ' ').trim().slice(0, 240);
+  if (n.length < 2 || m.length < 3) { $('revInfo').textContent = 'Indique un pseudo et un avis de quelques mots.'; return; }
+  ls.set('gs_name', n); const e = {n, m, s: revStars, t: Date.now()};
+  try { if (!DB_URL) { const a = ls.get('gs_rev', []); a.unshift(e); ls.set('gs_rev', a.slice(0, 40)); } else { const r = await fetch(DB_URL + '/reviews.json', {method: 'POST', body: JSON.stringify(e)}); if (!r.ok) throw new Error('db'); }
+    $('revMsg').value = ''; sfx.ok(0); renderRev('✓ Merci pour ton avis !'); }
+  catch(x) { $('revInfo').textContent = 'Envoi impossible pour le moment. Réessaie.'; }
+};
 /* ---------------- Découvrir ---------------- */
 let discNow = -1, discList = [];
 async function loadDisc(q){
@@ -614,9 +657,9 @@ $('discList').onclick = e => {
 $('discForm').onsubmit = e => { e.preventDefault(); loadDisc($('discQ').value.trim()); };
 au.addEventListener('ended', () => { if (discNow >= 0) { discNow = -1; drawDisc(); } });
 function setTab(t){
-  ['Play', 'Lb', 'Disc'].forEach(n => $('tab' + n).classList.toggle('hide', n.toLowerCase() !== t));
+  ['Play', 'Lb', 'Disc', 'Rev'].forEach(n => $('tab' + n).classList.toggle('hide', n.toLowerCase() !== t));
   document.querySelectorAll('#tabs button').forEach(b => b.classList.toggle('on', b.dataset.t === t));
-  if (t === 'lb') renderLb(); if (t === 'disc' && !discList.length) loadDisc('');
+  if (t === 'lb') renderLb(); if (t === 'rev') { $('revName').value = ls.get('gs_name', ''); drawStars(); renderRev(); } if (t === 'disc' && !discList.length) loadDisc('');
 }
 $('tabs').onclick = e => { const t = e.target.dataset.t; if (t) { sfx.click(); setTab(t); } };
 window.gs = {S, doors, info: () => ({screen: S.screen, phase: S.phase, i: S.i, score: S.score, streak: S.streak, correct: S.rounds[S.i] && S.rounds[S.i].correct, pool: S.pool.length, orbs: orbs.length, bloom: !!composer, paused: au.paused})};
