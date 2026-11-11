@@ -211,7 +211,7 @@ const CATS = [
 const DIFFS = [{id:'easy', n:'Facile', s:20}, {id:'norm', n:'Normal', s:14}, {id:'hard', n:'Expert', s:8}];
 const MULT = [1, 1.5, 2, 2.5, 3], ROUNDS = 10;
 // Base du classement mondial : URL d'une Firebase Realtime Database (vide = classement local a l'appareil).
-const DB_URL = '';
+const DB_URL = 'https://guess-the-song-27134-default-rtdb.europe-west1.firebasedatabase.app';
 let best = ls.get('gs_best', {}), diff = ls.get('gs_diff', 'norm'), gmode = ls.get('gs_mode', 'title');
 const artMode = () => gmode === 'artist' && S.cat && !S.cat.q, bestKey = id => id + ':' + diff + (gmode === 'artist' ? ':a' : '');
 
