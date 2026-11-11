@@ -371,7 +371,7 @@ function showMenu(){
 }
 function pathHtml(){
   return '<div class="path">' + STAGES.map((s, i) => { const r = results[i];
-    return `<div class="${i === results.length ? 'cur' : ''}"><span>${s}</span>${opps[i].flag}${opps[i].name}<em style="color:${r ? (r.w ? 'var(--good)' : 'var(--bad)') : 'var(--mute)'}">${r ? r.p + ' – ' + r.a : '·'}</em></div>`; }).join('') + '</div>';
+    return `<div class="${i === results.length && (!i || results[i-1].w) ? 'cur' : ''}"><span>${s}</span>${opps[i].flag}${opps[i].name}<em style="color:${r ? (r.w ? 'var(--good)' : 'var(--bad)') : 'var(--mute)'}">${r ? r.p + ' – ' + r.a : '·'}</em></div>`; }).join('') + '</div>';
 }
 function showPanel(icon, title, text, label, action, path){
   ov.className = 'end';
@@ -435,7 +435,7 @@ function bestPass(p, dx, dz){
   return best;
 }
 function shoot(p, power, aimZ){
-  const gx = L*p.tm.dir, sk = p.tm.team.att, err = (p.tm.human ? .5 + power*1.1 : 1.5 - diff*.5)*(1.4 - sk*.1);
+  const gx = L*p.tm.dir, sk = p.tm.team.att, err = (p.tm.human ? .5 + power*1.1 : 2.1 - diff*.6)*(1.4 - sk*.1);
   const d = Math.hypot(gx - ball.x, ball.z);
   kick(p, gx - ball.x, aimZ + rnd(-err, err)*(d/14) - ball.z, 17 + 13*power, 1.2 + 5.5*power*rnd(.55, 1)*clamp(d/16, .5, 1.3));
   p.tm.passTarget = null;
@@ -522,9 +522,9 @@ function gkTarget(p, sp){
   return [gx + tm.dir*(db < 20 ? 2.4 : 1.3), clamp(ball.z*.32, -GZ + .5, GZ - .5), sp*.8];
 }
 function target(p){   // renvoie [x, z, vitesse max]
-  const tm = p.tm, own = ball.owner, ai = 5.9 + (tm.human ? .2 : diff*.45) + (tm.team.att - 4)*.12;
+  const tm = p.tm, own = ball.owner, ai = (tm.human ? 6.1 : 5.5 + diff*.5) + (tm.team.att - 4)*.12;
   if (p.stun > 0) return [p.x, p.z, 0];
-  if (p.isGK) return gkTarget(p, 5.8 + (tm.human ? 0 : diff*.5) + (tm.team.def - 4)*.3);
+  if (p.isGK) return gkTarget(p, (tm.human ? 6.6 - diff*.3 : 5.8 + diff*.5) + (tm.team.def - 4)*.3);
   if (own === p) return [p.x + p.ix*5, p.z + p.iz*5, ai*.93];
   if (tm.passTarget === p && !own) return [ball.x + ball.vx*.25, ball.z + ball.vz*.25, ai*1.05];
   if (!own || own.tm !== tm) {
@@ -584,7 +584,7 @@ function simulate(dt){
       if (ball.owner !== o || q.isGK || q.stun > 0 || Math.hypot(q.x - ball.x, q.z - ball.z) > 1.25) return;
       let win = false;
       if (q === ctrl) { if (q.lunge > 0) { win = Math.random() < .8 + (q.tm.team.def - 4)*.05; q.lunge = 0; } }
-      else if (q.cd <= 0) win = Math.random() < (1.25 + (q.tm.human ? 0 : diff*.5) + (q.tm.team.def - 4)*.15)*dt;
+      else if (q.cd <= 0) win = Math.random() < ((q.tm.human ? 1.5 : 1 + diff*.5) + (q.tm.team.def - 4)*.15)*dt;
       if (win) { ball.owner = q; ball.last = q.tm; o.stun = .5; q.cd = .6; q.think = .4; q.protect = .5; teams.forEach(t => t.passTarget = null); charge = -1; sfx.tackle(); }
     });
   } else {
