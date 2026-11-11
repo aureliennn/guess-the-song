@@ -229,8 +229,11 @@ function jp(path){
 async function loadPool(cat){
   let d;
   if (cat.q) {
-    d = await jp('search?q=' + encodeURIComponent('artist:"' + cat.q + '"') + '&limit=100');
-    const k = norm(cat.q), f = (d.data || []).filter(t => t.artist && norm(t.artist.name).includes(k));
+    const a = await jp('search/artist?q=' + encodeURIComponent(cat.q) + '&limit=5'), k = norm(cat.q);
+    const art = (a.data || []).find(x => norm(x.name) === k) || (a.data || [])[0];
+    if (!art) throw new Error('artist');
+    cat.n = art.name; d = await jp('artist/' + art.id + '/top?limit=100');
+    const f = (d.data || []).filter(t => t.artist && t.artist.id === art.id);
     if (f.length >= 8) d = {data: f};
   } else if (cat.pl) {
     const r = await jp('search/playlist?q=' + encodeURIComponent(cat.pl) + '&limit=8');
@@ -524,7 +527,7 @@ async function startGame(cat){
   if (S.phase === 'fetch') return;
   initAudio(); sfx.click(); discNow = -1; recNow = -1; au.pause(); S.phase = 'fetch'; toast('Chargement de « ' + cat.n + ' »…');
   let pool;
-  try { pool = await loadPool(cat); } catch(e) { S.phase = 'idle'; toast('Impossible de charger les musiques. Vérifie ta connexion et réessaie.'); return; }
+  try { pool = await loadPool(cat); } catch(e) { S.phase = 'idle'; toast(e.message === 'artist' ? 'Artiste introuvable : vérifie l\'orthographe.' : 'Impossible de charger les musiques. Vérifie ta connexion et réessaie.'); return; }
   if (pool.length < 8) { S.phase = 'idle'; toast(cat.q ? 'Pas assez de titres trouvés pour « ' + cat.n + ' ».' : 'Pas assez de titres dans cette catégorie pour le moment.'); return; }
   $('toast').classList.add('hide');
   published = false; Object.assign(S, {cat, pool, i: 0, score: 0, shown: 0, streak: 0, best: 0, good: 0, jok: 2, fails: 0, dur: DIFFS.find(d => d.id === diff).s});
