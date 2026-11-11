@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <title>Guess the Song 3D — Blind test</title>
 <meta name="description" content="Blind test en 3D : devine la chanson le plus vite possible.">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://cdn.jsdelivr.net"><link rel="preconnect" href="https://api.deezer.com">
@@ -10,13 +10,13 @@
 <style>
 :root{--bg:#07040f;--glass:rgba(22,14,44,.62);--line:rgba(255,255,255,.14);--txt:#f4f0ff;--mut:#a79fc4;--acc:#b86bff;--acc2:#38e1ff;--ok:#3dffa2;--bad:#ff4d6d;--gold:#ffd166}
 *{box-sizing:border-box;margin:0;padding:0}
-html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--txt);font-family:Inter,system-ui,sans-serif;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden;position:fixed;inset:0;width:100%;overscroll-behavior:none;-webkit-text-size-adjust:100%;background:var(--bg);color:var(--txt);font-family:Inter,system-ui,sans-serif;-webkit-tap-highlight-color:transparent}
 canvas#c{position:fixed;inset:0;width:100%;height:100%;display:block}
 .hide{display:none!important}
 h1,h2,.disp{font-family:Unbounded,Inter,sans-serif}
 button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
 .glass{background:var(--glass);border:1px solid var(--line);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-radius:20px}
-.screen{position:fixed;inset:0;overflow:auto;display:flex;justify-content:center;align-items:flex-start;padding:max(18px,env(safe-area-inset-top)) 16px 28px;pointer-events:none}
+.screen{position:fixed;inset:0;overflow:auto;-webkit-overflow-scrolling:touch;display:flex;justify-content:center;align-items:flex-start;padding:max(18px,env(safe-area-inset-top)) 16px 28px;pointer-events:none}
 .screen>*{pointer-events:auto}
 /* home */
 #home .box{width:min(980px,100%);margin:auto;padding:26px clamp(16px,3vw,34px) 22px}
@@ -109,7 +109,10 @@ button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
 .li .pl{margin-left:auto;flex:none;width:38px;height:38px;border-radius:50%;background:linear-gradient(92deg,var(--acc),var(--acc2));color:#0a0618;font-weight:800}
 .note{font-size:13px;color:var(--mut);margin-top:10px}
 #answers{display:none}#panel{width:min(640px,100%);padding:12px 14px}#status{margin-bottom:8px;min-height:60px}#bar{margin-bottom:0}canvas#c{touch-action:none}
-@media(max-width:620px){#tabs{display:flex;width:100%}#tabs button{flex:1;padding:8px 2px;font-size:12px}.seg button{padding:8px 11px;font-size:13px}.cats{grid-template-columns:1fr 1fr}.cat{min-height:80px;padding:10px}#home .box{padding:18px 14px}#tools{font-size:11px}.rv .t{font-size:15px}.rv .p{font-size:18px}#hud .pill{padding:6px 10px;font-size:13px}}
+#notes{position:fixed;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(4,2,10,.72)}
+#notes .box{width:min(520px,100%);max-height:86dvh;overflow:auto;-webkit-overflow-scrolling:touch;padding:22px}
+#notes h2{font-size:22px;margin-bottom:4px}#notes ul{list-style:none;display:grid;gap:8px;margin:14px 0 18px}#notes li{padding:9px 12px;border-radius:12px;background:rgba(255,255,255,.05);font-size:14px;line-height:1.35}#notes li b{display:block}#notes .btn{width:100%}
+@media(max-width:620px){#vol,#volIco{display:none}#hud{gap:6px;padding-left:10px;padding-right:10px}#hScore{font-size:15px;min-width:0}#quit{padding:2px 6px;font-size:16px}.logo{font-size:30px}.sub{font-size:14px;margin:8px 0 14px}.lbl{margin:14px 0 8px}.row{gap:8px}.inp{min-width:0;font-size:16px}#artForm .btn,#discForm .btn{padding:12px 14px}.how{grid-template-columns:1fr 1fr;font-size:12px}#end .box{padding:18px 14px}#end .big{font-size:44px}.recap{max-height:30dvh}#pubForm .inp{flex:1 !important;max-width:none !important}#panel{padding:10px 12px}#status{min-height:52px}#toast{width:calc(100% - 32px);text-align:center;top:58px}#game{padding-bottom:max(10px,env(safe-area-inset-bottom))}#tabs{display:flex;width:100%}#tabs button{flex:1;padding:8px 2px;font-size:12px}.seg button{padding:8px 11px;font-size:13px}.cats{grid-template-columns:1fr 1fr}.cat{min-height:80px;padding:10px}#home .box{padding:18px 14px}#tools{font-size:11px}.rv .t{font-size:15px}.rv .p{font-size:18px}#hud .pill{padding:6px 10px;font-size:13px}}
 </style>
 </head>
 <body>
@@ -119,7 +122,7 @@ button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
 <div id="hud" class="hide">
   <div class="pill glass"><span id="hRound">1/10</span><span id="hCombo"></span></div>
   <div class="pill glass"><span id="hScore">0</span> pts</div>
-  <div class="pill glass"><span>🔊</span><input id="vol" type="range" min="0" max="100" aria-label="Volume"><button id="quit" title="Quitter la partie">✕</button></div>
+  <div class="pill glass"><span id="volIco">🔊</span><input id="vol" type="range" min="0" max="100" aria-label="Volume"><button id="quit" title="Quitter la partie">✕</button></div>
 </div>
 
 <div id="home" class="screen">
@@ -159,7 +162,7 @@ button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
       <div><b>⌨️ Clavier</b>Touches 1 à 4 pour répondre, J pour le 50/50, Entrée pour continuer.</div>
     </div>
     </div>
-    <div class="foot"><span>Extraits de 30 s fournis par Deezer.</span><span><a href="foot.html">Ancien jeu de foot</a></span></div>
+    <div class="foot"><span>Extraits de 30 s fournis par Deezer.</span><span><a href="#" id="notesLink">Nouveautés</a> · <a href="foot.html">Ancien jeu de foot</a></span></div>
   </div>
 </div>
 
@@ -173,6 +176,7 @@ button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
 </div>
 
 <div id="end" class="screen hide"><div class="box glass" id="endBox"></div></div>
+<div id="notes" class="hide"><div class="box glass"><div class="lbl" style="margin-top:0">Notes de version · v2.0</div><h2>Quoi de neuf ?</h2><ul><li><b>🚪 Portes 3D</b>Choisis ta réponse en touchant une porte, puis traverse-la pour passer au titre suivant.</li><li><b>🎨 Un thème par porte</b>Couleurs et décor 3D changent à chaque manche.</li><li><b>🎤 Titre ou artiste</b>Deux façons de jouer, plus la recherche d'un artiste précis (corrigée).</li><li><b>🌍 Classement mondial et avis</b>Publie ton score et note le jeu.</li><li><b>🎧 Réécoute</b>Retrouve les titres de ta partie à la fin, et l'onglet Découvrir.</li><li><b>📱 Téléphone</b>Affichage revu pour iPhone et Android, son débloqué sur iOS.</li></ul><button class="btn" id="notesOk">C'est parti ▶</button></div></div>
 <div id="tip" class="glass hide"></div>
 <div id="toast" class="glass hide"></div>
 <audio id="au" crossorigin="anonymous" preload="auto"></audio>
@@ -229,8 +233,8 @@ function jp(path){
 async function loadPool(cat){
   let d;
   if (cat.q) {
-    const a = await jp('search/artist?q=' + encodeURIComponent(cat.q) + '&limit=5'), k = norm(cat.q);
-    const art = (a.data || []).find(x => norm(x.name) === k) || (a.data || [])[0];
+    const a = await jp('search/artist?q=' + encodeURIComponent(cat.q) + '&limit=10'), k = norm(cat.q);
+    const all = a.data || [], exact = all.filter(x => norm(x.name) === k || norm(x.name) === 'the' + k || 'les' + norm(x.name).replace(/^the/, '') === k), art = (exact.length ? exact : all).slice().sort((x, y) => (y.nb_fan || 0) - (x.nb_fan || 0))[0];
     if (!art) throw new Error('artist');
     cat.n = art.name; d = await jp('artist/' + art.id + '/top?limit=100');
     const f = (d.data || []).filter(t => t.artist && t.artist.id === art.id);
@@ -267,7 +271,14 @@ function makeRound(t, pool){
 /* ---------------- Audio ---------------- */
 const au = $('au');
 let AC = null, analyser = null, gain = null, fft = new Uint8Array(128), vol = ls.get('gs_vol', 70);
+let unlocked = false, SILENT = '';
+function unlockAudio(){
+  if (unlocked) return; unlocked = true;
+  try { const n = 4410, b = new Uint8Array(44 + n), v = new DataView(b.buffer), w = (o, t) => { for (let i = 0; i < t.length; i++) b[o + i] = t.charCodeAt(i); }; w(0, 'RIFF'); v.setUint32(4, 36 + n, true); w(8, 'WAVEfmt '); v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true); v.setUint32(24, 44100, true); v.setUint32(28, 44100, true); v.setUint16(32, 1, true); v.setUint16(34, 8, true); w(36, 'data'); v.setUint32(40, n, true); b.fill(128, 44);
+    SILENT = URL.createObjectURL(new Blob([b], {type: 'audio/wav'})); au.src = SILENT; const p = au.play(); if (p && p.catch) p.catch(() => {}); } catch(e) {}
+}
 function initAudio(){
+  unlockAudio();
   if (AC) { AC.resume(); return; }
   try {
     AC = new (window.AudioContext || window.webkitAudioContext)();
@@ -295,7 +306,7 @@ const sfx = {
 
 /* ---------------- Scène 3D ---------------- */
 const renderer = new THREE.WebGLRenderer({canvas: $('c'), antialias: true, powerPreference: 'high-performance'});
-renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
+const MOBILE = matchMedia('(pointer:coarse)').matches; renderer.setPixelRatio(Math.min(devicePixelRatio, MOBILE ? 1.25 : 1.5));
 const scene = new THREE.Scene(); scene.background = new THREE.Color(0x07040f); scene.fog = new THREE.FogExp2(0x07040f, .016);
 const cam = new THREE.PerspectiveCamera(50, 1, .1, 400); cam.position.set(0, 6.6, 11);
 scene.add(new THREE.AmbientLight(0x8877ff, .55));
@@ -525,7 +536,7 @@ $('artForm').onsubmit = e => { e.preventDefault(); const q = $('artist').value.t
 
 async function startGame(cat){
   if (S.phase === 'fetch') return;
-  initAudio(); sfx.click(); discNow = -1; recNow = -1; au.pause(); S.phase = 'fetch'; toast('Chargement de « ' + cat.n + ' »…');
+  initAudio(); sfx.click(); discNow = -1; recNow = -1; S.phase = 'fetch'; toast('Chargement de « ' + cat.n + ' »…');
   let pool;
   try { pool = await loadPool(cat); } catch(e) { S.phase = 'idle'; toast(e.message === 'artist' ? 'Artiste introuvable : vérifie l\'orthographe.' : 'Impossible de charger les musiques. Vérifie ta connexion et réessaie.'); return; }
   if (pool.length < 8) { S.phase = 'idle'; toast(cat.q ? 'Pas assez de titres trouvés pour « ' + cat.n + ' ».' : 'Pas assez de titres dans cette catégorie pour le moment.'); return; }
@@ -696,6 +707,11 @@ function setTab(t){
   if (t === 'lb') renderLb(); if (t === 'rev') { $('revName').value = ls.get('gs_name', ''); drawStars(); renderRev(); } if (t === 'disc' && !discList.length) loadDisc('');
 }
 $('tabs').onclick = e => { const t = e.target.dataset.t; if (t) { sfx.click(); setTab(t); } };
+const NOTES_V = '2.0';
+function showNotes(on){ $('notes').classList.toggle('hide', !on); }
+$('notesOk').onclick = () => { ls.set('gs_notes', NOTES_V); initAudio(); sfx.click(); showNotes(false); };
+$('notesLink').onclick = e => { e.preventDefault(); showNotes(true); };
+if (ls.get('gs_notes', '') !== NOTES_V) showNotes(true);
 window.gs = {S, doors, info: () => ({screen: S.screen, phase: S.phase, i: S.i, score: S.score, streak: S.streak, correct: S.rounds[S.i] && S.rounds[S.i].correct, pool: S.pool.length, orbs: orbs.length, bloom: !!composer, paused: au.paused})};
 renderHome(); show('home'); requestAnimationFrame(frame);
 </script>
