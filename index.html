@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Guess the Song 3D — Blind test</title>
 <meta name="description" content="Blind test en 3D : devine la chanson le plus vite possible.">
-<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://cdn.jsdelivr.net"><link rel="preconnect" href="https://api.deezer.com">
 <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;800&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#07040f;--glass:rgba(22,14,44,.62);--line:rgba(255,255,255,.14);--txt:#f4f0ff;--mut:#a79fc4;--acc:#b86bff;--acc2:#38e1ff;--ok:#3dffa2;--bad:#ff4d6d;--gold:#ffd166}
@@ -97,6 +97,17 @@ button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
 #tip{position:fixed;pointer-events:none;padding:8px 12px;border-radius:12px;font-size:13px;font-weight:600;max-width:260px;transform:translate(-50%,-130%);z-index:9}
 #flash{position:fixed;inset:0;pointer-events:none;opacity:0;transition:opacity .5s}
 #toast{position:fixed;left:50%;top:70px;transform:translateX(-50%);padding:10px 18px;border-radius:14px;font-weight:600;z-index:10}
+.ans.hov:not(:disabled){transform:translateY(-2px);background:rgba(184,107,255,.18);border-color:var(--acc)}
+.list{display:grid;gap:6px;max-height:52vh;overflow:auto;margin-top:12px}
+.li{display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:12px;background:rgba(255,255,255,.04);font-size:14px;text-align:left}
+.li img{width:42px;height:42px;border-radius:8px}
+.li .rk{width:34px;flex:none;font-family:Unbounded;font-weight:800;color:var(--mut);text-align:center}
+.li.top .rk{color:var(--gold)}
+.li .a{color:var(--mut);font-size:12px}
+.li .sc{margin-left:auto;font-family:Unbounded;font-weight:800;white-space:nowrap}
+.li .pl{margin-left:auto;flex:none;width:38px;height:38px;border-radius:50%;background:linear-gradient(92deg,var(--acc),var(--acc2));color:#0a0618;font-weight:800}
+.note{font-size:13px;color:var(--mut);margin-top:10px}
+@media(min-width:701px) and (min-aspect-ratio:1/1){#answers{display:none}#panel{width:min(640px,100%);padding:12px 14px}#status{margin-bottom:8px;min-height:60px}#bar{margin-bottom:0}}
 </style>
 </head>
 <body>
@@ -113,6 +124,14 @@ button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
   <div class="box glass">
     <h1 class="logo">GUESS THE SONG</h1>
     <p class="sub">Un extrait démarre, quatre réponses s'affichent. Plus tu réponds vite, plus tu marques — et chaque bonne réponse d'affilée fait grimper le multiplicateur.</p>
+    <div class="seg" id="tabs" style="margin-bottom:16px"><button type="button" data-t="play" class="on">🎮 Jouer</button><button type="button" data-t="lb">🌍 Classement</button><button type="button" data-t="disc">🎧 Découvrir</button></div>
+    <div id="tabLb" class="hide"></div>
+    <div id="tabDisc" class="hide">
+      <form class="row" id="discForm"><input class="inp" id="discQ" placeholder="Cherche un titre ou un artiste…" autocomplete="off" maxlength="60"><button class="btn" type="submit">Chercher</button></form>
+      <div class="note">Écoute 30 secondes de n'importe quel titre. Sans recherche : les titres les plus écoutés du moment.</div>
+      <div class="list" id="discList"></div>
+    </div>
+    <div id="tabPlay">
     <div class="row">
       <div class="seg" id="diff"></div>
       <span style="color:var(--mut);font-size:13px" id="diffTxt"></span>
@@ -128,8 +147,9 @@ button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
     <div class="how">
       <div><b>⚡ Vitesse</b>De 1000 à 100 points selon ton temps de réponse.</div>
       <div><b>🔥 Combo</b>×1,5 puis ×2, ×2,5 et ×3 tant que tu ne te trompes pas.</div>
-      <div><b>🪐 Orbes</b>Chaque réponse devient un orbe 3D : survole-le ou clique dessus.</div>
+      <div><b>🚪 Portes</b>Quatre portes 3D, une par réponse : clique sur la bonne pour l'ouvrir.</div>
       <div><b>⌨️ Clavier</b>Touches 1 à 4 pour répondre, J pour le 50/50, Entrée pour continuer.</div>
+    </div>
     </div>
     <div class="foot"><span>Extraits de 30 s fournis par Deezer.</span><span><a href="foot.html">Ancien jeu de foot</a></span></div>
   </div>
@@ -140,7 +160,7 @@ button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
     <div id="status"></div>
     <div id="bar"><i></i></div>
     <div id="answers"></div>
-    <div id="tools"><button class="btn ghost" id="joker">50/50 (2)</button><span class="kbd">Touches 1–4 · J = 50/50</span><button class="btn hide" id="nextBtn">Suivant ▶</button></div>
+    <div id="tools"><button class="btn ghost" id="joker">50/50 (2)</button><span class="kbd">Clique sur une porte ou touches 1–4 · J = 50/50</span><button class="btn hide" id="nextBtn">Suivant ▶</button></div>
   </div>
 </div>
 
@@ -182,6 +202,8 @@ const CATS = [
 ];
 const DIFFS = [{id:'easy', n:'Facile', s:20}, {id:'norm', n:'Normal', s:14}, {id:'hard', n:'Expert', s:8}];
 const MULT = [1, 1.5, 2, 2.5, 3], ROUNDS = 10;
+// Base du classement mondial : URL d'une Firebase Realtime Database (vide = classement local a l'appareil).
+const DB_URL = '';
 let best = ls.get('gs_best', {}), diff = ls.get('gs_diff', 'norm');
 
 function jp(path){
@@ -260,7 +282,7 @@ const sfx = {
 
 /* ---------------- Scène 3D ---------------- */
 const renderer = new THREE.WebGLRenderer({canvas: $('c'), antialias: true, powerPreference: 'high-performance'});
-renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
 const scene = new THREE.Scene(); scene.background = new THREE.Color(0x07040f); scene.fog = new THREE.FogExp2(0x07040f, .016);
 const cam = new THREE.PerspectiveCamera(50, 1, .1, 400); cam.position.set(0, 6.6, 11);
 scene.add(new THREE.AmbientLight(0x8877ff, .55));
@@ -321,7 +343,7 @@ const floats = [];
 function floatText(txt, col, y){ const s = textSprite(txt, col); s.position.set(0, y || 2, 1); scene.add(s); floats.push({s, t: 0}); }
 // score géant en 3D
 let scoreSprite = null, scorePop = 0, scoreShown = -1;
-function setScore3D(v){ if (v === scoreShown) return; scoreShown = v; if (scoreSprite) { scene.remove(scoreSprite); scoreSprite.material.map.dispose(); scoreSprite.material.dispose(); } scoreSprite = textSprite(v.toLocaleString('fr-FR'), '#b86bff', 130); scoreSprite.position.set(0, 2.5, -7); scoreSprite.scale.set(10, 2.5, 1); scoreSprite.material.opacity = .9; scene.add(scoreSprite); scorePop = 1; }
+function setScore3D(v){ if (v === scoreShown) return; scoreShown = v; if (scoreSprite) { scene.remove(scoreSprite); scoreSprite.material.map.dispose(); scoreSprite.material.dispose(); } scoreSprite = textSprite(v.toLocaleString('fr-FR'), '#b86bff', 130); scoreSprite.position.set(0, 6.6, DZ); scoreSprite.scale.set(7, 1.75, 1); scoreSprite.material.opacity = .9; scene.add(scoreSprite); scorePop = 1; }
 
 // orbes de score (interactifs)
 const orbG = new THREE.Group(); scene.add(orbG); let orbs = [];
@@ -336,6 +358,49 @@ function addOrb(r, idx){
 }
 function clearOrbs(){ orbs.forEach(o => { orbG.remove(o); o.material.dispose(); o.children[0].material.dispose(); }); orbs = []; }
 
+// portes à sélectionner
+const DW = 2.6, DH = 4, DZ = -5.6, doors = [], WHITE = new THREE.Color(0xffffff); let hovDoor = -1, portalTok = 0;
+function wrapText(g, s, x, y, mw, lh, max){
+  const ws = String(s).split(/\s+/), lines = []; let cur = '';
+  for (const w of ws) { const t = cur ? cur + ' ' + w : w; if (g.measureText(t).width > mw && cur) { lines.push(cur); cur = w; } else cur = t; }
+  if (cur) lines.push(cur);
+  if (lines.length > max) { lines.length = max; lines[max - 1] = lines[max - 1].replace(/.{0,2}$/, '…'); }
+  lines.forEach((l, i) => g.fillText(l, x, y + i * lh, mw + 20));
+}
+function doorTex(k, c){
+  return tex(cvs(512, 788, (g, w, h) => {
+    const gr = g.createLinearGradient(0, 0, 0, h); gr.addColorStop(0, '#34206b'); gr.addColorStop(1, '#150b30'); g.fillStyle = gr; g.fillRect(0, 0, w, h);
+    g.strokeStyle = 'rgba(255,255,255,.2)'; g.lineWidth = 6; g.strokeRect(26, 26, w - 52, h - 52); g.strokeRect(50, 50, w - 100, 270); g.strokeRect(50, 346, w - 100, h - 396);
+    g.fillStyle = '#fff'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.font = '800 180px Unbounded,Arial'; g.fillText(k + 1, w / 2, 195);
+    if (c) { g.font = '700 50px Inter,Arial'; wrapText(g, c.title, w / 2, 420, w - 130, 58, 4); g.fillStyle = '#c4bbea'; g.font = '600 36px Inter,Arial'; wrapText(g, c.artist, w / 2, 680, w - 130, 42, 2); }
+  }));
+}
+{ const side = new THREE.MeshBasicMaterial({color: 0x120a2a}), knobM = new THREE.MeshBasicMaterial({color: 0xffd166});
+  for (let k = 0; k < 4; k++) {
+    const G = new THREE.Group(), x = (k - 1.5) * 3.25; G.position.set(x, -7, DZ); G.rotation.y = -(k - 1.5) * .09; G.visible = false;
+    const fm = new THREE.MeshBasicMaterial({color: 0xb86bff});
+    for (const sx of [-1, 1]) { const p = new THREE.Mesh(new THREE.BoxGeometry(.14, DH + .14, .22), fm); p.position.set(sx * (DW / 2 + .07), DH / 2, 0); G.add(p); }
+    const top = new THREE.Mesh(new THREE.BoxGeometry(DW + .28, .14, .22), fm); top.position.set(0, DH + .07, 0); G.add(top);
+    const portal = new THREE.Mesh(new THREE.PlaneGeometry(DW, DH), new THREE.MeshBasicMaterial({color: 0x05030c})); portal.position.set(0, DH / 2, -.08); G.add(portal);
+    const pivot = new THREE.Group(); pivot.position.set(-DW / 2, 0, 0); G.add(pivot);
+    const front = new THREE.MeshBasicMaterial({map: doorTex(k, null)});
+    const panel = new THREE.Mesh(new THREE.BoxGeometry(DW, DH, .1), [side, side, side, side, front, side]); panel.position.set(DW / 2, DH / 2, 0); panel.userData.k = k; pivot.add(panel);
+    const knob = new THREE.Mesh(new THREE.SphereGeometry(.09, 12, 8), knobM); knob.position.set(DW - .28, DH * .46, .1); pivot.add(knob);
+    scene.add(G); doors.push({G, x, pivot, panel, portal, fm, front, y: -7, yT: -7, open: 0, openT: 0, hov: 0, shake: 0, delay: 0, state: 'idle'});
+  } }
+function doorsShow(r){ portalTok++; doors.forEach((d, k) => { d.front.map.dispose(); d.front.map = doorTex(k, r.ch[k]); d.front.color.setScalar(1); d.front.needsUpdate = true; d.portal.material.map = null; d.portal.material.color.set(0x05030c); d.portal.material.needsUpdate = true; d.state = 'idle'; d.openT = 0; d.open = 0; d.y = -7; d.yT = 0; d.delay = k * .09; }); }
+function doorsHide(){ doors.forEach(d => { d.yT = -7; d.openT = 0; d.delay = 0; }); hovDoor = -1; }
+function doorOut(k){ doors[k].yT = -7; doors[k].state = 'out'; }
+function doorsReveal(r, k){
+  const tok = ++portalTok;
+  doors.forEach((d, j) => {
+    if (j === r.correct) { d.state = 'ok'; d.fm.color.set(0x3dffa2); d.openT = 1; d.yT = 0; d.portal.material.color.set(0x3dffa2);
+      if (r.t.cover) texLoader.load(r.t.cover, t => { if (tok !== portalTok) return; d.portal.material.map = t; d.portal.material.color.set(0x9a9a9a); d.portal.material.needsUpdate = true; }); }
+    else if (j === k) { d.state = 'bad'; d.fm.color.set(0xff4d6d); d.shake = 1; d.front.color.setRGB(1, .45, .5); }
+    else { d.state = 'dim'; d.fm.color.set(0x2a2440); d.front.color.setScalar(.3); }
+  });
+}
+
 // post-traitement
 let composer = null, bloom = null;
 try { if (THREE.EffectComposer && THREE.UnrealBloomPass) { composer = new THREE.EffectComposer(renderer); composer.addPass(new THREE.RenderPass(scene, cam)); bloom = new THREE.UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), .5, .6, .35); composer.addPass(bloom); } } catch(e) { composer = null; }
@@ -344,21 +409,23 @@ addEventListener('resize', resize); resize();
 
 let hue = 268, hueT = 268, spin = 1, flip = 0, shake = 0, bass = 0, mx = 0, my = 0, last = performance.now(), T = 0;
 const HUES = [268, 205, 165, 45, 325];
-const ray = new THREE.Raycaster(), mv = new THREE.Vector2(); let hover = null;
+const ray = new THREE.Raycaster(), mv = new THREE.Vector2(), c1 = new THREE.Color(), c2 = new THREE.Color(), tmpV = new THREE.Vector3(); let hover = null;
 addEventListener('pointermove', e => { mx = e.clientX / innerWidth * 2 - 1; my = e.clientY / innerHeight * 2 - 1; pick(e); });
 function pick(e){
   const tip = $('tip');
-  if (e.target !== renderer.domElement || !orbs.length) { hover = null; tip.classList.add('hide'); document.body.style.cursor = ''; return null; }
+  if (e.target !== renderer.domElement) { hover = null; tip.classList.add('hide'); document.body.style.cursor = ''; return null; }
   mv.set(mx, -my); ray.setFromCamera(mv, cam);
-  let hit = null, bd = 1e9; for (const o of orbs) { const p = o.getWorldPosition(new THREE.Vector3()), d = ray.ray.distanceToPoint(p); if (d < Math.max(.45, o.userData.sz * 1.6) && d < bd) { bd = d; hit = o; } }
+  if (S.phase === 'play') { const h = ray.intersectObjects(doors.filter(d => d.state === 'idle').map(d => d.panel))[0]; setHov(h ? h.object.userData.k : -1); if (h) { hover = null; tip.classList.add('hide'); document.body.style.cursor = 'pointer'; return null; } }
+  let hit = null, bd = 1e9; for (const o of orbs) { const p = o.getWorldPosition(tmpV), d = ray.ray.distanceToPoint(p); if (d < Math.max(.45, o.userData.sz * 1.6) && d < bd) { bd = d; hit = o; } }
   hover = hit; document.body.style.cursor = hit ? 'pointer' : '';
   if (hit) { const r = hit.userData.r; tip.innerHTML = (r.ok ? '✓ ' : '✗ ') + esc(r.t.title) + '<br><span style="color:var(--mut);font-weight:400">' + esc(r.t.artist) + '</span>' + (r.ok ? '<br><span style="color:var(--gold)">+' + r.pts + ' pts</span>' : ''); tip.style.left = e.clientX + 'px'; tip.style.top = e.clientY + 'px'; tip.classList.remove('hide'); } else tip.classList.add('hide');
   return hit;
 }
-renderer.domElement.addEventListener('pointerdown', e => { mx = e.clientX / innerWidth * 2 - 1; my = e.clientY / innerHeight * 2 - 1; const h = pick(e); if (h) { h.userData.pulse = 1; sfx.orb(h.userData.idx); } else { spin = 9; sfx.click(); } });
+renderer.domElement.addEventListener('pointerdown', e => { mx = e.clientX / innerWidth * 2 - 1; my = e.clientY / innerHeight * 2 - 1; const h = pick(e); if (h) { h.userData.pulse = 1; sfx.orb(h.userData.idx); } else if (hovDoor >= 0 && S.phase === 'play') answer(hovDoor); else { spin = 9; sfx.click(); } });
+function setHov(k){ if (k === hovDoor) return; hovDoor = k; document.querySelectorAll('.ans').forEach((b, j) => b.classList.toggle('hov', j === k)); }
 
 function frame(now){
-  requestAnimationFrame(frame);
+  requestAnimationFrame(frame); if (document.hidden) { last = now; return; }
   const dt = Math.min(.05, (now - last) / 1000); last = now; T += dt;
   // niveaux audio
   const live = analyser && !au.paused; if (live) analyser.getByteFrequencyData(fft);
@@ -367,8 +434,8 @@ function frame(now){
   if (live) { for (let i = 1; i < 7; i++) b += fft[i]; b /= 6 * 255; } else b = .25 + .1 * Math.sin(T * 2);
   bass += (b - bass) * Math.min(1, dt * 14);
   hue += (((hueT - hue + 540) % 360) - 180) * Math.min(1, dt * 3); hue = (hue + 360) % 360;
-  const c1 = new THREE.Color('hsl(' + (hue | 0) + ',100%,62%)'), c2 = new THREE.Color('hsl(' + ((hue + 70) % 360 | 0) + ',100%,60%)');
-  for (let i = 0; i < NB; i++) { const m = bars[i]; m.scale.y = .08 + lev[i] * lev[i] * 3; m.material.color.setHSL(((hue + (i < NB / 2 ? i : NB - i) * 2.4) % 360) / 360, 1, .3 + lev[i] * .22); }
+  c1.setHSL(hue / 360, 1, .62); c2.setHSL(((hue + 70) % 360) / 360, 1, .6);
+  for (let i = 0; i < NB; i++) { const m = bars[i]; m.scale.y = .08 + lev[i] * lev[i] * 3 * (m.position.z < 1 ? .3 : 1); m.material.color.setHSL(((hue + (i < NB / 2 ? i : NB - i) * 2.4) % 360) / 360, 1, .3 + lev[i] * .22); }
   halo.material.color.copy(c1); halo.scale.setScalar(1 + bass * .12); halo.material.opacity = .35 + bass * .4;
   rings.forEach((r, i) => { r.material.color.copy(i % 2 ? c2 : c1); r.material.opacity = Math.max(0, .12 + bass * .5 - i * .05); r.scale.setScalar(1 + bass * .04 * (i + 1)); });
   beams.forEach((m, i) => { m.material.color.copy(i % 2 ? c2 : c1); m.material.opacity = .03 + bass * .07; m.rotation.z = Math.sin(T * .5 + i) * .35 + (m.position.x > 0 ? .5 : -.5) * Math.abs(m.position.x) / 11; m.rotation.x = Math.cos(T * .4 + i * 1.3) * .3 - .25 * Math.sign(m.position.z + 3) * Math.abs(m.position.z + 3) / 11; });
@@ -377,6 +444,14 @@ function frame(now){
   spin += ((live ? 2.2 : .5) - spin) * Math.min(1, dt * 2.5); vinyl.rotation.y -= spin * dt;
   if (flip > 0) { flip = Math.max(0, flip - dt * 1.4); const s = 1 + Math.sin(flip * Math.PI) * .28; label.scale.set(s, s, s); vinyl.position.y = .35 + Math.sin(flip * Math.PI) * .5; }
   vinyl.rotation.z = Math.sin(T * 1.1) * .012 + bass * .01;
+  // portes
+  const dsc = Math.max(.5, Math.min(1.35, (cam.position.length() + 5.6) * .466 * cam.aspect / 6.4));
+  doors.forEach((d, k) => {
+    if (d.delay > 0) d.delay -= dt; else d.y += (d.yT - d.y) * Math.min(1, dt * 7);
+    d.open += (d.openT - d.open) * Math.min(1, dt * 5); d.hov += ((k === hovDoor && S.phase === 'play' && d.state === 'idle' ? 1 : 0) - d.hov) * Math.min(1, dt * 12); d.shake = Math.max(0, d.shake - dt * 2.2);
+    d.G.scale.setScalar(dsc); d.G.position.set(d.x * dsc + Math.sin(T * 55) * d.shake * .14, d.y + d.hov * .2, DZ); d.pivot.rotation.y = -(d.open * 1.95 + d.hov * .25); d.G.visible = d.y > -6.8;
+    if (d.state === 'idle') d.fm.color.copy(c1).lerp(WHITE, d.hov * .6);
+  });
   // orbes
   orbG.rotation.y += dt * (.18 + S.streak * .04);
   for (const o of orbs) { const u = o.userData; if (u.t < 1) { u.t = Math.min(1, u.t + dt / 1.1); const e = 1 - Math.pow(1 - u.t, 3); o.position.set(u.to.x * e, .6 + (u.to.y - .6) * e + Math.sin(u.t * Math.PI) * 2.2, u.to.z * e); } else o.position.y = u.to.y + Math.sin(T * 1.6 + u.idx) * .12;
@@ -385,14 +460,14 @@ function frame(now){
   for (let i = 0; i < PN; i++) { if (pLife[i] <= 0) continue; pLife[i] -= dt; pVel[i*3+1] -= 9 * dt; pPos[i*3] += pVel[i*3] * dt; pPos[i*3+1] += pVel[i*3+1] * dt; pPos[i*3+2] += pVel[i*3+2] * dt; if (pLife[i] <= 0 || pPos[i*3+1] < 0) { pLife[i] = 0; pPos[i*3+1] = -50; } }
   pGeo.attributes.position.needsUpdate = true;
   for (let i = floats.length - 1; i >= 0; i--) { const f = floats[i]; f.t += dt / 1.5; f.s.position.y += dt * 1.9; const k = Math.min(1, f.t * 6); f.s.scale.set(6 * k, 1.5 * k, 1); f.s.material.opacity = 1 - Math.max(0, f.t - .5) * 2; if (f.t >= 1) { scene.remove(f.s); f.s.material.map.dispose(); f.s.material.dispose(); floats.splice(i, 1); } }
-  if (scoreSprite) { scorePop = Math.max(0, scorePop - dt * 2.5); const k = 1 + scorePop * .35; scoreSprite.scale.set(10 * k, 2.5 * k, 1); scoreSprite.visible = S.screen === 'game'; }
+  if (scoreSprite) { scorePop = Math.max(0, scorePop - dt * 2.5); const k = 1 + scorePop * .35; scoreSprite.scale.set(7 * k, 1.75 * k, 1); scoreSprite.visible = S.screen === 'game'; }
   stars.rotation.y += dt * .01;
   // caméra
-  const portrait = cam.aspect < 1, dist = portrait ? 11 + (1 - cam.aspect) * 15 : 11, inGame = S.screen === 'game';
+  const portrait = cam.aspect < 1, inGame = S.screen === 'game', dist = (portrait ? 11 + (1 - cam.aspect) * 15 : 11) + (inGame ? 2.5 : 0);
   shake = Math.max(0, shake - dt * 3);
   const orbit = inGame ? 0 : T * .12, tx = Math.sin(orbit) * dist + mx * 1.4 + (Math.random() - .5) * shake * .5, tz = Math.cos(orbit) * dist, ty = (portrait ? 8.5 : 6.6) - my * .7 + (Math.random() - .5) * shake * .4;
   cam.position.x += (tx - cam.position.x) * Math.min(1, dt * 3); cam.position.y += (ty - cam.position.y) * Math.min(1, dt * 3); cam.position.z += (tz - cam.position.z) * Math.min(1, dt * 3);
-  cam.lookAt(0, inGame ? (portrait ? -3.4 : -1.6) : .8, 0);
+  cam.lookAt(0, inGame ? (portrait ? -3 : (innerWidth > 700 ? .5 : -.9)) : .8, inGame ? -1.5 : 0);
   if (bloom) bloom.strength = .4 + bass * .3;
   if (composer) composer.render(); else renderer.render(scene, cam);
 }
@@ -413,12 +488,12 @@ $('artForm').onsubmit = e => { e.preventDefault(); const q = $('artist').value.t
 
 async function startGame(cat){
   if (S.phase === 'fetch') return;
-  initAudio(); sfx.click(); S.phase = 'fetch'; toast('Chargement de « ' + cat.n + ' »…');
+  initAudio(); sfx.click(); discNow = -1; au.pause(); S.phase = 'fetch'; toast('Chargement de « ' + cat.n + ' »…');
   let pool;
   try { pool = await loadPool(cat); } catch(e) { S.phase = 'idle'; toast('Impossible de charger les musiques. Vérifie ta connexion et réessaie.'); return; }
   if (pool.length < 8) { S.phase = 'idle'; toast(cat.q ? 'Pas assez de titres trouvés pour « ' + cat.n + ' ».' : 'Pas assez de titres dans cette catégorie pour le moment.'); return; }
   $('toast').classList.add('hide');
-  Object.assign(S, {cat, pool, i: 0, score: 0, shown: 0, streak: 0, best: 0, good: 0, jok: 2, fails: 0, dur: DIFFS.find(d => d.id === diff).s});
+  published = false; Object.assign(S, {cat, pool, i: 0, score: 0, shown: 0, streak: 0, best: 0, good: 0, jok: 2, fails: 0, dur: DIFFS.find(d => d.id === diff).s});
   S.rounds = buildRounds(pool); clearOrbs(); hueT = HUES[0]; setScore3D(0); $('hScore').textContent = '0';
   show('game'); startRound();
 }
@@ -428,7 +503,7 @@ function startRound(){
   $('status').innerHTML = '<div class="msg"><span class="eq"><i></i><i></i><i></i><i></i></span>Chargement de l\'extrait…</div>';
   $('bar').classList.remove('low'); $('bar').firstElementChild.style.transform = 'scaleX(1)';
   $('answers').innerHTML = r.ch.map((c, k) => '<button class="ans wait" data-k="' + k + '" disabled><span class="k">' + (k + 1) + '</span><span><span class="t">' + esc(c.title) + '</span><br><span class="a">' + esc(c.artist) + '</span></span></button>').join('');
-  $('nextBtn').classList.add('hide'); jokerBtn();
+  $('nextBtn').classList.add('hide'); jokerBtn(); doorsShow(r); setHov(-1);
   au.src = r.t.preview; const p = au.play(); if (p && p.catch) p.catch(() => {});
   clearTimeout(loadTO); loadTO = setTimeout(broken, 8000);
 }
@@ -458,7 +533,7 @@ function answer(k){
   r.ok = ok; r.pts = pts; S.phase = 'reveal'; hueT = HUES[Math.min(S.streak, 4)];
   document.querySelectorAll('.ans').forEach((b, j) => { b.disabled = true; if (j === r.correct) b.classList.add('ok'); else if (j === k) b.classList.add('bad'); else b.classList.add('out'); });
   $('status').innerHTML = '<div class="rv"><img src="' + esc(r.t.cover) + '" alt=""><div><div class="t">' + esc(r.t.title) + '</div><div class="a">' + esc(r.t.artist) + ' · <a href="' + esc(r.t.link) + '" target="_blank" rel="noopener">Écouter sur Deezer ↗</a></div></div><div class="p" style="color:' + (ok ? 'var(--ok)' : 'var(--bad)') + '">' + (ok ? '+' + pts : k < 0 ? 'Trop tard' : 'Raté') + (ok && m > 1 ? '<small>combo ×' + String(m).replace('.', ',') + '</small>' : '') + '</div></div>';
-  setLabel(r.t.cover); addOrb(r, S.i); comboHud(ok); jokerBtn();
+  setLabel(r.t.cover); addOrb(r, S.i); comboHud(ok); jokerBtn(); doorsReveal(r, k); setHov(-1);
   const fl = $('flash'); fl.style.transition = 'none'; fl.style.background = ok ? 'radial-gradient(circle at 50% 40%,rgba(61,255,162,.28),transparent 65%)' : 'radial-gradient(circle at 50% 40%,rgba(255,77,109,.32),transparent 65%)'; fl.style.opacity = 1; requestAnimationFrame(() => { fl.style.transition = 'opacity .7s'; fl.style.opacity = 0; });
   if (ok) { sfx.ok(S.streak - 1); burst(90 + S.streak * 40, S.streak >= 3 ? '#ffd166' : '#3dffa2', 5 + S.streak); floatText('+' + pts, S.streak >= 3 ? '#ffd166' : '#3dffa2', 2); if (S.streak >= 2) floatText('COMBO ×' + String(MULT[Math.min(S.streak, 4)]).replace('.', ','), '#ff9f43', 3.6); setScore3D(S.score); spin = 7; }
   else { sfx.bad(); shake = 1; }
@@ -469,19 +544,20 @@ function next(){ if (S.phase !== 'reveal') return; clearTimeout(nextTO); if (++S
 function joker(){
   if (S.phase !== 'play' || S.jok < 1 || S.jokUsed) return;
   S.jok--; S.jokUsed = true; sfx.click(); const r = S.rounds[S.i];
-  shuffle([0, 1, 2, 3].filter(k => k !== r.correct)).slice(0, 2).forEach(k => { const b = document.querySelector('.ans[data-k="' + k + '"]'); b.disabled = true; b.classList.add('out'); }); jokerBtn();
+  shuffle([0, 1, 2, 3].filter(k => k !== r.correct)).slice(0, 2).forEach(k => { const b = document.querySelector('.ans[data-k="' + k + '"]'); b.disabled = true; b.classList.add('out'); doorOut(k); }); jokerBtn();
 }
 function end(){
-  S.phase = 'idle'; au.pause(); sfx.end(); burst(400, '#ffd166', 9); hueT = 45;
+  S.phase = 'idle'; au.pause(); doorsHide(); sfx.end(); burst(400, '#ffd166', 9); hueT = 45;
   const key = S.cat.id + ':' + diff, rec = S.score > (best[key] || 0) && S.score > 0; if (rec) { best[key] = S.score; ls.set('gs_best', best); }
   const g = S.good, n = S.rounds.length, rank = g === n ? '👑 Oreille absolue' : g >= n * .8 ? '🎧 DJ résident' : g >= n * .6 ? '🎶 Mélomane' : g >= n * .4 ? '📻 Auditeur du dimanche' : '🙉 Il va falloir réviser';
   $('endBox').innerHTML = '<div class="lbl" style="margin-top:0">' + esc(S.cat.e + ' ' + S.cat.n) + ' · ' + DIFFS.find(d => d.id === diff).n + '</div><div class="big">' + S.score.toLocaleString('fr-FR') + '</div><div class="rank">' + rank + '</div>' + (rec ? '<div style="color:var(--gold);font-weight:700">★ Nouveau record !</div>' : best[key] ? '<div style="color:var(--mut);font-size:13px">Record : ' + best[key].toLocaleString('fr-FR') + '</div>' : '') +
     '<div class="stats"><div><b>' + g + '/' + n + '</b>bonnes réponses</div><div><b>' + S.best + '</b>meilleure série</div></div>' +
-    '<div class="recap">' + S.rounds.map(r => '<div><img src="' + esc(r.t.cover) + '" alt=""><div>' + esc(r.t.title) + '<br><span class="a">' + esc(r.t.artist) + '</span></div><span style="color:' + (r.ok ? 'var(--ok)' : 'var(--bad)') + '">' + (r.ok ? '+' + r.pts : '✗') + '</span></div>').join('') + '</div>' +
+    (S.score > 0 ? '<form class="row" id="pubForm" style="justify-content:center"><input class="inp" id="pseudo" maxlength="16" placeholder="Ton pseudo" style="max-width:200px;flex:none" value="' + esc(ls.get('gs_name', '')) + '"><button class="btn" type="submit">Publier mon score 🌍</button></form><div class="note" id="pubMsg">' + (DB_URL ? 'Ton pseudo et ton score seront visibles dans le classement mondial.' : 'Classement enregistré sur cet appareil pour l\'instant.') + '</div>' : '') + '<div class="recap">' + S.rounds.map(r => '<div><img src="' + esc(r.t.cover) + '" alt=""><div>' + esc(r.t.title) + '<br><span class="a">' + esc(r.t.artist) + '</span></div><span style="color:' + (r.ok ? 'var(--ok)' : 'var(--bad)') + '">' + (r.ok ? '+' + r.pts : '✗') + '</span></div>').join('') + '</div>' +
     '<div class="row" style="justify-content:center"><button class="btn" id="again">Rejouer ▶</button><button class="btn ghost" id="menu">Changer de catégorie</button></div><p style="color:var(--mut);font-size:12px;margin-top:12px">Astuce : les orbes autour du vinyle sont tes réponses — clique dessus.</p>';
-  $('again').onclick = () => startGame(S.cat); $('menu').onclick = goHome; show('end');
+  if ($('pubForm')) $('pubForm').onsubmit = publish; $('again').onclick = () => startGame(S.cat); $('menu').onclick = goHome; show('end');
 }
-function goHome(){ clearTimeout(nextTO); clearTimeout(loadTO); S.phase = 'idle'; S.streak = 0; au.pause(); hueT = HUES[0]; setLabel(''); clearOrbs(); renderHome(); show('home'); }
+function goHome(){ clearTimeout(nextTO); clearTimeout(loadTO); S.phase = 'idle'; S.streak = 0; au.pause(); doorsHide(); discNow = -1; hueT = HUES[0]; setLabel(''); clearOrbs(); renderHome(); show('home'); }
+$('answers').onmouseover = e => { const b = e.target.closest('.ans'); if (b) setHov(+b.dataset.k); }; $('answers').onmouseleave = () => setHov(-1);
 $('answers').onclick = e => { const b = e.target.closest('.ans'); if (b && !b.disabled) answer(+b.dataset.k); };
 $('joker').onclick = joker; $('nextBtn').onclick = next; $('quit').onclick = goHome;
 $('vol').value = vol; $('vol').oninput = e => setVol(+e.target.value);
@@ -494,7 +570,56 @@ addEventListener('keydown', e => {
   else if (e.code === 'Enter' || e.code === 'Space') { e.preventDefault(); next(); }
   else if (e.code === 'Escape') goHome();
 });
-window.gs = {S, info: () => ({screen: S.screen, phase: S.phase, i: S.i, score: S.score, streak: S.streak, correct: S.rounds[S.i] && S.rounds[S.i].correct, pool: S.pool.length, orbs: orbs.length, bloom: !!composer, paused: au.paused})};
+/* ---------------- Classement ---------------- */
+async function lbFetch(){
+  if (!DB_URL) return ls.get('gs_lb', []);
+  const r = await fetch(DB_URL + '/scores.json?orderBy=%22s%22&limitToLast=50'); if (!r.ok) throw new Error('db');
+  return Object.values(await r.json() || {}).filter(e => e && typeof e.s === 'number' && typeof e.n === 'string').sort((a, b) => b.s - a.s);
+}
+async function lbPost(e){
+  if (!DB_URL) { const a = ls.get('gs_lb', []); a.push(e); a.sort((x, y) => y.s - x.s); ls.set('gs_lb', a.slice(0, 50)); return; }
+  const r = await fetch(DB_URL + '/scores.json', {method: 'POST', body: JSON.stringify(e)}); if (!r.ok) throw new Error('db');
+}
+let published = false;
+async function publish(ev){
+  ev.preventDefault(); if (published) return;
+  const n = $('pseudo').value.replace(/\s+/g, ' ').trim().slice(0, 16), msg = $('pubMsg');
+  if (n.length < 2) { msg.textContent = 'Choisis un pseudo d\'au moins 2 caractères.'; return; }
+  ls.set('gs_name', n); published = true; msg.textContent = 'Envoi…';
+  const reg = ((navigator.language || '').split('-')[1] || '').toUpperCase().slice(0, 2);
+  try { await lbPost({n, s: S.score, g: S.good, c: S.cat.n.slice(0, 30), d: diff, r: reg, t: Date.now()}); const a = await lbFetch(), i = a.findIndex(e => e.n === n && e.s === S.score); msg.innerHTML = '✓ Score publié' + (i >= 0 ? ' — tu es <b style="color:var(--gold)">n°' + (i + 1) + '</b> du classement.' : '.'); $('pubForm').classList.add('hide'); }
+  catch(e) { published = false; msg.textContent = 'Envoi impossible pour le moment. Réessaie.'; }
+}
+async function renderLb(){
+  const el = $('tabLb'); el.innerHTML = '<div class="note">Chargement…</div>'; let a;
+  try { a = await lbFetch(); } catch(e) { el.innerHTML = '<div class="note">Classement indisponible pour le moment.</div>'; return; }
+  el.innerHTML = '<div class="note">' + (DB_URL ? 'Les 50 meilleurs scores, tous joueurs confondus.' : 'Scores enregistrés sur cet appareil. Le classement mondial s\'activera quand la base de données en ligne sera branchée.') + '</div><div class="list">' +
+    (a.length ? a.map((e, i) => '<div class="li' + (i < 3 ? ' top' : '') + '"><span class="rk">' + (i + 1) + '</span><div>' + esc(e.n) + (e.r ? ' <span class="a">' + esc(e.r) + '</span>' : '') + '<br><span class="a">' + esc(e.c || '') + ' · ' + esc((DIFFS.find(d => d.id === e.d) || {n: ''}).n) + ' · ' + (e.g | 0) + '/10</span></div><span class="sc">' + Number(e.s).toLocaleString('fr-FR') + '</span></div>').join('') : '<div class="note">Aucun score pour l\'instant. Joue une partie et publie le tien !</div>') + '</div>';
+}
+/* ---------------- Découvrir ---------------- */
+let discNow = -1, discList = [];
+async function loadDisc(q){
+  const el = $('discList'); el.innerHTML = '<div class="note">Chargement…</div>';
+  try { const d = await jp(q ? 'search?q=' + encodeURIComponent(q) + '&limit=30' : 'chart/0/tracks?limit=30'); discList = (d.data || []).filter(t => t.preview && t.artist); discNow = -1; drawDisc(); }
+  catch(e) { el.innerHTML = '<div class="note">Impossible de charger les titres. Réessaie.</div>'; }
+}
+function drawDisc(){
+  $('discList').innerHTML = discList.length ? discList.map((t, i) => '<div class="li"><img src="' + esc(t.album && t.album.cover_small || '') + '" alt=""><div>' + esc(t.title) + '<br><span class="a">' + esc(t.artist.name) + '</span></div><button class="pl" data-i="' + i + '" aria-label="' + (i === discNow ? 'Pause' : 'Écouter') + '">' + (i === discNow ? '❚❚' : '▶') + '</button></div>').join('') : '<div class="note">Aucun titre trouvé.</div>';
+}
+$('discList').onclick = e => {
+  const b = e.target.closest('.pl'); if (!b) return; const i = +b.dataset.i; initAudio();
+  if (i === discNow) { au.pause(); discNow = -1; } else { discNow = i; au.src = discList[i].preview; const p = au.play(); if (p && p.catch) p.catch(() => {}); setLabel(discList[i].album && discList[i].album.cover_big || ''); }
+  drawDisc();
+};
+$('discForm').onsubmit = e => { e.preventDefault(); loadDisc($('discQ').value.trim()); };
+au.addEventListener('ended', () => { if (discNow >= 0) { discNow = -1; drawDisc(); } });
+function setTab(t){
+  ['Play', 'Lb', 'Disc'].forEach(n => $('tab' + n).classList.toggle('hide', n.toLowerCase() !== t));
+  document.querySelectorAll('#tabs button').forEach(b => b.classList.toggle('on', b.dataset.t === t));
+  if (t === 'lb') renderLb(); if (t === 'disc' && !discList.length) loadDisc('');
+}
+$('tabs').onclick = e => { const t = e.target.dataset.t; if (t) { sfx.click(); setTab(t); } };
+window.gs = {S, doors, info: () => ({screen: S.screen, phase: S.phase, i: S.i, score: S.score, streak: S.streak, correct: S.rounds[S.i] && S.rounds[S.i].correct, pool: S.pool.length, orbs: orbs.length, bloom: !!composer, paused: au.paused})};
 renderHome(); show('home'); requestAnimationFrame(frame);
 </script>
 </body>
