@@ -262,7 +262,7 @@ const sfx = {
 const renderer = new THREE.WebGLRenderer({canvas: $('c'), antialias: true, powerPreference: 'high-performance'});
 renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
 const scene = new THREE.Scene(); scene.background = new THREE.Color(0x07040f); scene.fog = new THREE.FogExp2(0x07040f, .016);
-const cam = new THREE.PerspectiveCamera(50, 1, .1, 400);
+const cam = new THREE.PerspectiveCamera(50, 1, .1, 400); cam.position.set(0, 6.6, 11);
 scene.add(new THREE.AmbientLight(0x8877ff, .55));
 const L1 = new THREE.PointLight(0xb86bff, 2.2, 40), L2 = new THREE.PointLight(0x38e1ff, 2.2, 40); scene.add(L1, L2);
 function cvs(w, h, draw){ const c = document.createElement('canvas'); c.width = w; c.height = h; draw(c.getContext('2d'), w, h); return c; }
@@ -288,7 +288,7 @@ const grooves = tex(cvs(1024, 1024, (g, w) => {
 const vSide = new THREE.MeshStandardMaterial({color: 0x050508, roughness: .4, metalness: .5});
 vinyl.add(new THREE.Mesh(new THREE.CylinderGeometry(3, 3, .1, 96), [vSide, new THREE.MeshStandardMaterial({map: grooves, roughness: .32, metalness: .65}), vSide]));
 const qTex = tex(cvs(512, 512, (g, w) => { const r = g.createRadialGradient(256, 256, 20, 256, 256, 256); r.addColorStop(0, '#7a3cff'); r.addColorStop(1, '#1b0b45'); g.fillStyle = r; g.fillRect(0, 0, w, w); g.fillStyle = '#fff'; g.font = '800 300px Unbounded,Arial'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('?', 256, 276); }));
-const label = new THREE.Mesh(new THREE.CircleGeometry(1.25, 64), new THREE.MeshBasicMaterial({map: qTex, color: 0xb8b8b8})); label.rotation.x = -Math.PI / 2; label.position.y = .056; vinyl.add(label);
+const label = new THREE.Mesh(new THREE.CircleGeometry(1.25, 64), new THREE.MeshBasicMaterial({map: qTex, color: 0x8c8c8c})); label.rotation.x = -Math.PI / 2; label.position.y = .056; vinyl.add(label);
 const spindle = new THREE.Mesh(new THREE.CylinderGeometry(.07, .07, .2, 16), new THREE.MeshStandardMaterial({color: 0xdddddd, metalness: 1, roughness: .2})); spindle.position.y = .1; vinyl.add(spindle);
 const halo = new THREE.Mesh(new THREE.RingGeometry(3.06, 3.3, 128), new THREE.MeshBasicMaterial({color: 0xb86bff, transparent: true, opacity: .9, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide})); halo.rotation.x = -Math.PI / 2; halo.position.y = .3; scene.add(halo);
 const texLoader = new THREE.TextureLoader(); texLoader.setCrossOrigin('anonymous');
@@ -321,7 +321,7 @@ const floats = [];
 function floatText(txt, col, y){ const s = textSprite(txt, col); s.position.set(0, y || 2, 1); scene.add(s); floats.push({s, t: 0}); }
 // score géant en 3D
 let scoreSprite = null, scorePop = 0, scoreShown = -1;
-function setScore3D(v){ if (v === scoreShown) return; scoreShown = v; if (scoreSprite) { scene.remove(scoreSprite); scoreSprite.material.map.dispose(); scoreSprite.material.dispose(); } scoreSprite = textSprite(v.toLocaleString('fr-FR'), '#b86bff', 130); scoreSprite.position.set(0, 5.4, -7); scoreSprite.scale.set(13, 3.25, 1); scoreSprite.material.opacity = .9; scene.add(scoreSprite); scorePop = 1; }
+function setScore3D(v){ if (v === scoreShown) return; scoreShown = v; if (scoreSprite) { scene.remove(scoreSprite); scoreSprite.material.map.dispose(); scoreSprite.material.dispose(); } scoreSprite = textSprite(v.toLocaleString('fr-FR'), '#b86bff', 130); scoreSprite.position.set(0, 3.6, -6.5); scoreSprite.scale.set(13, 3.25, 1); scoreSprite.material.opacity = .9; scene.add(scoreSprite); scorePop = 1; }
 
 // orbes de score (interactifs)
 const orbG = new THREE.Group(); scene.add(orbG); let orbs = [];
@@ -338,7 +338,7 @@ function clearOrbs(){ orbs.forEach(o => { orbG.remove(o); o.material.dispose(); 
 
 // post-traitement
 let composer = null, bloom = null;
-try { if (THREE.EffectComposer && THREE.UnrealBloomPass) { composer = new THREE.EffectComposer(renderer); composer.addPass(new THREE.RenderPass(scene, cam)); bloom = new THREE.UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), .8, .65, .22); composer.addPass(bloom); } } catch(e) { composer = null; }
+try { if (THREE.EffectComposer && THREE.UnrealBloomPass) { composer = new THREE.EffectComposer(renderer); composer.addPass(new THREE.RenderPass(scene, cam)); bloom = new THREE.UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), .5, .6, .35); composer.addPass(bloom); } } catch(e) { composer = null; }
 function resize(){ const w = innerWidth, h = innerHeight; renderer.setSize(w, h, false); if (composer) composer.setSize(w, h); cam.aspect = w / h; cam.updateProjectionMatrix(); }
 addEventListener('resize', resize); resize();
 
@@ -368,8 +368,8 @@ function frame(now){
   bass += (b - bass) * Math.min(1, dt * 14);
   hue += (((hueT - hue + 540) % 360) - 180) * Math.min(1, dt * 3); hue = (hue + 360) % 360;
   const c1 = new THREE.Color('hsl(' + (hue | 0) + ',100%,62%)'), c2 = new THREE.Color('hsl(' + ((hue + 70) % 360 | 0) + ',100%,60%)');
-  for (let i = 0; i < NB; i++) { const m = bars[i]; m.scale.y = .08 + lev[i] * lev[i] * 4.2; m.material.color.setHSL(((hue + (i < NB / 2 ? i : NB - i) * 2.4) % 360) / 360, 1, .35 + lev[i] * .35); }
-  halo.material.color.copy(c1); halo.scale.setScalar(1 + bass * .12); halo.material.opacity = .5 + bass * .5;
+  for (let i = 0; i < NB; i++) { const m = bars[i]; m.scale.y = .08 + lev[i] * lev[i] * 3; m.material.color.setHSL(((hue + (i < NB / 2 ? i : NB - i) * 2.4) % 360) / 360, 1, .3 + lev[i] * .22); }
+  halo.material.color.copy(c1); halo.scale.setScalar(1 + bass * .12); halo.material.opacity = .35 + bass * .4;
   rings.forEach((r, i) => { r.material.color.copy(i % 2 ? c2 : c1); r.material.opacity = Math.max(0, .12 + bass * .5 - i * .05); r.scale.setScalar(1 + bass * .04 * (i + 1)); });
   beams.forEach((m, i) => { m.material.color.copy(i % 2 ? c2 : c1); m.material.opacity = .03 + bass * .07; m.rotation.z = Math.sin(T * .5 + i) * .35 + (m.position.x > 0 ? .5 : -.5) * Math.abs(m.position.x) / 11; m.rotation.x = Math.cos(T * .4 + i * 1.3) * .3 - .25 * Math.sign(m.position.z + 3) * Math.abs(m.position.z + 3) / 11; });
   L1.color.copy(c1); L2.color.copy(c2); L1.position.set(Math.cos(T * .6) * 6, 4, Math.sin(T * .6) * 6); L2.position.set(Math.cos(T * .6 + 3.14) * 6, 3, Math.sin(T * .6 + 3.14) * 6);
@@ -393,7 +393,7 @@ function frame(now){
   const orbit = inGame ? 0 : T * .12, tx = Math.sin(orbit) * dist + mx * 1.4 + (Math.random() - .5) * shake * .5, tz = Math.cos(orbit) * dist, ty = (portrait ? 8.5 : 6.6) - my * .7 + (Math.random() - .5) * shake * .4;
   cam.position.x += (tx - cam.position.x) * Math.min(1, dt * 3); cam.position.y += (ty - cam.position.y) * Math.min(1, dt * 3); cam.position.z += (tz - cam.position.z) * Math.min(1, dt * 3);
   cam.lookAt(0, inGame ? (portrait ? -3.4 : -1.6) : .8, 0);
-  if (bloom) bloom.strength = .65 + bass * .5;
+  if (bloom) bloom.strength = .4 + bass * .3;
   if (composer) composer.render(); else renderer.render(scene, cam);
 }
 
