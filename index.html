@@ -2,304 +2,532 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Penalty Cup — Coupe des Nations</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Penalty Cup : jeu de tirs au but en 3D. Choisis ta sélection et remporte la Coupe des Nations.">
+<title>Penalty Cup 3D — Coupe des Nations</title>
 <style>
-  :root { --bg:#0b1220; --panel:#131c30; --ink:#f2f5fa; --mute:#9fb0c8; --accent:#ffd23f; }
+  :root { --bg:#070c1a; --panel:rgba(14,22,42,.92); --line:#27365a; --ink:#f2f5fa; --mute:#9fb0c8; --accent:#ffd23f; --good:#4be37a; --bad:#ff5a5a; }
   * { box-sizing:border-box; }
-  body { margin:0; background:var(--bg); color:var(--ink); font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
-         min-height:100vh; display:flex; flex-direction:column; align-items:center; padding:16px; }
-  h1 { margin:4px 0 2px; font-size:clamp(22px,4vw,34px); letter-spacing:.5px; }
-  h1 span { color:var(--accent); }
-  .sub { color:var(--mute); margin:0 0 12px; font-size:14px; text-align:center; }
-  #wrap { position:relative; width:100%; max-width:900px; aspect-ratio:8/5; border-radius:14px; overflow:hidden;
-          box-shadow:0 10px 40px rgba(0,0,0,.5); }
-  canvas { width:100%; height:100%; display:block; touch-action:none; cursor:crosshair; }
-  #overlay { position:absolute; inset:0; background:rgba(8,13,25,.88); display:flex; flex-direction:column;
-             align-items:center; justify-content:center; padding:16px; text-align:center; overflow:auto; }
-  #overlay.hidden { display:none; }
-  #overlay h2 { margin:0 0 6px; font-size:clamp(20px,4vw,32px); }
-  #overlay p { margin:0 0 14px; color:var(--mute); font-size:clamp(13px,2vw,16px); }
-  .teams { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; width:100%; max-width:640px; }
-  .team { display:flex; align-items:center; gap:8px; background:var(--panel); color:var(--ink); border:1px solid #26334f;
-          border-radius:10px; padding:8px 10px; font-size:clamp(11px,1.8vw,15px); cursor:pointer; font-family:inherit; }
-  .team:hover { border-color:var(--accent); transform:translateY(-1px); }
-  .chip { width:16px; height:16px; border-radius:50%; flex:none; border:2px solid; }
-  .btn { background:var(--accent); color:#1a1300; border:0; border-radius:10px; padding:12px 26px; font-size:17px;
-         font-weight:700; cursor:pointer; font-family:inherit; }
+  html, body { margin:0; height:100%; background:var(--bg); color:var(--ink); overflow:hidden;
+               font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; user-select:none; -webkit-user-select:none; }
+  canvas#c { position:fixed; inset:0; width:100%; height:100%; display:block; touch-action:none; cursor:crosshair; }
+  .hud { position:fixed; pointer-events:none; z-index:2; }
+  #brand { top:12px; left:14px; font-weight:800; font-size:18px; letter-spacing:.5px; text-shadow:0 2px 6px #000; }
+  #brand span { color:var(--accent); }
+  #mute { position:fixed; top:10px; right:12px; z-index:6; background:var(--panel); color:var(--ink); border:1px solid var(--line);
+          border-radius:10px; padding:7px 11px; font-size:13px; cursor:pointer; font-family:inherit; }
+  #score { top:10px; left:50%; transform:translateX(-50%); background:var(--panel); border:1px solid var(--line); border-radius:14px;
+           padding:8px 18px 9px; text-align:center; min-width:min(92vw,440px); }
+  #score .stage { color:var(--accent); font-size:11px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; }
+  #score .row { display:grid; grid-template-columns:1fr auto 1fr; align-items:center; gap:12px; margin-top:3px; }
+  #score .t { display:flex; align-items:center; gap:7px; font-weight:700; font-size:clamp(13px,2.2vw,17px); }
+  #score .t.l { justify-content:flex-end; }
+  #score .n { font-size:clamp(20px,3.4vw,28px); font-weight:800; color:var(--accent); white-space:nowrap; }
+  #score .dots { display:flex; gap:5px; margin-top:5px; }
+  #score .dots.l { justify-content:flex-end; }
+  .dot { width:10px; height:10px; border-radius:50%; background:rgba(255,255,255,.2); }
+  .dot.ok { background:var(--good); } .dot.ko { background:var(--bad); }
+  .flag { width:30px; height:20px; border-radius:3px; flex:none; box-shadow:0 0 0 1px rgba(255,255,255,.25); display:block; }
+  #msg { top:42%; left:50%; transform:translate(-50%,-50%); text-align:center; width:96vw; }
+  #msg b { display:block; font-size:clamp(34px,8vw,84px); font-weight:900; letter-spacing:1px;
+           text-shadow:0 4px 0 rgba(0,0,0,.45), 0 0 30px rgba(0,0,0,.6); animation:pop .35s cubic-bezier(.2,1.6,.4,1); }
+  #msg small { display:block; font-size:clamp(16px,3vw,28px); font-weight:700; text-shadow:0 2px 8px #000; margin-top:4px; }
+  @keyframes pop { from { transform:scale(.3); opacity:0; } to { transform:scale(1); opacity:1; } }
+  #hint { bottom:calc(18px + env(safe-area-inset-bottom)); left:50%; transform:translateX(-50%); background:var(--panel);
+          border:1px solid var(--line); border-radius:999px; padding:9px 20px; font-size:clamp(13px,2.2vw,16px); font-weight:600;
+          white-space:nowrap; max-width:96vw; overflow:hidden; text-overflow:ellipsis; }
+  #gauge { bottom:calc(70px + env(safe-area-inset-bottom)); left:50%; transform:translateX(-50%); width:min(80vw,420px); height:22px;
+           border-radius:999px; border:3px solid #0b1020; box-shadow:0 0 0 2px rgba(255,255,255,.5);
+           background:linear-gradient(90deg,#ff5a5a,#ffd23f 35%,#4be37a 46%,#4be37a 54%,#ffd23f 65%,#ff5a5a); }
+  #gauge i { position:absolute; top:-7px; width:8px; height:30px; margin-left:-4px; background:#fff; border-radius:4px; box-shadow:0 0 6px #000; }
+  .hide { display:none !important; }
+
+  #overlay { position:fixed; inset:0; z-index:5; overflow:auto; display:flex; }
+  #overlay.menu { background:linear-gradient(90deg, rgba(7,12,26,.95) 0, rgba(7,12,26,.9) 50%, rgba(7,12,26,0) 78%); }
+  #overlay.end { background:rgba(7,12,26,.82); align-items:center; justify-content:center; padding:16px; }
+  .left { width:min(100%,640px); padding:54px 22px 22px 26px; }
+  .left h2 { margin:0; font-size:clamp(24px,3.6vw,38px); }
+  .left p { margin:4px 0 14px; color:var(--mute); font-size:14px; }
+  .teams { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; }
+  .team { display:flex; flex-direction:column; align-items:center; gap:6px; background:rgba(20,30,56,.9); color:var(--ink);
+          border:2px solid var(--line); border-radius:12px; padding:10px 4px 8px; font-size:13px; font-weight:600; cursor:pointer;
+          font-family:inherit; transition:transform .12s, border-color .12s; }
+  .team .flag { width:48px; height:32px; }
+  .team:hover { transform:translateY(-2px); border-color:#5b74ad; }
+  .team.sel { border-color:var(--accent); background:rgba(60,52,14,.9); }
+  .seg { display:inline-flex; margin-top:14px; border:1px solid var(--line); border-radius:10px; overflow:hidden; }
+  .seg button { background:rgba(20,30,56,.9); color:var(--mute); border:0; padding:9px 16px; font-size:14px; cursor:pointer; font-family:inherit; font-weight:600; }
+  .seg button.on { background:var(--accent); color:#1a1300; }
+  .lab { color:var(--mute); font-size:12px; letter-spacing:1px; text-transform:uppercase; margin:16px 0 0; }
+  .right { flex:1; display:flex; align-items:flex-end; justify-content:center; padding:20px; min-width:0; }
+  .card { background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:16px 20px; width:min(100%,330px); }
+  .card .head { display:flex; align-items:center; gap:12px; font-size:24px; font-weight:800; }
+  .card .head .flag { width:54px; height:36px; }
+  .stat { display:grid; grid-template-columns:78px 1fr; align-items:center; gap:10px; margin-top:10px; font-size:13px; color:var(--mute); }
+  .pips { display:flex; gap:4px; } .pips i { flex:1; height:8px; border-radius:4px; background:#26334f; } .pips i.on { background:var(--accent); }
+  .btn { background:var(--accent); color:#1a1300; border:0; border-radius:12px; padding:13px 28px; font-size:18px; font-weight:800;
+         cursor:pointer; font-family:inherit; margin-top:16px; width:100%; }
   .btn:hover { filter:brightness(1.1); }
-  .trophy { font-size:64px; line-height:1; margin-bottom:8px; }
-  .help { color:var(--mute); font-size:13px; max-width:900px; margin-top:12px; text-align:center; line-height:1.5; }
-  @media (max-width:560px){ .teams{ grid-template-columns:repeat(2,1fr);} }
+  .tro { color:var(--accent); font-weight:700; font-size:14px; margin-top:10px; text-align:center; }
+  .panel { background:var(--panel); border:1px solid var(--line); border-radius:18px; padding:24px 28px; width:min(100%,460px); text-align:center; }
+  .panel h2 { margin:0 0 4px; font-size:clamp(26px,5vw,40px); }
+  .panel p { margin:0 0 14px; color:var(--mute); }
+  .panel .big { font-size:64px; line-height:1; }
+  .path { display:grid; gap:6px; text-align:left; }
+  .path div { display:flex; align-items:center; gap:10px; padding:7px 10px; border-radius:9px; background:rgba(20,30,56,.9); font-size:14px; }
+  .path div.cur { outline:2px solid var(--accent); }
+  .path div span { color:var(--mute); width:118px; flex:none; font-size:12px; }
+  .path div em { margin-left:auto; font-style:normal; font-weight:800; }
+  .confetti { position:fixed; top:-20px; width:10px; height:16px; z-index:7; pointer-events:none; animation:fall linear forwards; }
+  @keyframes fall { to { transform:translateY(110vh) rotate(720deg); } }
+  @media (max-width:820px) {
+    #overlay.menu { flex-direction:column; background:rgba(7,12,26,.9); }
+    .left { width:100%; padding:50px 14px 6px; } .right { padding:8px 14px 20px; flex:none; }
+    .card { width:100%; } #brand { font-size:15px; }
+    #score { top:44px; }
+  }
+  @media (max-width:480px) { .teams { grid-template-columns:repeat(4,1fr); gap:5px; } .team { font-size:10px; padding:7px 2px 6px; } .team .flag { width:36px; height:24px; } }
 </style>
 </head>
 <body>
-<h1>⚽ Penalty <span>Cup</span></h1>
-<p class="sub">Coupe des Nations — gagne 4 séances de tirs au but pour soulever le trophée</p>
-<div id="wrap">
-  <canvas id="c" width="800" height="500"></canvas>
-  <div id="overlay"></div>
-</div>
-<p class="help"><b>Tireur :</b> clique dans le but pour viser, puis clique encore pour arrêter la jauge au centre.
-<b>Gardien :</b> dès que le ballon part, clique là où tu veux plonger.</p>
+<canvas id="c"></canvas>
+<div id="brand" class="hud">⚽ PENALTY <span>CUP</span> 3D</div>
+<button id="mute">🔊 Son</button>
+<div id="score" class="hud hide"></div>
+<div id="msg" class="hud hide"></div>
+<div id="gauge" class="hud hide"><i></i></div>
+<div id="hint" class="hud hide"></div>
+<div id="overlay"></div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 (() => {
-const cv = document.getElementById('c'), ctx = cv.getContext('2d'), ov = document.getElementById('overlay');
-const W = 800, H = 500;
-const G = { x:220, y:90, w:360, h:170 };           // cage
-const SPOT = { x:400, y:432 };                      // point de penalty
-const KBASE = { x:400, y:G.y + G.h - 52 };          // position de départ du gardien
-const STAGES = ['Huitième de finale','Quart de finale','Demi-finale','Finale'];
-const TEAMS = [
-  ['France','#1f3fa8','#ffffff'], ['Brésil','#f7d417','#1a8f3c'], ['Argentine','#75c5f0','#ffffff'], ['Allemagne','#f4f4f4','#111111'],
-  ['Espagne','#c8102e','#f6c700'], ['Italie','#1565c0','#ffffff'], ['Angleterre','#ffffff','#c8102e'], ['Portugal','#b0122a','#0b6b3a'],
-  ['Pays-Bas','#f36c21','#ffffff'], ['Belgique','#d71920','#f6c700'], ['Maroc','#c1272d','#0b6b3a'], ['Japon','#14237a','#ffffff'],
-  ['Sénégal','#ffffff','#0b8a45'], ['Croatie','#e8112d','#ffffff'], ['Uruguay','#6fb7e9','#111111'], ['Mexique','#0b6b3a','#c8102e']
-].map(([name,c1,c2]) => ({ name, c1, c2 }));
-
-const rnd = (a,b) => a + Math.random()*(b-a);
-const clamp = (v,a,b) => Math.max(a, Math.min(b, v));
-const dist = (a,b) => Math.hypot(a.x-b.x, a.y-b.y);
+'use strict';
+const T = THREE, $ = id => document.getElementById(id);
+const cv = $('c'), ov = $('overlay'), elScore = $('score'), elMsg = $('msg'), elHint = $('hint'), elGauge = $('gauge');
+const rnd = (a,b) => a + Math.random()*(b-a), clamp = (v,a,b) => Math.max(a, Math.min(b, v)), lerp = (a,b,t) => a + (b-a)*t;
 const sum = a => a.reduce((s,v) => s+v, 0);
-const crowd = Array.from({length:420}, () => ({ x:rnd(0,W), y:rnd(4,78), c:`hsl(${rnd(0,360)|0} 55% ${rnd(45,70)|0}%)` }));
 
-let me, opps, stage, m, phase, t0, now = 0;
-let aim = { x:400, y:170 }, target, final, gaugePos = .5, msg = '', msgColor = '#fff';
-let ball = { x:SPOT.x, y:SPOT.y, r:13 }, flyDur = 500, outcome, dived = false;
-const k = { x:KBASE.x, y:KBASE.y, tx:KBASE.x, ty:KBASE.y };
+/* ================= Données ================= */
+const GW = 3.66, GH = 2.44, BR = 0.16, SPOT_Z = 11;
+const STAGES = ['Huitième de finale','Quart de finale','Demi-finale','Finale'];
+const v3 = (a,b,c) => `<rect width="10" height="20" fill="${a}"/><rect x="10" width="10" height="20" fill="${b}"/><rect x="20" width="10" height="20" fill="${c}"/>`;
+const h3 = (a,b,c) => `<rect width="30" height="6.7" fill="${a}"/><rect y="6.7" width="30" height="6.7" fill="${b}"/><rect y="13.3" width="30" height="6.7" fill="${c}"/>`;
+const star = (cx,cy,r,f) => { let p = ''; for (let i = 0; i < 10; i++) { const a = -Math.PI/2 + i*Math.PI/5, q = i%2 ? r*.4 : r; p += `${(cx+Math.cos(a)*q).toFixed(2)},${(cy+Math.sin(a)*q).toFixed(2)} `; } return `<polygon points="${p}" fill="${f}"/>`; };
+const TEAMS = [
+  ['France','#1f3fa8','#ffffff','#c8102e',5,4, v3('#0055A4','#fff','#EF4135')],
+  ['Brésil','#f7d417','#1f4fb0','#ffffff',5,4, `<rect width="30" height="20" fill="#009739"/><polygon points="15,2.5 27,10 15,17.5 3,10" fill="#FEDD00"/><circle cx="15" cy="10" r="4.2" fill="#012169"/>`],
+  ['Argentine','#8fd0f5','#111111','#ffffff',5,4, h3('#74ACDF','#fff','#74ACDF') + `<circle cx="15" cy="10" r="2" fill="#F6B40E"/>`],
+  ['Allemagne','#f4f4f4','#111111','#ffffff',4,5, h3('#000','#DD0000','#FFCE00')],
+  ['Espagne','#c8102e','#14237a','#14237a',5,4, `<rect width="30" height="20" fill="#AA151B"/><rect y="5" width="30" height="10" fill="#F1BF00"/>`],
+  ['Italie','#1e63c8','#ffffff','#1e63c8',4,5, v3('#009246','#fff','#CE2B37')],
+  ['Angleterre','#ffffff','#14237a','#ffffff',4,4, `<rect width="30" height="20" fill="#fff"/><rect x="13" width="4" height="20" fill="#CE1124"/><rect y="8" width="30" height="4" fill="#CE1124"/>`],
+  ['Portugal','#b0122a','#0b6b3a','#0b6b3a',5,3, `<rect width="30" height="20" fill="#DA291C"/><rect width="12" height="20" fill="#046A38"/><circle cx="12" cy="10" r="3.4" fill="#FFE900"/>`],
+  ['Pays-Bas','#f36c21','#ffffff','#f36c21',4,4, h3('#AE1C28','#fff','#21468B')],
+  ['Belgique','#d71920','#111111','#d71920',4,4, v3('#000','#FDDA24','#EF3340')],
+  ['Maroc','#c1272d','#0b6b3a','#c1272d',3,5, `<rect width="30" height="20" fill="#C1272D"/>` + star(15,10.4,4.6,'#006233')],
+  ['Japon','#14237a','#ffffff','#14237a',3,4, `<rect width="30" height="20" fill="#fff"/><circle cx="15" cy="10" r="5.5" fill="#BC002D"/>`],
+  ['Sénégal','#ffffff','#0b8a45','#ffffff',4,3, v3('#00853F','#FDEF42','#E31B23') + star(15,10.3,2.8,'#00853F')],
+  ['Croatie','#e8112d','#ffffff','#14237a',4,4, h3('#FF0000','#fff','#171796') + `<rect x="12.5" y="6" width="5" height="6" fill="#FF0000"/><rect x="12.5" y="6" width="2.5" height="3" fill="#fff"/><rect x="15" y="9" width="2.5" height="3" fill="#fff"/>`],
+  ['Uruguay','#6fb7e9','#111111','#111111',4,3, `<rect width="30" height="20" fill="#fff"/><rect y="4.4" width="30" height="2.2" fill="#0038A8"/><rect y="8.9" width="30" height="2.2" fill="#0038A8"/><rect y="13.3" width="30" height="2.2" fill="#0038A8"/><rect y="17.8" width="30" height="2.2" fill="#0038A8"/><rect width="11" height="11" fill="#fff"/><circle cx="5.5" cy="5.5" r="2.8" fill="#FCD116"/>`],
+  ['Mexique','#0b6b3a','#ffffff','#c8102e',3,4, v3('#006847','#fff','#CE1126') + `<circle cx="15" cy="10" r="2" fill="#8a5a2b"/>`]
+].map(([name,c1,c2,c3,att,def,svg]) => ({ name, c1, c2, c3, att, def, flag:`<svg class="flag" viewBox="0 0 30 20" preserveAspectRatio="none">${svg}</svg>` }));
 
-function setPhase(p){ phase = p; t0 = now; }
-function resetKick(){ ball = { x:SPOT.x, y:SPOT.y, r:13 }; k.x = k.tx = KBASE.x; k.y = k.ty = KBASE.y; dived = false; }
+/* ================= Son ================= */
+let AC = null, master = null, muted = false;
+function audioOn(){
+  try {
+    if (!AC) {
+      AC = new (window.AudioContext || window.webkitAudioContext)();
+      master = AC.createGain(); master.gain.value = muted ? 0 : 1; master.connect(AC.destination);
+      const s = AC.createBufferSource(); s.buffer = noiseBuf(3); s.loop = true;
+      const f = AC.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = 650; f.Q.value = .5;
+      const g = AC.createGain(); g.gain.value = .05; s.connect(f); f.connect(g); g.connect(master); s.start();
+    }
+    if (AC.state === 'suspended') AC.resume();
+  } catch (e) { AC = null; }
+}
+function noiseBuf(sec){ const b = AC.createBuffer(1, AC.sampleRate*sec, AC.sampleRate), d = b.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random()*2-1; return b; }
+function sNoise(dur, freq, vol, attack){
+  if (!AC) return; const t = AC.currentTime, s = AC.createBufferSource(); s.buffer = noiseBuf(dur);
+  const f = AC.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = freq; f.Q.value = .7;
+  const g = AC.createGain(); g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(vol, t+attack); g.gain.exponentialRampToValueAtTime(0.001, t+dur);
+  s.connect(f); f.connect(g); g.connect(master); s.start(t);
+}
+function sTone(f1, f2, dur, vol, type){
+  if (!AC) return; const t = AC.currentTime, o = AC.createOscillator(), g = AC.createGain(); o.type = type || 'sine';
+  o.frequency.setValueAtTime(f1, t); o.frequency.exponentialRampToValueAtTime(f2, t+dur);
+  g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.001, t+dur); o.connect(g); g.connect(master); o.start(t); o.stop(t+dur);
+}
+const sfx = {
+  kick: () => { sTone(170, 45, .16, .9); sNoise(.08, 1800, .3, .005); },
+  whistle: () => { sTone(2700, 2900, .32, .12, 'square'); },
+  cheer: () => sNoise(2.4, 1000, .7, .2),
+  groan: () => sNoise(1.5, 380, .45, .15),
+  post: () => sTone(900, 500, .25, .4, 'triangle'),
+  click: () => sTone(600, 800, .06, .15)
+};
+$('mute').onclick = () => { muted = !muted; if (master) master.gain.value = muted ? 0 : 1; $('mute').textContent = muted ? '🔇 Muet' : '🔊 Son'; };
 
-/* ---------- Écrans ---------- */
+/* ================= Scène 3D ================= */
+const renderer = new T.WebGLRenderer({ canvas:cv, antialias:true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+renderer.shadowMap.enabled = true; renderer.shadowMap.type = T.PCFSoftShadowMap;
+renderer.outputEncoding = T.sRGBEncoding;
+const scene = new T.Scene(); scene.background = new T.Color('#0a1330'); scene.fog = new T.Fog('#0a1330', 70, 190);
+const camera = new T.PerspectiveCamera(45, 1, .1, 400);
+scene.add(new T.HemisphereLight(0xdfe9ff, 0x2a5a30, .8));
+const sun = new T.DirectionalLight(0xffffff, .85); sun.position.set(7, 18, 16); sun.target.position.set(0, 0, 5);
+sun.castShadow = true; sun.shadow.mapSize.set(2048, 2048);
+Object.assign(sun.shadow.camera, { left:-12, right:12, top:12, bottom:-12, near:1, far:60 }); sun.shadow.bias = -0.0005;
+scene.add(sun, sun.target);
+
+function canvasTex(w, h, draw){ const c = document.createElement('canvas'); c.width = w; c.height = h; const g = c.getContext('2d'); draw(g, w, h);
+  const t = new T.CanvasTexture(c); t.encoding = T.sRGBEncoding; t.anisotropy = 4; return t; }
+
+// Pelouse
+const grassTex = canvasTex(256, 512, (g, w, h) => {
+  for (let i = 0; i < 8; i++) { g.fillStyle = i%2 ? '#2f9a48' : '#278a3f'; g.fillRect(0, i*h/8, w, h/8); }
+  for (let i = 0; i < 5000; i++) { g.fillStyle = `rgba(${Math.random() < .5 ? '255,255,255' : '0,0,0'},.035)`; g.fillRect(Math.random()*w, Math.random()*h, 2, 3); }
+});
+grassTex.wrapS = grassTex.wrapT = T.RepeatWrapping; grassTex.repeat.set(4, 3);
+const grass = new T.Mesh(new T.PlaneGeometry(90, 125), new T.MeshLambertMaterial({ map:grassTex }));
+grass.rotation.x = -Math.PI/2; grass.position.set(0, 0, 45); grass.receiveShadow = true; scene.add(grass);
+const white = new T.MeshBasicMaterial({ color:0xf4f7fb });
+function line(x, z, w, d){ const m = new T.Mesh(new T.PlaneGeometry(w, d), white); m.rotation.x = -Math.PI/2; m.position.set(x, .015, z); scene.add(m); }
+line(0, 0, 76, .12); line(-20.16, 8.25, .12, 16.5); line(20.16, 8.25, .12, 16.5); line(0, 16.5, 40.44, .12);
+line(-9.16, 2.75, .12, 5.5); line(9.16, 2.75, .12, 5.5); line(0, 5.5, 18.44, .12); line(-38, 45, .12, 110); line(38, 45, .12, 110);
+{ const s = new T.Mesh(new T.CircleGeometry(.14, 20), white); s.rotation.x = -Math.PI/2; s.position.set(0, .016, SPOT_Z); scene.add(s);
+  const a = new T.Mesh(new T.RingGeometry(9.09, 9.21, 48, 1, Math.PI*1.5 - .926, 1.852), white); a.rotation.x = -Math.PI/2; a.position.set(0, .015, SPOT_Z); scene.add(a); }
+
+// But
+const postMat = new T.MeshLambertMaterial({ color:0xffffff });
+[-GW, GW].forEach(x => { const p = new T.Mesh(new T.CylinderGeometry(.07, .07, GH, 12), postMat); p.position.set(x, GH/2, 0); p.castShadow = true; scene.add(p); });
+{ const b = new T.Mesh(new T.CylinderGeometry(.07, .07, GW*2 + .14, 12), postMat); b.rotation.z = Math.PI/2; b.position.set(0, GH, 0); b.castShadow = true; scene.add(b); }
+function net(w, h, pos, rot){
+  const t = canvasTex(64, 64, (g, s) => { g.clearRect(0, 0, s, s); g.strokeStyle = 'rgba(255,255,255,.9)'; g.lineWidth = 3; g.strokeRect(0, 0, s, s); });
+  t.wrapS = t.wrapT = T.RepeatWrapping; t.repeat.set(w*5, h*5);
+  const m = new T.Mesh(new T.PlaneGeometry(w, h), new T.MeshBasicMaterial({ map:t, transparent:true, opacity:.55, side:T.DoubleSide, depthWrite:false }));
+  m.position.set(...pos); m.rotation.set(...rot); scene.add(m);
+}
+net(GW*2, GH, [0, GH/2, -2], [0, 0, 0]); net(GW*2, 2, [0, GH, -1], [Math.PI/2, 0, 0]);
+net(2, GH, [-GW, GH/2, -1], [0, Math.PI/2, 0]); net(2, GH, [GW, GH/2, -1], [0, Math.PI/2, 0]);
+
+// Panneaux pub
+{ const t = canvasTex(1024, 64, (g, w, h) => { g.fillStyle = '#0e1730'; g.fillRect(0, 0, w, h); g.font = '800 38px system-ui, sans-serif'; g.textBaseline = 'middle';
+    g.fillStyle = '#ffd23f'; g.fillText('PENALTY CUP', 30, 34); g.fillStyle = '#fff'; g.fillText('★  COUPE DES NATIONS  ★', 330, 34); g.fillStyle = '#4be37a'; g.fillText('3D', 930, 34); });
+  t.wrapS = T.RepeatWrapping; t.repeat.set(4, 1);
+  const m = new T.MeshBasicMaterial({ map:t });
+  const b = new T.Mesh(new T.BoxGeometry(76, .9, .12), m); b.position.set(0, .45, -4.6); scene.add(b);
+  const f = new T.Mesh(new T.BoxGeometry(76, .9, .12), m); f.position.set(0, .45, 100); scene.add(f); }
+
+// Tribunes
+let crowdCanvas, crowdTex;
+function paintCrowd(color){
+  const g = crowdCanvas.getContext('2d'), w = crowdCanvas.width, h = crowdCanvas.height;
+  g.fillStyle = '#121a31'; g.fillRect(0, 0, w, h);
+  for (let y = 6; y < h; y += 15) { g.fillStyle = 'rgba(255,255,255,.05)'; g.fillRect(0, y + 11, w, 2);
+    for (let x = (y/15%2)*5; x < w; x += 10) { if (Math.random() < .08) continue;
+      g.fillStyle = Math.random() < .4 ? color : `hsl(${Math.random()*360|0} 50% ${40 + Math.random()*30|0}%)`; g.fillRect(x, y + 5, 7, 8);
+      g.fillStyle = ['#e2b08a','#c68e63','#8d5a3b','#f0c8a8'][Math.random()*4|0]; g.fillRect(x + 1.5, y, 4, 5); } }
+  crowdTex.needsUpdate = true;
+}
+crowdCanvas = document.createElement('canvas'); crowdCanvas.width = 1024; crowdCanvas.height = 512;
+crowdTex = new T.CanvasTexture(crowdCanvas); crowdTex.encoding = T.sRGBEncoding; crowdTex.wrapS = T.RepeatWrapping;
+function stand(w, x, z, ry){
+  const t = crowdTex.clone(); t.needsUpdate = true; t.repeat.set(w/45, 1); stands.push(t);
+  const m = new T.Mesh(new T.PlaneGeometry(w, 26), new T.MeshBasicMaterial({ map:t }));
+  m.position.y = 11.5; const g = new T.Group(); const tilt = new T.Group(); tilt.rotation.x = -.5; tilt.add(m); g.add(tilt);
+  g.position.set(x, 0, z); g.rotation.y = ry; scene.add(g);
+  const roof = new T.Mesh(new T.BoxGeometry(w, 1.2, 9), new T.MeshLambertMaterial({ color:0x1b2747 })); roof.position.set(0, 24, -9); g.add(roof);
+}
+const stands = [];
+stand(110, 0, -18, 0); stand(110, 0, 112, Math.PI); stand(150, -48, 45, Math.PI/2); stand(150, 48, 45, -Math.PI/2);
+// Projecteurs
+[[-44,-16],[44,-16],[-44,108],[44,108]].forEach(([x,z]) => {
+  const p = new T.Mesh(new T.CylinderGeometry(.4, .5, 34, 8), new T.MeshLambertMaterial({ color:0x39456a })); p.position.set(x, 17, z); scene.add(p);
+  const l = new T.Mesh(new T.BoxGeometry(7, 3.4, .6), new T.MeshBasicMaterial({ color:0xfffbe0 })); l.position.set(x, 35, z); l.lookAt(0, 0, 45); scene.add(l);
+});
+
+// Joueurs
+function makePlayer(){
+  const g = new T.Group(), M = c => new T.MeshLambertMaterial({ color:c });
+  const mat = { shirt:M(0xffffff), shorts:M(0xffffff), sock:M(0xffffff), skin:M(0xe2b08a), hand:M(0xe2b08a), hair:M(0x2a1a10), boot:M(0x111111) };
+  const add = (parent, geo, m, x, y, z) => { const o = new T.Mesh(geo, m); o.position.set(x, y, z); o.castShadow = true; parent.add(o); return o; };
+  add(g, new T.BoxGeometry(.52, .62, .28), mat.shirt, 0, 1.22, 0);
+  add(g, new T.BoxGeometry(.5, .26, .3), mat.shorts, 0, .82, 0);
+  add(g, new T.CylinderGeometry(.06, .07, .1, 10), mat.skin, 0, 1.57, 0);
+  add(g, new T.SphereGeometry(.145, 18, 14), mat.skin, 0, 1.73, 0);
+  add(g, new T.SphereGeometry(.155, 18, 10, 0, Math.PI*2, 0, Math.PI*.48), mat.hair, 0, 1.75, -.015);
+  const arm = s => { const p = new T.Group(); p.position.set(s*.33, 1.48, 0); g.add(p);
+    add(p, new T.CylinderGeometry(.08, .075, .28, 10), mat.shirt, 0, -.13, 0);
+    add(p, new T.CylinderGeometry(.055, .05, .4, 10), mat.skin, 0, -.45, 0);
+    add(p, new T.SphereGeometry(.08, 12, 10), mat.hand, 0, -.68, 0); return p; };
+  const leg = s => { const p = new T.Group(); p.position.set(s*.14, .72, 0); g.add(p);
+    add(p, new T.CylinderGeometry(.095, .08, .36, 10), mat.skin, 0, -.17, 0);
+    add(p, new T.CylinderGeometry(.075, .06, .34, 10), mat.sock, 0, -.5, 0);
+    add(p, new T.BoxGeometry(.13, .1, .28), mat.boot, 0, -.67, .05); return p; };
+  const pl = { g, mat, armL:arm(1), armR:arm(-1), legL:leg(1), legR:leg(-1) };
+  pl.color = (shirt, shorts, sock, gloves) => { mat.shirt.color.set(shirt); mat.shorts.color.set(shorts); mat.sock.color.set(sock); mat.hand.color.set(gloves ? '#ffffff' : '#e2b08a'); };
+  scene.add(g); return pl;
+}
+const keeper = makePlayer(), shooter = makePlayer(), model = makePlayer();
+model.g.position.set(0, 0, 40);
+const pedestal = new T.Mesh(new T.CylinderGeometry(1, 1.1, .12, 40), new T.MeshLambertMaterial({ color:0x1a2546 })); pedestal.position.set(0, .06, 40); scene.add(pedestal);
+const showLight = new T.PointLight(0xffffff, .9, 12); showLight.position.set(-1, 3, 43.5); scene.add(showLight);
+
+// Ballon
+const ballTex = canvasTex(256, 128, (g, w, h) => { g.fillStyle = '#fff'; g.fillRect(0, 0, w, h); g.fillStyle = '#16181d';
+  for (let r = 0; r < 4; r++) for (let c = 0; c < 6; c++) { g.beginPath(); g.arc(c*w/6 + (r%2 ? w/12 : 0) + 10, r*h/4 + 16, 11, 0, 7); g.fill(); } });
+const ball = new T.Mesh(new T.SphereGeometry(BR, 24, 18), new T.MeshLambertMaterial({ map:ballTex })); ball.castShadow = true; scene.add(ball);
+// Viseur
+const aimMark = new T.Group();
+{ const m = new T.MeshBasicMaterial({ color:0xffd23f, side:T.DoubleSide, depthTest:false, transparent:true, opacity:.95 });
+  aimMark.add(new T.Mesh(new T.RingGeometry(.2, .27, 32), m), new T.Mesh(new T.CircleGeometry(.05, 12), m));
+  aimMark.renderOrder = 10; aimMark.children.forEach(c => c.renderOrder = 10); aimMark.visible = false; scene.add(aimMark); }
+
+/* ================= Caméra ================= */
+const VIEWS = {
+  menu:  { p:new T.Vector3(-1.7, 1.35, 45.2), l:new T.Vector3(-1.45, .8, 40) },
+  shoot: { p:new T.Vector3(0, 2.1, 17.6), l:new T.Vector3(0, 1.15, 0) },
+  keep:  { p:new T.Vector3(0, 3.1, -9.5), l:new T.Vector3(0, .8, 8) }
+};
+let view = 'menu'; const camL = VIEWS.menu.l.clone(); camera.position.copy(VIEWS.menu.p);
+function resize(){
+  const w = window.innerWidth, h = window.innerHeight, a = w/h;
+  renderer.setSize(w, h, false); camera.aspect = a;
+  camera.fov = a < 1.5 ? Math.min(88, 2*Math.atan(Math.tan(Math.PI/8)*1.5/a)*180/Math.PI) : 45;
+  camera.updateProjectionMatrix();
+  if (a < 1) VIEWS.menu.l.set(0, .8, 40), VIEWS.menu.p.set(0, 1.35, 45.6); else VIEWS.menu.l.set(-1.45, .8, 40), VIEWS.menu.p.set(-1.7, 1.35, 45.2);
+}
+window.addEventListener('resize', resize); resize();
+
+/* ================= État du jeu ================= */
+let me = TEAMS[0], diff = 0, opps = [], stage = 0, m = null, results = [];
+let phase = 'menu', t0 = 0, side = 'p', target = { x:0, y:1.2 }, aim = { x:0, y:1.2 }, final = { x:0, y:1 }, gaugePos = .5;
+let flyDur = 520, dived = false, kickT = -9999, outcome = false, ballFree = false, inNet = false;
+const bv = new T.Vector3(), kp = { x:0, y:0, lean:0, arms:.45, tx:0, ty:0, tlean:0, tarms:.45 }, hand = { x:0, y:1.1 };
+let trophies = 0; try { trophies = +localStorage.getItem('pc_trophies') || 0; } catch (e) {}
+
+function setPhase(p){ phase = p; t0 = performance.now(); }
+function showMsg(text, color, sub){ elMsg.innerHTML = `<b style="color:${color || '#fff'}">${text}</b>${sub ? `<small>${sub}</small>` : ''}`; elMsg.classList.remove('hide'); }
+function hint(t){ if (t) { elHint.textContent = t; elHint.classList.remove('hide'); } else elHint.classList.add('hide'); }
+function updateHud(){
+  const dots = arr => { let s = ''; for (let i = 0; i < Math.max(5, arr.length); i++) s += `<i class="dot ${i < arr.length ? (arr[i] ? 'ok' : 'ko') : ''}"></i>`; return s; };
+  elScore.innerHTML = `<div class="stage">${STAGES[stage]}</div><div class="row"><div class="t l">${me.name}${me.flag}</div><div class="n">${sum(m.p)} – ${sum(m.a)}</div><div class="t">${m.opp.flag}${m.opp.name}</div></div>
+    <div class="row"><div class="dots l">${dots(m.p)}</div><div></div><div class="dots">${dots(m.a)}</div></div>`;
+}
+
+/* ---------- Menu ---------- */
+function pips(n){ let s = '<div class="pips">'; for (let i = 0; i < 5; i++) s += `<i class="${i < n ? 'on' : ''}"></i>`; return s + '</div>'; }
+function selectTeam(t){
+  me = t; model.color(t.c1, t.c2, t.c3, false); paintCrowd(t.c1); stands.forEach(s => s.needsUpdate = true);
+  ov.querySelectorAll('.team').forEach((b, i) => b.classList.toggle('sel', TEAMS[i] === t));
+  const c = ov.querySelector('.card'); if (!c) return;
+  c.innerHTML = `<div class="head">${t.flag}${t.name}</div><div class="stat">Attaque ${pips(t.att)}</div><div class="stat">Gardien ${pips(t.def)}</div>
+    <button class="btn">Jouer ▶</button>${trophies ? `<div class="tro">🏆 Trophées gagnés : ${trophies}</div>` : ''}`;
+  c.querySelector('.btn').onclick = () => { audioOn(); sfx.whistle(); startTournament(); };
+}
 function showMenu(){
-  phase = 'menu';
-  ov.className = '';
-  ov.innerHTML = '<h2>Choisis ta sélection</h2><p>16 nations, 4 matchs, un seul trophée.</p><div class="teams"></div>';
+  phase = 'menu'; view = 'menu'; m = null;
+  [elScore, elMsg, elHint, elGauge].forEach(e => e.classList.add('hide')); aimMark.visible = false;
+  ov.className = 'menu';
+  ov.innerHTML = `<div class="left"><h2>Choisis ta sélection</h2><p>16 nations, 4 séances de tirs au but, un seul trophée.</p><div class="teams"></div>
+    <div class="lab">Difficulté</div><div class="seg"><button data-d="-1">Facile</button><button data-d="0">Normal</button><button data-d="1">Difficile</button></div></div>
+    <div class="right"><div class="card"></div></div>`;
   const grid = ov.querySelector('.teams');
-  TEAMS.forEach(t => {
-    const b = document.createElement('button');
-    b.className = 'team';
-    b.innerHTML = `<span class="chip" style="background:${t.c1};border-color:${t.c2}"></span>${t.name}`;
-    b.onclick = () => startTournament(t);
-    grid.appendChild(b);
-  });
+  TEAMS.forEach(t => { const b = document.createElement('button'); b.className = 'team'; b.innerHTML = `${t.flag}<span>${t.name}</span>`;
+    b.onclick = () => { audioOn(); sfx.click(); selectTeam(t); }; grid.appendChild(b); });
+  ov.querySelectorAll('.seg button').forEach(b => { b.classList.toggle('on', +b.dataset.d === diff);
+    b.onclick = () => { diff = +b.dataset.d; ov.querySelectorAll('.seg button').forEach(x => x.classList.toggle('on', x === b)); }; });
+  selectTeam(me);
 }
-function showEnd(title, text, label, action, icon){
-  ov.className = '';
-  ov.innerHTML = `${icon ? `<div class="trophy">${icon}</div>` : ''}<h2>${title}</h2><p>${text}</p>`;
-  const b = document.createElement('button');
-  b.className = 'btn'; b.textContent = label; b.onclick = action;
-  ov.appendChild(b);
+function pathHtml(){
+  return '<div class="path">' + STAGES.map((s, i) => { const r = results[i];
+    return `<div class="${i === results.length ? 'cur' : ''}"><span>${s}</span>${opps[i].flag}${opps[i].name}<em style="color:${r ? (r.w ? 'var(--good)' : 'var(--bad)') : 'var(--mute)'}">${r ? r.p + ' – ' + r.a : '·'}</em></div>`; }).join('') + '</div>';
 }
-function startTournament(team){
-  me = team;
-  opps = TEAMS.filter(t => t !== team).sort(() => Math.random() - .5).slice(0, 4);
-  stage = 0;
-  startMatch();
+function showEnd(icon, title, text, label, action){
+  ov.className = 'end';
+  ov.innerHTML = `<div class="panel">${icon ? `<div class="big">${icon}</div>` : ''}<h2>${title}</h2><p>${text}</p>${pathHtml()}<button class="btn">${label}</button></div>`;
+  ov.querySelector('.btn').onclick = () => { document.querySelectorAll('.confetti').forEach(c => c.remove()); sfx.click(); action(); };
+}
+function confetti(){
+  for (let i = 0; i < 90; i++) { const d = document.createElement('div'); d.className = 'confetti';
+    d.style.cssText = `left:${Math.random()*100}vw;background:${[me.c1, me.c2, '#ffd23f', '#fff'][i%4]};animation-duration:${2.5 + Math.random()*3}s;animation-delay:${Math.random()*2}s`;
+    document.body.appendChild(d); }
+}
+
+/* ---------- Tournoi ---------- */
+function startTournament(){
+  opps = TEAMS.filter(t => t !== me).sort(() => Math.random() - .5).slice(0, 4).sort((a, b) => (a.att + a.def) - (b.att + b.def));
+  stage = 0; results = []; startMatch();
 }
 function startMatch(){
-  ov.className = 'hidden';
-  m = { p:[], a:[], opp:opps[stage] };
-  resetKick();
-  setPhase('intro');
+  ov.className = 'hide'; ov.innerHTML = '';
+  m = { p:[], a:[], opp:opps[stage], delay:0 };
+  setupKick('p'); camera.position.set(11, 7, 24); view = 'shoot';
+  elScore.classList.remove('hide'); updateHud(); hint('');
+  showMsg(STAGES[stage], '#ffd23f', `${me.name} – ${m.opp.name}`); setPhase('intro');
 }
-
-/* ---------- Règles de la séance ---------- */
+function setupKick(s){
+  side = s; dived = false; ballFree = false; inNet = false; bv.set(0, 0, 0);
+  ball.position.set(0, BR, SPOT_Z);
+  Object.assign(kp, { tx:0, ty:0, tlean:0, tarms:.45 });
+  const sh = s === 'p' ? me : m.opp;
+  shooter.color(sh.c1, sh.c2, sh.c3, false);
+  keeper.color(s === 'p' ? '#ff8a3d' : '#39d98a', '#15181f', s === 'p' ? '#ff8a3d' : '#39d98a', true);
+  shooter.g.position.set(.9, 0, 13.3); shooter.g.rotation.y = Math.PI + .25;
+  view = s === 'p' ? 'shoot' : 'keep';
+}
 function decided(){
   const p = m.p, a = m.a, ps = sum(p), as = sum(a);
-  if (p.length <= 5 && a.length <= 5 && !(p.length === 5 && a.length === 5))
-    return ps > as + (5 - a.length) || as > ps + (5 - p.length);
+  if (p.length <= 5 && a.length <= 5 && !(p.length === 5 && a.length === 5)) return ps > as + (5 - a.length) || as > ps + (5 - p.length);
   return p.length === a.length && ps !== as;
 }
 function nextKick(){
+  elMsg.classList.add('hide');
   if (decided()) return endMatch();
-  resetKick();
-  if (m.p.length <= m.a.length) setPhase('aim');
-  else { m.delay = rnd(900, 2000); setPhase('wait'); }
+  if (m.p.length <= m.a.length) { setupKick('p'); hint('À toi de tirer : vise dans le but'); setPhase('aim'); }
+  else { setupKick('a'); m.delay = rnd(1100, 2300); hint(`${m.opp.name} va tirer… prépare-toi !`); setPhase('wait'); }
 }
 function endMatch(){
-  phase = 'over';
-  const ps = sum(m.p), as = sum(m.a), score = `${me.name} ${ps} – ${as} ${m.opp.name}`;
-  if (ps > as) {
-    if (stage === 3) showEnd('Champions !', `${score}. ${me.name} remporte la Coupe des Nations !`, 'Rejouer', showMenu, '🏆');
-    else showEnd('Qualifié !', `${score}. Prochain tour : ${STAGES[stage+1].toLowerCase()} contre ${opps[stage+1].name}.`,
-                 'Continuer', () => { stage++; startMatch(); });
-  } else showEnd('Éliminé…', `${score} en ${STAGES[stage].toLowerCase()}.`, 'Rejouer', showMenu);
+  phase = 'over'; hint(''); aimMark.visible = false;
+  const ps = sum(m.p), as = sum(m.a), win = ps > as;
+  results.push({ p:ps, a:as, w:win });
+  if (win && stage === 3) { trophies++; try { localStorage.setItem('pc_trophies', trophies); } catch (e) {}
+    sfx.cheer(); confetti(); showEnd('🏆', 'Champions !', `${me.name} remporte la Coupe des Nations !`, 'Rejouer', showMenu); }
+  else if (win) showEnd('', 'Qualifié !', `Victoire ${ps} – ${as} contre ${m.opp.name}.`, 'Match suivant ▶', () => { stage++; sfx.whistle(); startMatch(); });
+  else showEnd('', 'Éliminé…', `Défaite ${ps} – ${as} contre ${m.opp.name}.`, 'Retour au menu', showMenu);
 }
-function inGoal(p){ return p.x > G.x + 8 && p.x < G.x + G.w - 8 && p.y > G.y + 8 && p.y < G.y + G.h; }
-function nearFrame(p){
-  return p.y > G.y - 12 && p.y < G.y + G.h && p.x > G.x - 12 && p.x < G.x + G.w + 12 && !inGoal(p);
+
+/* ---------- Tirs ---------- */
+function setDive(tx, ty){
+  const lean = clamp(Math.atan2(tx, Math.max(.4, ty - .3)), -1.5, 1.5), d = Math.min(2.1, Math.hypot(tx, ty));
+  kp.tlean = lean; kp.tx = tx - Math.sin(lean)*d; kp.ty = Math.max(0, ty - Math.cos(lean)*d); kp.tarms = 2.9;
 }
-function finish(scored, text, color){
-  outcome = scored; msg = text; msgColor = color;
-  (flyingSide === 'p' ? m.p : m.a).push(scored ? 1 : 0);
+function playerShoot(){
+  const err = (gaugePos - .5)*2, e = Math.abs(err) < .15 ? 0 : err;
+  final = { x:target.x + e*1.7, y:target.y + Math.abs(e)*1.2 };
+  elGauge.classList.add('hide'); hint(''); setPhase('runup');
+}
+function aiPrepare(){
+  const miss = Math.random() < Math.max(.02, .14 - .03*stage - (m.opp.att - 4)*.03 - diff*.04);
+  final = miss ? { x:rnd(-GW - .6, GW + .6), y:GH + rnd(.25, .9) } : { x:rnd(-GW + .4, GW - .4), y:rnd(.25, GH - .4) };
+  hint(''); setPhase('runup');
+}
+function launch(){
+  kickT = performance.now(); sfx.kick();
+  if (side === 'p') {
+    flyDur = 520;
+    const read = Math.random() < .3 + .07*stage + (m.opp.def - 4)*.05 + diff*.1;
+    const want = read ? { x:final.x + rnd(-.7, .7), y:final.y + rnd(-.5, .5) } : { x:rnd(-GW + .5, GW - .5), y:rnd(.4, GH - .3) };
+    const reach = 2.5 + .12*stage + (m.opp.def - 4)*.15 + diff*.15, dx = want.x, dy = want.y - 1.1, d = Math.hypot(dx, dy), f = d > reach ? reach/d : 1;
+    hand.x = dx*f; hand.y = clamp(1.1 + dy*f, .2, GH); setDive(hand.x, hand.y);
+  } else { flyDur = 900 - 80*stage - diff*90; hint('PLONGE ! Clique où tu veux plonger'); }
+  setPhase('fly');
+}
+function resolve(){
+  const inGoal = Math.abs(final.x) < GW - .2 && final.y < GH - .2;
+  const frame = !inGoal && Math.abs(final.x) < GW + .25 && final.y < GH + .25;
+  const dir = new T.Vector3(final.x, final.y - BR, -SPOT_Z).normalize().multiplyScalar(15);
+  let scored = false, text, good;
+  if (!inGoal) { text = frame ? 'POTEAU !' : 'À CÔTÉ !'; good = side === 'a';
+    if (frame) { bv.set(-dir.x*.4 + rnd(-1, 1), 2.5, 6); sfx.post(); } else bv.copy(dir); }
+  else {
+    const saved = side === 'p' ? Math.hypot(hand.x - final.x, hand.y - final.y) < .8
+                               : dived && Math.hypot(hand.x - final.x, hand.y - final.y) < 1 + (me.def - 4)*.1 - diff*.1;
+    if (saved) { text = side === 'p' ? 'ARRÊTÉ !' : 'QUEL ARRÊT !'; good = side === 'a'; bv.set(rnd(-3, 3), rnd(1.5, 3.5), rnd(2.5, 5)); }
+    else { scored = true; text = side === 'p' ? 'BUUUT !' : 'BUT ENCAISSÉ'; good = side === 'p'; bv.copy(dir).multiplyScalar(.55); inNet = true; }
+  }
+  outcome = good; ballFree = true; hint('');
+  (side === 'p' ? m.p : m.a).push(scored ? 1 : 0); updateHud();
+  showMsg(text, good ? '#4be37a' : '#ff5a5a'); good ? sfx.cheer() : sfx.groan();
   setPhase('result');
 }
 
-/* ---------- Tir du joueur ---------- */
-let flyingSide = 'p';
-function playerShoot(){
-  const err = (gaugePos - .5) * 2, e = Math.abs(err) < .15 ? 0 : err;
-  final = { x: target.x + e * 100, y: target.y - Math.abs(e) * 70 };
-  // Gardien adverse : lit plus souvent le tir et va plus loin au fil des tours
-  const read = Math.random() < [.28,.36,.44,.52][stage];
-  const want = read ? { x: final.x + rnd(-45,45), y: final.y + rnd(-35,35) }
-                    : { x: rnd(G.x+30, G.x+G.w-30), y: rnd(G.y+35, G.y+G.h-25) };
-  const reach = [150,165,180,195][stage], d = dist(want, KBASE), f = d > reach ? reach/d : 1;
-  k.tx = KBASE.x + (want.x - KBASE.x) * f; k.ty = KBASE.y + (want.y - KBASE.y) * f;
-  flyingSide = 'p'; flyDur = 480; setPhase('fly');
-}
-/* ---------- Tir adverse ---------- */
-function aiShoot(){
-  const miss = Math.random() < [.15,.12,.08,.05][stage];
-  final = miss ? { x: rnd(G.x-40, G.x+G.w+40), y: G.y - rnd(18,50) }
-               : { x: rnd(G.x+28, G.x+G.w-28), y: rnd(G.y+28, G.y+G.h-18) };
-  flyingSide = 'a'; flyDur = [800,700,620,540][stage]; setPhase('fly');
-}
-function resolveFly(){
-  const hand = { x:k.tx, y:k.ty };
-  if (!inGoal(final)) return finish(false, nearFrame(final) ? 'POTEAU !' : 'À CÔTÉ !', flyingSide === 'p' ? '#ff6b6b' : '#7dffa0');
-  if (flyingSide === 'p') {
-    if (dist(hand, final) < 52) finish(false, 'ARRÊTÉ !', '#ff6b6b'); else finish(true, 'BUUUT !', '#7dffa0');
-  } else {
-    if (dived && dist(hand, final) < 62) finish(false, 'QUEL ARRÊT !', '#7dffa0'); else finish(true, 'BUT ENCAISSÉ', '#ff6b6b');
-  }
-}
-
 /* ---------- Entrées ---------- */
-function pos(e){ const r = cv.getBoundingClientRect(); return { x:(e.clientX-r.left)*W/r.width, y:(e.clientY-r.top)*H/r.height }; }
-function clampAim(p){ return { x:clamp(p.x, G.x-35, G.x+G.w+35), y:clamp(p.y, G.y-30, G.y+G.h-8) }; }
-cv.addEventListener('pointermove', e => { if (phase === 'aim') aim = clampAim(pos(e)); });
+const ray = new T.Raycaster(), ndc = new T.Vector2(), goalPlane = new T.Plane(new T.Vector3(0, 0, 1), 0), hit = new T.Vector3();
+function goalPoint(e){
+  ndc.set(e.clientX/window.innerWidth*2 - 1, -(e.clientY/window.innerHeight)*2 + 1); ray.setFromCamera(ndc, camera);
+  return ray.ray.intersectPlane(goalPlane, hit) ? { x:hit.x, y:hit.y } : null;
+}
+const clampAim = p => ({ x:clamp(p.x, -GW - .8, GW + .8), y:clamp(p.y, .22, GH + .7) });
+cv.addEventListener('pointermove', e => { if (phase === 'aim') { const p = goalPoint(e); if (p) aim = clampAim(p); } });
 cv.addEventListener('pointerdown', e => {
-  e.preventDefault();
-  const p = pos(e);
-  if (phase === 'aim') { aim = clampAim(p); target = { ...aim }; setPhase('gauge'); }
+  e.preventDefault(); audioOn();
+  const p = goalPoint(e);
+  if (phase === 'aim' && p) { aim = clampAim(p); target = { ...aim }; sfx.click(); elGauge.classList.remove('hide'); hint('Clique quand le curseur est au centre'); setPhase('gauge'); }
   else if (phase === 'gauge') playerShoot();
-  else if (phase === 'fly' && flyingSide === 'a' && !dived) {
-    dived = true;
-    k.tx = clamp(p.x, G.x+10, G.x+G.w-10); k.ty = clamp(p.y, G.y+20, G.y+G.h-20);
+  else if (phase === 'fly' && side === 'a' && !dived && p) {
+    dived = true; hand.x = clamp(p.x, -GW, GW); hand.y = clamp(p.y, .2, GH); setDive(hand.x, hand.y); hint('');
   }
 });
 
-/* ---------- Dessin ---------- */
-function text(s, x, y, size, color = '#fff', align = 'center', weight = 800){
-  ctx.font = `${weight} ${size}px system-ui, sans-serif`; ctx.textAlign = align; ctx.textBaseline = 'middle';
-  ctx.lineWidth = Math.max(3, size/7); ctx.strokeStyle = 'rgba(0,0,0,.6)'; ctx.lineJoin = 'round';
-  ctx.strokeText(s, x, y); ctx.fillStyle = color; ctx.fillText(s, x, y);
-}
-function drawScene(){
-  // tribunes
-  ctx.fillStyle = '#18233d'; ctx.fillRect(0, 0, W, 86);
-  crowd.forEach(c => { ctx.fillStyle = c.c; ctx.fillRect(c.x, c.y + (phase === 'result' && outcome ? Math.sin(now/90 + c.x)*2 : 0), 4, 5); });
-  ctx.fillStyle = '#e9edf5'; ctx.fillRect(0, 82, W, 6);
-  // pelouse
-  for (let i = 0; i < 8; i++) { ctx.fillStyle = i % 2 ? '#2f9a48' : '#2a8c41'; ctx.fillRect(0, 88 + i*52, W, 52); }
-  ctx.strokeStyle = 'rgba(255,255,255,.85)'; ctx.lineWidth = 4;
-  ctx.beginPath(); ctx.moveTo(0, G.y+G.h); ctx.lineTo(W, G.y+G.h); ctx.stroke();
-  ctx.strokeRect(90, G.y+G.h, W-180, 300);
-  ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(SPOT.x, SPOT.y+10, 5, 0, 7); ctx.fill();
-  // filet
-  ctx.fillStyle = 'rgba(10,20,30,.35)'; ctx.fillRect(G.x, G.y, G.w, G.h);
-  ctx.strokeStyle = 'rgba(255,255,255,.28)'; ctx.lineWidth = 1; ctx.beginPath();
-  for (let x = G.x; x <= G.x+G.w; x += 15) { ctx.moveTo(x, G.y); ctx.lineTo(x, G.y+G.h); }
-  for (let y = G.y; y <= G.y+G.h; y += 15) { ctx.moveTo(G.x, y); ctx.lineTo(G.x+G.w, y); }
-  ctx.stroke();
-  // montants
-  ctx.strokeStyle = '#fff'; ctx.lineWidth = 8; ctx.lineJoin = 'miter';
-  ctx.beginPath(); ctx.moveTo(G.x, G.y+G.h); ctx.lineTo(G.x, G.y); ctx.lineTo(G.x+G.w, G.y); ctx.lineTo(G.x+G.w, G.y+G.h); ctx.stroke();
-}
-function drawKeeper(team){
-  const lean = clamp((k.x - KBASE.x) / 150, -1, 1) * 1.25;
-  ctx.save(); ctx.translate(k.x, k.y); ctx.rotate(lean);
-  ctx.lineCap = 'round';
-  ctx.strokeStyle = '#1b1b1b'; ctx.lineWidth = 9;       // jambes
-  ctx.beginPath(); ctx.moveTo(-7, 20); ctx.lineTo(-11, 50); ctx.moveTo(7, 20); ctx.lineTo(11, 50); ctx.stroke();
-  ctx.strokeStyle = team.c1; ctx.lineWidth = 9;         // bras
-  ctx.beginPath(); ctx.moveTo(-12, -14); ctx.lineTo(-26, -40); ctx.moveTo(12, -14); ctx.lineTo(26, -40); ctx.stroke();
-  ctx.fillStyle = '#fff';                                // gants
-  ctx.beginPath(); ctx.arc(-27, -43, 7, 0, 7); ctx.arc(27, -43, 7, 0, 7); ctx.fill();
-  ctx.fillStyle = team.c1; ctx.strokeStyle = team.c2; ctx.lineWidth = 3;
-  ctx.beginPath(); ctx.roundRect(-15, -22, 30, 46, 8); ctx.fill(); ctx.stroke();
-  ctx.fillStyle = '#e8b890'; ctx.beginPath(); ctx.arc(0, -33, 11, 0, 7); ctx.fill();
-  ctx.restore();
-}
-function drawBall(){
-  ctx.fillStyle = 'rgba(0,0,0,.25)';
-  ctx.beginPath(); ctx.ellipse(ball.x, Math.max(ball.y + ball.r, G.y+G.h+4) , ball.r, ball.r*.35, 0, 0, 7); ctx.fill();
-  ctx.fillStyle = '#fff'; ctx.strokeStyle = '#222'; ctx.lineWidth = 1.5;
-  ctx.beginPath(); ctx.arc(ball.x, ball.y, ball.r, 0, 7); ctx.fill(); ctx.stroke();
-  ctx.fillStyle = '#222';
-  for (let i = 0; i < 5; i++) { const a = now/200 + i*1.257;
-    ctx.beginPath(); ctx.arc(ball.x + Math.cos(a)*ball.r*.55, ball.y + Math.sin(a)*ball.r*.55, ball.r*.18, 0, 7); ctx.fill(); }
-  ctx.beginPath(); ctx.arc(ball.x, ball.y, ball.r*.22, 0, 7); ctx.fill();
-}
-function drawDots(arr, x, dir){
-  const n = Math.max(5, arr.length + (decided() ? 0 : 0));
-  for (let i = 0; i < n; i++) {
-    ctx.fillStyle = i < arr.length ? (arr[i] ? '#4be37a' : '#ff5a5a') : 'rgba(255,255,255,.25)';
-    ctx.beginPath(); ctx.arc(x + dir*i*15, 60, 5, 0, 7); ctx.fill();
-  }
-}
-function drawHud(){
-  ctx.fillStyle = 'rgba(8,13,25,.78)'; ctx.beginPath(); ctx.roundRect(170, 8, 460, 66, 12); ctx.fill();
-  text(STAGES[stage].toUpperCase(), 400, 20, 11, '#ffd23f', 'center', 700);
-  text(me.name, 372, 40, 17, '#fff', 'right'); text(m.opp.name, 428, 40, 17, '#fff', 'left');
-  text(`${sum(m.p)} - ${sum(m.a)}`, 400, 58, 18, '#ffd23f');
-  drawDots(m.p, 360, -1); drawDots(m.a, 440, 1);
-}
-function drawGauge(){
-  const x = 250, y = 468, w = 300, h = 16;
-  ctx.fillStyle = 'rgba(8,13,25,.8)'; ctx.beginPath(); ctx.roundRect(x-6, y-6, w+12, h+12, 8); ctx.fill();
-  const g = ctx.createLinearGradient(x, 0, x+w, 0);
-  g.addColorStop(0, '#ff5a5a'); g.addColorStop(.35, '#ffd23f'); g.addColorStop(.5, '#4be37a'); g.addColorStop(.65, '#ffd23f'); g.addColorStop(1, '#ff5a5a');
-  ctx.fillStyle = g; ctx.fillRect(x, y, w, h);
-  ctx.fillStyle = '#fff'; ctx.fillRect(x + gaugePos*w - 3, y-5, 6, h+10);
-}
-function drawCross(p, color){
-  ctx.strokeStyle = color; ctx.lineWidth = 3;
-  ctx.beginPath(); ctx.arc(p.x, p.y, 14, 0, 7);
-  ctx.moveTo(p.x-22, p.y); ctx.lineTo(p.x+22, p.y); ctx.moveTo(p.x, p.y-22); ctx.lineTo(p.x, p.y+22); ctx.stroke();
-}
-
-/* ---------- Boucle ---------- */
+/* ================= Boucle ================= */
+let last = performance.now();
 function frame(ts){
-  now = ts; if (t0 === undefined) t0 = ts;
-  const el = ts - t0;
-  ctx.clearRect(0, 0, W, H);
-  drawScene();
-  if (m && phase !== 'menu') {
-    const myTurn = phase === 'aim' || phase === 'gauge' || (flyingSide === 'p' && (phase === 'fly' || phase === 'result'));
-    const playerKeeps = phase === 'wait' || (!myTurn && phase !== 'intro' && phase !== 'over');
-    k.x += (k.tx - k.x) * .22; k.y += (k.ty - k.y) * .22;
+  const dt = Math.min(.05, (ts - last)/1000); last = ts; const el = ts - t0, time = ts/1000;
 
-    if (phase === 'intro') {
-      text(STAGES[stage], 400, 200, 44, '#ffd23f'); text(`${me.name}  vs  ${m.opp.name}`, 400, 255, 28);
-      if (el > 2000) nextKick();
-    } else if (phase === 'aim') {
-      drawCross(aim, '#ffd23f'); text('À toi de tirer : vise dans le but', 400, 474, 18);
-    } else if (phase === 'gauge') {
-      gaugePos = .5 + .5 * Math.sin(el / 1000 * (4.2 + stage*1.3));
-      drawCross(target, '#ffd23f'); drawGauge(); text('Clique quand le curseur est au centre', 400, 444, 15);
-    } else if (phase === 'wait') {
-      text(`${m.opp.name} va tirer… prépare-toi !`, 400, 474, 18);
-      if (el > m.delay) aiShoot();
-    } else if (phase === 'fly') {
-      const t = Math.min(1, el / flyDur), e = 1 - (1-t)*(1-t);
-      ball.x = SPOT.x + (final.x - SPOT.x) * e;
-      ball.y = SPOT.y + (final.y - SPOT.y) * e - Math.sin(Math.PI*t) * 26;
-      ball.r = 13 - 5*t;
-      if (flyingSide === 'a' && !dived) text('PLONGE !', 400, 474, 22, '#ffd23f');
-      if (t >= 1) resolveFly();
-    } else if (phase === 'result') {
-      const s = Math.min(1, el / 180);
-      text(msg, 400, 300, 30 + 26*s, msgColor);
-      if (el > 1500) nextKick();
-    }
-    if (phase !== 'intro') { drawKeeper(playerKeeps ? me : m.opp); drawBall(); }
-    drawHud();
+  if (phase === 'menu') { model.g.rotation.y = Math.sin(time*.6)*.55 - .15; model.armL.rotation.z = .12; model.armR.rotation.z = -.12; }
+  else if (phase === 'intro') { if (el > 2400) nextKick(); }
+  else if (phase === 'aim') { aimMark.visible = true; aimMark.position.set(aim.x, aim.y, .05); aimMark.scale.setScalar(1 + Math.sin(time*6)*.08); }
+  else if (phase === 'gauge') {
+    gaugePos = .5 + .5*Math.sin(el/1000*Math.max(2.5, 4.2 + stage*1.1 - (me.att - 4)*.5 + diff*.9));
+    elGauge.firstElementChild.style.left = (gaugePos*100) + '%'; aimMark.position.set(target.x, target.y, .05); aimMark.scale.setScalar(1);
   }
+  else if (phase === 'wait') { if (el > m.delay) aiPrepare(); }
+  else if (phase === 'runup') {
+    const p = Math.min(1, el/460);
+    shooter.g.position.set(lerp(.9, .3, p), 0, lerp(13.3, 11.55, p));
+    const sw = Math.sin(p*10)*.7; shooter.legL.rotation.x = sw; shooter.legR.rotation.x = p > .8 ? 1.0 : -sw;
+    shooter.armL.rotation.x = -sw*.7; shooter.armR.rotation.x = sw*.7;
+    if (p >= 1) { aimMark.visible = false; launch(); }
+  }
+  else if (phase === 'fly') {
+    const t = Math.min(1, el/flyDur);
+    ball.position.set(final.x*t, lerp(BR, final.y, t) + Math.sin(Math.PI*t)*.45, lerp(SPOT_Z, 0, t));
+    ball.rotation.x -= dt*22;
+    if (t >= 1) resolve();
+  }
+  else if (phase === 'result') { if (el > 2000) nextKick(); }
+
+  // Jambe de frappe et retour au repos du tireur
+  if (phase !== 'runup' && m) { const k = Math.max(0, 1 - (ts - kickT)/600);
+    shooter.legR.rotation.x = -1.35*k; shooter.legL.rotation.x *= .85; shooter.armL.rotation.x *= .85; shooter.armR.rotation.x *= .85; }
+
+  // Ballon libre après le tir
+  if (ballFree) {
+    bv.y -= 9.8*dt; ball.position.addScaledVector(bv, dt); ball.rotation.x -= bv.length()*dt*3;
+    if (ball.position.y < BR) { ball.position.y = BR; bv.y = Math.abs(bv.y)*.45; bv.x *= .8; bv.z *= .8; }
+    if (inNet) {
+      if (ball.position.z < -1.8) { ball.position.z = -1.8; bv.z = 0; bv.x *= .3; bv.y *= .5; }
+      if (Math.abs(ball.position.x) > GW - .2) { ball.position.x = Math.sign(ball.position.x)*(GW - .2); bv.x = 0; }
+      if (ball.position.y > GH - .2) { ball.position.y = GH - .2; bv.y = -Math.abs(bv.y)*.3; }
+    } else if (ball.position.z < -16) bv.set(0, 0, 0);
+  }
+
+  // Gardien
+  if (m) {
+    const kf = 1 - Math.exp(-dt*11), idle = kp.tarms < 1;
+    kp.x = lerp(kp.x, kp.tx + (idle ? Math.sin(time*2.2)*.25 : 0), kf); kp.y = lerp(kp.y, kp.ty, kf);
+    kp.lean = lerp(kp.lean, kp.tlean, kf); kp.arms = lerp(kp.arms, kp.tarms, kf);
+    keeper.g.position.set(kp.x, kp.y, .25); keeper.g.rotation.z = -kp.lean;
+    keeper.armL.rotation.z = kp.arms; keeper.armR.rotation.z = -kp.arms;
+    keeper.legL.rotation.z = idle ? .18 : .35; keeper.legR.rotation.z = idle ? -.18 : -.1;
+  }
+  keeper.g.visible = shooter.g.visible = ball.visible = !!m;
+  model.g.visible = pedestal.visible = phase === 'menu';
+
+  // Foule
+  const bounce = phase === 'result' && outcome ? Math.abs(Math.sin(time*9))*.012 : 0;
+  stands.forEach(s => s.offset.y = bounce);
+
+  // Caméra
+  const V = VIEWS[view], cf = 1 - Math.exp(-dt*(phase === 'intro' ? 1.6 : 3.2));
+  camera.position.lerp(V.p, cf); camL.lerp(V.l, cf);
+  if (phase === 'fly' || phase === 'result') camL.x = lerp(camL.x, V.l.x + ball.position.x*.12, cf);
+  camera.lookAt(camL);
+  renderer.render(scene, camera);
   requestAnimationFrame(frame);
 }
 showMenu();
