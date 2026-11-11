@@ -289,7 +289,7 @@ const aimMark = new T.Group();
 /* ================= Caméra ================= */
 const VIEWS = {
   menu:  { p:new T.Vector3(-1.7, 1.35, 45.2), l:new T.Vector3(-1.45, .8, 40) },
-  shoot: { p:new T.Vector3(0, 2.1, 17.6), l:new T.Vector3(0, 1.15, 0) },
+  shoot: { p:new T.Vector3(0, 3.0, 18.6), l:new T.Vector3(0, .9, 0) },
   keep:  { p:new T.Vector3(0, 3.1, -9.5), l:new T.Vector3(0, .8, 8) }
 };
 let view = 'menu'; const camL = VIEWS.menu.l.clone(); camera.position.copy(VIEWS.menu.p);
@@ -376,7 +376,7 @@ function setupKick(s){
   const sh = s === 'p' ? me : m.opp;
   shooter.color(sh.c1, sh.c2, sh.c3, false);
   keeper.color(s === 'p' ? '#ff8a3d' : '#39d98a', '#15181f', s === 'p' ? '#ff8a3d' : '#39d98a', true);
-  shooter.g.position.set(.9, 0, 13.3); shooter.g.rotation.y = Math.PI + .25;
+  shooter.g.position.set(2, 0, 13.6); shooter.g.rotation.y = Math.PI + .6;
   view = s === 'p' ? 'shoot' : 'keep';
 }
 function decided(){
@@ -478,7 +478,7 @@ function frame(ts){
   else if (phase === 'wait') { if (el > m.delay) aiPrepare(); }
   else if (phase === 'runup') {
     const p = Math.min(1, el/460);
-    shooter.g.position.set(lerp(.9, .3, p), 0, lerp(13.3, 11.55, p));
+    shooter.g.position.set(lerp(2, .3, p), 0, lerp(13.6, 11.55, p));
     const sw = Math.sin(p*10)*.7; shooter.legL.rotation.x = sw; shooter.legR.rotation.x = p > .8 ? 1.0 : -sw;
     shooter.armL.rotation.x = -sw*.7; shooter.armR.rotation.x = sw*.7;
     if (p >= 1) { aimMark.visible = false; launch(); }
