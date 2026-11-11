@@ -4,6 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <title>Guess the Song 3D — Blind test</title>
+<meta name="theme-color" content="#07040f">
+<meta property="og:title" content="Guess the Song 3D">
+<meta property="og:description" content="Blind test en 3D : devine la chanson, affronte tes amis en ligne et grimpe au classement mondial.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='30' fill='%23120a2a'/%3E%3Ccircle cx='32' cy='32' r='22' fill='none' stroke='%23b86bff' stroke-width='3'/%3E%3Ccircle cx='32' cy='32' r='11' fill='%2338e1ff'/%3E%3Ccircle cx='32' cy='32' r='3' fill='%23120a2a'/%3E%3C/svg%3E">
 <meta name="description" content="Blind test en 3D : devine la chanson le plus vite possible.">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://cdn.jsdelivr.net"><link rel="preconnect" href="https://api.deezer.com">
 <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;800&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
@@ -119,6 +123,15 @@ button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
 select.inp{appearance:none;-webkit-appearance:none;min-width:0}select.inp option{background:#160e2c;color:#f4f0ff}
 .prof{display:flex;gap:8px;flex-wrap:wrap;margin:-6px 0 16px}.prof:empty{display:none}.prof span{padding:6px 11px;border-radius:999px;background:rgba(255,255,255,.07);font-size:12px;font-weight:600}
 .daily{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:14px 16px;margin-top:16px;border-radius:16px;border:1px solid var(--gold);background:linear-gradient(92deg,rgba(255,209,102,.16),rgba(184,107,255,.12));transition:transform .15s}.daily:hover{transform:translateY(-2px)}.daily .e{font-size:28px}.daily .a{color:var(--mut);font-size:13px}
+.cat{background:linear-gradient(145deg,hsla(var(--h,265),90%,60%,.2),rgba(255,255,255,.03));border-color:hsla(var(--h,265),90%,68%,.32)}.cat:hover,.cat:focus-visible{background:linear-gradient(145deg,hsla(var(--h,265),90%,60%,.38),rgba(255,255,255,.06));border-color:hsl(var(--h,265),90%,70%);box-shadow:0 8px 28px hsla(var(--h,265),90%,55%,.28)}
+.fav{flex:none;margin-left:auto;width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.07);color:#ff6b9a;font-size:17px;line-height:1}.li .fav+.pl{margin-left:6px}.recap .fav{margin-left:8px}.recap .pl{margin-left:6px}
+.pcards{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}.pcards div{padding:12px;border-radius:14px;background:rgba(255,255,255,.06);font-size:12px;color:var(--mut)}.pcards b{display:block;font-family:Unbounded,sans-serif;font-size:20px;color:var(--txt);margin-bottom:2px}
+.lvl{height:10px;border-radius:99px;background:rgba(255,255,255,.08);overflow:hidden}.lvl i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--acc),var(--acc2))}
+.achs{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}.ac{padding:10px 12px;border-radius:14px;background:rgba(255,255,255,.04);border:1px solid var(--line);opacity:.45;filter:grayscale(1);display:grid;gap:2px}.ac.on{opacity:1;filter:none;border-color:var(--gold);background:rgba(255,209,102,.1)}.ac span{font-size:24px}.ac b{font-size:13px}.ac small{font-size:11px;color:var(--mut)}
+.ach{position:fixed;top:64px;right:14px;z-index:19;display:flex;gap:10px;align-items:center;padding:10px 16px;border-radius:16px;font-size:13px;border-color:var(--gold);animation:achIn 3.2s ease forwards}.ach span{font-size:30px}
+@keyframes achIn{0%{opacity:0;transform:translateX(30px)}8%,88%{opacity:1;transform:none}100%{opacity:0;transform:translateX(30px)}}
+@media(max-width:620px){#tabs button{font-size:11px;padding:8px 1px}.achs{grid-template-columns:1fr 1fr}.pcards{grid-template-columns:1fr 1fr}}
+@media(prefers-reduced-motion:reduce){.emo,.ach,.eq i{animation-duration:.01s}}
 #notes{position:fixed;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(4,2,10,.72)}
 #notes .box{width:min(520px,100%);max-height:86dvh;overflow:auto;-webkit-overflow-scrolling:touch;padding:22px}
 #notes h2{font-size:22px;margin-bottom:4px}#notes ul{list-style:none;display:grid;gap:8px;margin:14px 0 18px}#notes li{padding:9px 12px;border-radius:12px;background:rgba(255,255,255,.05);font-size:14px;line-height:1.35}#notes li b{display:block}#notes .btn{width:100%}
@@ -140,7 +153,8 @@ select.inp{appearance:none;-webkit-appearance:none;min-width:0}select.inp option
     <h1 class="logo">GUESS THE SONG</h1>
     <p class="sub">Un extrait démarre, quatre réponses s'affichent. Plus tu réponds vite, plus tu marques — et chaque bonne réponse d'affilée fait grimper le multiplicateur.</p>
     <div class="prof" id="profile"></div>
-    <div class="seg" id="tabs" style="margin-bottom:16px"><button type="button" data-t="play" class="on">🎮 Jouer</button><button type="button" data-t="lb">🌍 Classement</button><button type="button" data-t="disc">🎧 Découvrir</button><button type="button" data-t="rev">⭐ Avis</button></div>
+    <div class="seg" id="tabs" style="margin-bottom:16px"><button type="button" data-t="play" class="on">🎮 Jouer</button><button type="button" data-t="lb">🌍 Classement</button><button type="button" data-t="disc">🎧 Écoute</button><button type="button" data-t="prof">⭐ Profil</button><button type="button" data-t="rev">💬 Avis</button></div>
+    <div id="tabProf" class="hide"></div>
     <div id="tabRev" class="hide">
       <form id="revForm"><div class="row"><input class="inp" id="revName" maxlength="16" placeholder="Ton pseudo" style="max-width:200px;flex:none"><div id="revStars" role="group" aria-label="Note"></div></div>
       <div class="row" style="margin-top:10px"><input class="inp" id="revMsg" maxlength="240" placeholder="Ton avis sur le jeu…" autocomplete="off"><button class="btn" type="submit">Envoyer</button></div></form>
@@ -149,6 +163,7 @@ select.inp{appearance:none;-webkit-appearance:none;min-width:0}select.inp option
     <div id="tabLb" class="hide"></div>
     <div id="tabDisc" class="hide">
       <form class="row" id="discForm"><input class="inp" id="discQ" placeholder="Cherche un titre ou un artiste…" autocomplete="off" maxlength="60"><button class="btn" type="submit">Chercher</button></form>
+      <div class="seg" id="discSeg" style="margin-top:12px"></div>
       <div class="note">Écoute 30 secondes de n'importe quel titre. Sans recherche : les titres les plus écoutés du moment.</div>
       <div class="list" id="discList"></div>
     </div>
@@ -174,7 +189,7 @@ select.inp{appearance:none;-webkit-appearance:none;min-width:0}select.inp option
     <div class="list" id="pubRooms" style="max-height:220px;margin-top:0"></div>
     <div class="lbl">Comment ça marche</div>
     <div class="how">
-      <div><b>⚡ Vitesse</b>De 1000 à 100 points selon ton temps de réponse.</div>
+      <div><b>⚡ Vitesse</b>De 1000 à 100 points selon ton temps de réponse, +200 en moins de 2 secondes.</div>
       <div><b>🔥 Combo</b>×1,5 puis ×2, ×2,5 et ×3 tant que tu ne te trompes pas.</div>
       <div><b>🚪 Portes</b>Quatre portes 3D, une par réponse : clique sur la bonne pour l'ouvrir.</div>
       <div><b>⌨️ Clavier</b>Touches 1 à 4 pour répondre, J pour le 50/50, Entrée pour continuer.</div>
@@ -197,7 +212,7 @@ select.inp{appearance:none;-webkit-appearance:none;min-width:0}select.inp option
 <div id="sb" class="glass hide"></div>
 <div id="count" class="hide"></div>
 <div id="end" class="screen hide"><div class="box glass" id="endBox"></div></div>
-<div id="notes" class="hide"><div class="box glass"><div class="lbl" style="margin-top:0">Notes de version · v2.3</div><h2>Quoi de neuf ?</h2><ul><li><b>📅 Défi du jour</b>Les 10 mêmes titres pour tout le monde, un seul essai, et un classement du jour.</li><li><b>❤️ Mode Survie</b>Trois vies, les titres s'enchaînent jusqu'à la troisième erreur.</li><li><b>⭐ Profil</b>Niveau, parties jouées, précision et meilleure série affichés sur l'accueil.</li><li><b>⚔️ Multijoueur complet</b>Salons privés (code ou lien d'invitation) ou publics, jusqu'à 8 joueurs, classement en direct.</li><li><b>🎛️ Salon de l'hôte</b>Catégorie, mode et difficulté réglés dans le salon, compte à rebours, exclusion d'un joueur, victoires cumulées.</li><li><b>😂 Réactions</b>Envoie des émojis aux autres joueurs pendant la partie.</li><li><b>🚪 Portes 3D</b>Choisis ta réponse en touchant une porte, puis traverse-la pour passer au titre suivant.</li><li><b>🎨 Un thème par porte</b>Couleurs et décor 3D changent à chaque manche.</li><li><b>🎤 Titre ou artiste</b>Deux façons de jouer, plus la recherche d'un artiste précis (corrigée).</li><li><b>🌍 Classement mondial et avis</b>Publie ton score et note le jeu.</li><li><b>🎧 Réécoute</b>Retrouve les titres de ta partie à la fin, et l'onglet Découvrir.</li><li><b>📱 Téléphone</b>Affichage revu pour iPhone et Android, son débloqué sur iOS.</li></ul><button class="btn" id="notesOk">C'est parti ▶</button></div></div>
+<div id="notes" class="hide"><div class="box glass"><div class="lbl" style="margin-top:0">Notes de version · v3.0</div><h2>Quoi de neuf ?</h2><ul><li><b>🏅 Succès et profil</b>16 succès à débloquer, niveau et statistiques dans l'onglet Profil.</li><li><b>💖 Favoris</b>Garde les titres que tu aimes (♡) et réécoute-les dans l'onglet Écoute.</li><li><b>⚡ Réponse éclair</b>+200 points en répondant en moins de 2 secondes, et des flammes à partir de 3 bonnes réponses d'affilée.</li><li><b>📤 Partage</b>Envoie ton résultat à tes amis en un clic.</li><li><b>🎶 8 nouvelles catégories</b>Années 70, Latino, Reggae, Metal, Soul & Funk, Jazz, K-Pop, Disney.</li><li><b>📅 Défi du jour</b>Les 10 mêmes titres pour tout le monde, un seul essai, et un classement du jour.</li><li><b>❤️ Mode Survie</b>Trois vies, les titres s'enchaînent jusqu'à la troisième erreur.</li><li><b>⭐ Profil</b>Niveau, parties jouées, précision et meilleure série affichés sur l'accueil.</li><li><b>⚔️ Multijoueur complet</b>Salons privés (code ou lien d'invitation) ou publics, jusqu'à 8 joueurs, classement en direct.</li><li><b>🎛️ Salon de l'hôte</b>Catégorie, mode et difficulté réglés dans le salon, compte à rebours, exclusion d'un joueur, victoires cumulées.</li><li><b>😂 Réactions</b>Envoie des émojis aux autres joueurs pendant la partie.</li><li><b>🚪 Portes 3D</b>Choisis ta réponse en touchant une porte, puis traverse-la pour passer au titre suivant.</li><li><b>🎨 Un thème par porte</b>Couleurs et décor 3D changent à chaque manche.</li><li><b>🎤 Titre ou artiste</b>Deux façons de jouer, plus la recherche d'un artiste précis (corrigée).</li><li><b>🌍 Classement mondial et avis</b>Publie ton score et note le jeu.</li><li><b>🎧 Réécoute</b>Retrouve les titres de ta partie à la fin, et l'onglet Découvrir.</li><li><b>📱 Téléphone</b>Affichage revu pour iPhone et Android, son débloqué sur iOS.</li></ul><button class="btn" id="notesOk">C'est parti ▶</button></div></div>
 <div id="tip" class="glass hide"></div>
 <div id="toast" class="glass hide"></div>
 <audio id="au" crossorigin="anonymous" preload="auto"></audio>
@@ -231,7 +246,15 @@ const CATS = [
   {id:'80', n:'Années 80', e:'📼', pl:'années 80'},
   {id:'90', n:'Années 90', e:'💿', pl:'années 90'},
   {id:'2000', n:'Années 2000', e:'📱', pl:'années 2000'},
-  {id:'2010', n:'Années 2010', e:'🎧', pl:'hits années 2010'}
+  {id:'2010', n:'Années 2010', e:'🎧', pl:'hits années 2010'},
+  {id:'70', n:'Années 70', e:'🪩', pl:'années 70'},
+  {id:'latino', n:'Latino', e:'💃', u:'chart/197/tracks?limit=100'},
+  {id:'reggae', n:'Reggae', e:'🌴', u:'chart/144/tracks?limit=100'},
+  {id:'metal', n:'Metal', e:'🤘', u:'chart/464/tracks?limit=100'},
+  {id:'soul', n:'Soul & Funk', e:'🕺', u:'chart/169/tracks?limit=100'},
+  {id:'jazz', n:'Jazz', e:'🎷', u:'chart/129/tracks?limit=100'},
+  {id:'kpop', n:'K-Pop', e:'🫰', pl:'k-pop hits'},
+  {id:'disney', n:'Disney', e:'🏰', pl:'disney'}
 ];
 const DIFFS = [{id:'easy', n:'Facile', s:20}, {id:'norm', n:'Normal', s:14}, {id:'hard', n:'Expert', s:8}];
 const MULT = [1, 1.5, 2, 2.5, 3], ROUNDS = 10;
@@ -377,7 +400,7 @@ const PN = 500, pPos = new Float32Array(PN * 3), pVel = new Float32Array(PN * 3)
 const pGeo = new THREE.BufferGeometry(); pGeo.setAttribute('position', new THREE.BufferAttribute(pPos, 3));
 const parts = new THREE.Points(pGeo, new THREE.PointsMaterial({size: .32, map: dotTex, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, color: 0xffd166})); parts.frustumCulled = false; scene.add(parts);
 for (let i = 0; i < PN; i++) pPos[i*3+1] = -50;
-let pNext = 0;
+let pNext = 0, auraAcc = 0;
 function burst(n, col, power){ parts.material.color.set(col); for (let k = 0; k < n; k++) { const i = pNext = (pNext + 1) % PN, a = Math.random() * 6.283, s = (.4 + Math.random()) * power; pPos[i*3] = Math.cos(a) * 1.2; pPos[i*3+1] = .6; pPos[i*3+2] = Math.sin(a) * 1.2; pVel[i*3] = Math.cos(a) * s; pVel[i*3+1] = 3 + Math.random() * 7 * power / 6; pVel[i*3+2] = Math.sin(a) * s; pLife[i] = 1.2 + Math.random(); } }
 
 // sprites texte
@@ -524,6 +547,7 @@ function frame(now){
   for (const o of orbs) { const u = o.userData; if (u.t < 1) { u.t = Math.min(1, u.t + dt / 1.1); const e = 1 - Math.pow(1 - u.t, 3); o.position.set(u.to.x * e, .6 + (u.to.y - .6) * e + Math.sin(u.t * Math.PI) * 2.2, u.to.z * e); } else o.position.y = u.to.y + Math.sin(T * 1.6 + u.idx) * .12;
     u.pulse = Math.max(0, u.pulse - dt * 2); o.scale.setScalar(u.sz * (1 + u.pulse * .9 + (o === hover ? .35 : 0) + (u.r.ok ? bass * .25 : 0))); }
   // particules
+  if (S.screen === 'game' && S.streak >= 3 && S.phase !== 'fly') { auraAcc += dt * (10 + Math.min(S.streak, 10) * 4); while (auraAcc > 1) { auraAcc--; const i = pNext = (pNext + 1) % PN, a = Math.random() * 6.283; pPos[i*3] = Math.cos(a) * 3.15; pPos[i*3+1] = .4; pPos[i*3+2] = Math.sin(a) * 3.15; pVel[i*3] = Math.cos(a) * .5; pVel[i*3+1] = 4 + Math.random() * 3; pVel[i*3+2] = Math.sin(a) * .5; pLife[i] = .6 + Math.random() * .5; } }
   for (let i = 0; i < PN; i++) { if (pLife[i] <= 0) continue; pLife[i] -= dt; pVel[i*3+1] -= 9 * dt; pPos[i*3] += pVel[i*3] * dt; pPos[i*3+1] += pVel[i*3+1] * dt; pPos[i*3+2] += pVel[i*3+2] * dt; if (pLife[i] <= 0 || pPos[i*3+1] < 0) { pLife[i] = 0; pPos[i*3+1] = -50; } }
   pGeo.attributes.position.needsUpdate = true;
   for (let i = floats.length - 1; i >= 0; i--) { const f = floats[i]; f.t += dt / 1.5; f.s.position.y += dt * 1.9; const k = Math.min(1, f.t * 6); f.s.scale.set(6 * k, 1.5 * k, 1); f.s.material.opacity = 1 - Math.max(0, f.t - .5) * 2; if (f.t >= 1) { scene.remove(f.s); f.s.material.map.dispose(); f.s.material.dispose(); floats.splice(i, 1); } }
@@ -550,10 +574,10 @@ function renderHome(){
   $('gmode').innerHTML = [['title', '🎵 Trouver le titre'], ['artist', '🎤 Trouver l\'artiste']].map(m => '<button type="button" data-m="' + m[0] + '" class="' + (m[0] === gmode ? 'on' : '') + '">' + m[1] + '</button>').join('');
   if (!$('duelName').value) $('duelName').value = ls.get('gs_name', '');
   $('kind').innerHTML = [['classic', '🎯 Classique · 10 titres'], ['survie', '❤️ Survie · 3 vies']].map(m => '<button type="button" data-k="' + m[0] + '" class="' + (m[0] === kind ? 'on' : '') + '">' + m[1] + '</button>').join('');
-  const dd = dailyDone(); $('dailyBtn').innerHTML = '<span class="e">📅</span><span><b>Défi du jour</b><br><span class="a">' + (dd ? 'Déjà joué aujourd\'hui : ' + Number(dd.score | 0).toLocaleString('fr-FR') + ' points · voir le classement du jour' : 'Les 10 mêmes titres pour tout le monde · un seul essai par jour') + '</span></span>';
+  const dd = dailyDone(); $('dailyBtn').innerHTML = '<span class="e">📅</span><span><b>Défi du jour</b><br><span class="a">' + (dd ? 'Déjà joué aujourd\'hui : ' + Number(dd.score | 0).toLocaleString('fr-FR') + ' points · nouveau défi dans ' + (() => { const m = Math.ceil((new Date(today() + 'T00:00:00Z').getTime() + 864e5 - Date.now()) / 6e4); return Math.floor(m / 60) + ' h ' + String(m % 60).padStart(2, '0'); })() : 'Les 10 mêmes titres pour tout le monde · un seul essai par jour') + '</span></span>';
   $('profile').innerHTML = statsHtml();
   $('diffTxt').textContent = DIFFS.find(d => d.id === diff).s + ' secondes par extrait';
-  $('cats').innerHTML = CATS.map(c => '<button class="cat" data-c="' + c.id + '"><span class="e">' + c.e + '</span><span class="n">' + c.n + '</span><span class="b">' + (best[bestKey(c.id)] ? 'Record : ' + best[bestKey(c.id)].toLocaleString('fr-FR') : 'Pas encore joué') + '</span></button>').join('');
+  $('cats').innerHTML = CATS.map((c, ci) => '<button class="cat" style="--h:' + Math.round(ci * 360 / CATS.length + 265) % 360 + '" data-c="' + c.id + '"><span class="e">' + c.e + '</span><span class="n">' + c.n + '</span><span class="b">' + (best[bestKey(c.id)] ? 'Record : ' + best[bestKey(c.id)].toLocaleString('fr-FR') : 'Pas encore joué') + '</span></button>').join('');
 }
 $('diff').onclick = e => { const d = e.target.dataset.d; if (!d) return; diff = d; ls.set('gs_diff', d); sfx.click(); renderHome(); };
 $('gmode').onclick = e => { const m = e.target.dataset.m; if (!m) return; gmode = m; ls.set('gs_mode', m); sfx.click(); renderHome(); };
@@ -574,7 +598,7 @@ async function startGame(cat){
   show('game'); startRound();
 }
 function startRound(){
-  clearTimeout(nextTO); const r = S.rounds[S.i]; S.phase = 'load'; S.jokUsed = false; setLabel(''); setTheme(S.i);
+  clearTimeout(nextTO); const r = S.rounds[S.i]; S.phase = 'load'; S.jokUsed = false; if (S.i === 0) S.fast = 0; setLabel(''); setTheme(S.i);
   hudRound(); comboHud();
   $('status').innerHTML = '<div class="msg"><span class="eq"><i></i><i></i><i></i><i></i></span>Chargement de l\'extrait…</div>';
   $('bar').classList.remove('low'); $('bar').firstElementChild.style.transform = 'scaleX(1)';
@@ -598,24 +622,24 @@ function broken(){
 au.addEventListener('error', broken);
 au.addEventListener('playing', () => {
   if (S.screen !== 'game' || S.phase !== 'load') return;
-  clearTimeout(loadTO); S.phase = 'play'; S.t0 = performance.now();
+  clearTimeout(loadTO); S.phase = 'play'; S.t0 = performance.now(); S.tickS = 99;
   $('status').innerHTML = '<div class="msg"><span class="eq"><i></i><i></i><i></i><i></i></span>' + (artMode() ? 'Qui chante ce titre ?' : 'Quel est ce titre ?') + '</div>';
   document.querySelectorAll('.ans').forEach(b => { b.disabled = false; b.classList.remove('wait'); }); jokerBtn();
 });
 setInterval(() => {
-  if (S.phase === 'play') { const left = 1 - (performance.now() - S.t0) / (S.dur * 1000); $('bar').firstElementChild.style.transform = 'scaleX(' + Math.max(0, left) + ')'; $('bar').classList.toggle('low', left < .3); if (left <= 0) answer(-1); }
+  if (S.phase === 'play') { const left = 1 - (performance.now() - S.t0) / (S.dur * 1000); $('bar').firstElementChild.style.transform = 'scaleX(' + Math.max(0, left) + ')'; $('bar').classList.toggle('low', left < .3); const sec = Math.ceil(left * S.dur); if (sec >= 1 && sec <= 3 && sec !== S.tickS) { S.tickS = sec; tone(1100, 0, .05, 'square', .05); } if (left <= 0) answer(-1); }
   if (S.shown !== S.score) { S.shown += Math.ceil((S.score - S.shown) / 4); $('hScore').textContent = S.shown.toLocaleString('fr-FR'); }
 }, 80);
 function answer(k){
   if (S.phase !== 'play') return;
-  const r = S.rounds[S.i], left = Math.max(0, 1 - (performance.now() - S.t0) / (S.dur * 1000)), ok = k === r.correct; let pts = 0, m = 1;
-  if (ok) { m = MULT[Math.min(S.streak, 4)]; pts = Math.round((100 + 900 * left) * m / 10) * 10; S.score += pts; S.streak++; S.best = Math.max(S.best, S.streak); S.good++; S.fails = 0; } else { S.streak = 0; if (S.kind === 'survie') { S.lives--; hudRound(); } }
+  const r = S.rounds[S.i], left = Math.max(0, 1 - (performance.now() - S.t0) / (S.dur * 1000)), ok = k === r.correct, quick = ok && performance.now() - S.t0 < 2000; let pts = 0, m = 1;
+  if (ok) { m = MULT[Math.min(S.streak, 4)]; pts = Math.round((100 + 900 * left + (quick ? 200 : 0)) * m / 10) * 10; if (quick) S.fast = (S.fast | 0) + 1; S.score += pts; S.streak++; S.best = Math.max(S.best, S.streak); S.good++; S.fails = 0; } else { S.streak = 0; if (S.kind === 'survie') { S.lives--; hudRound(); } }
   r.ok = ok; r.pts = pts; S.phase = 'reveal'; roomPush();
   document.querySelectorAll('.ans').forEach((b, j) => { b.disabled = true; if (j === r.correct) b.classList.add('ok'); else if (j === k) b.classList.add('bad'); else b.classList.add('out'); });
-  $('status').innerHTML = '<div class="rv"><img src="' + esc(r.t.cover) + '" alt=""><div><div class="t">' + esc(r.t.title) + '</div><div class="a">' + esc(r.t.artist) + ' · <a href="' + esc(r.t.link) + '" target="_blank" rel="noopener">Écouter sur Deezer ↗</a></div></div><div class="p" style="color:' + (ok ? 'var(--ok)' : 'var(--bad)') + '">' + (ok ? '+' + pts : k < 0 ? 'Trop tard' : 'Raté') + (ok && m > 1 ? '<small>combo ×' + String(m).replace('.', ',') + '</small>' : '') + '</div></div>';
+  $('status').innerHTML = '<div class="rv"><img src="' + esc(r.t.cover) + '" alt=""><div><div class="t">' + esc(r.t.title) + '</div><div class="a">' + esc(r.t.artist) + ' · <a href="' + esc(r.t.link) + '" target="_blank" rel="noopener">Écouter sur Deezer ↗</a></div></div><div class="p" style="color:' + (ok ? 'var(--ok)' : 'var(--bad)') + '">' + (ok ? '+' + pts : k < 0 ? 'Trop tard' : 'Raté') + (ok && (m > 1 || quick) ? '<small>' + (quick ? '⚡ éclair ' : '') + (m > 1 ? 'combo ×' + String(m).replace('.', ',') : '') + '</small>' : '') + '</div></div>';
   setLabel(r.t.cover); addOrb(r, S.i); comboHud(ok); jokerBtn(); doorsReveal(r, k); setHov(-1);
   const fl = $('flash'); fl.style.transition = 'none'; fl.style.background = ok ? 'radial-gradient(circle at 50% 40%,rgba(61,255,162,.28),transparent 65%)' : 'radial-gradient(circle at 50% 40%,rgba(255,77,109,.32),transparent 65%)'; fl.style.opacity = 1; requestAnimationFrame(() => { fl.style.transition = 'opacity .7s'; fl.style.opacity = 0; });
-  if (ok) { sfx.ok(S.streak - 1); burst(90 + S.streak * 40, S.streak >= 3 ? '#ffd166' : '#3dffa2', 5 + S.streak); floatText('+' + pts, S.streak >= 3 ? '#ffd166' : '#3dffa2', 2); if (S.streak >= 2) floatText('COMBO ×' + String(MULT[Math.min(S.streak, 4)]).replace('.', ','), '#ff9f43', 3.6); setScore3D(S.score); spin = 7; }
+  if (ok) { sfx.ok(S.streak - 1); burst(90 + S.streak * 40, S.streak >= 3 ? '#ffd166' : '#3dffa2', 5 + S.streak); floatText('+' + pts, S.streak >= 3 ? '#ffd166' : '#3dffa2', 2); if (quick) floatText('⚡ ÉCLAIR', '#38e1ff', 5); if (S.streak >= 2) floatText('COMBO ×' + String(MULT[Math.min(S.streak, 4)]).replace('.', ','), '#ff9f43', 3.6); setScore3D(S.score); spin = 7; }
   else { sfx.bad(); shake = 1; }
   $('nextBtn').textContent = S.i + 1 >= S.rounds.length || (S.kind === 'survie' && S.lives <= 0) ? 'Résultats ▶' : 'Passer la porte ▶'; $('nextBtn').classList.remove('hide');
   nextTO = setTimeout(next, ok ? 3200 : 5200);
@@ -642,20 +666,20 @@ function joker(){
 function end(){
   S.phase = 'idle'; au.pause(); doorsHide(); roomPush(true); sfx.end(); burst(400, '#ffd166', 9); hueT = 45;
   const key = bestKey(S.cat.id, S.kind), rec = S.score > (best[key] || 0) && S.score > 0; if (rec) { best[key] = S.score; ls.set('gs_best', best); }
-  const sv = S.kind === 'survie', g = S.good, n = sv ? Math.min(S.i, S.rounds.length) : S.rounds.length; addStats(n); if (S.daily) ls.set('gs_daily', {date: S.daily, score: S.score});
+  const sv = S.kind === 'survie', g = S.good, n = sv ? Math.min(S.i, S.rounds.length) : S.rounds.length; addStats(n); checkAch(n); if (S.daily) ls.set('gs_daily', {date: S.daily, score: S.score});
   const rank = sv ? (g >= 30 ? '👑 Increvable' : g >= 20 ? '🎧 Marathonien du son' : g >= 10 ? '🎶 Bonne endurance' : g >= 5 ? '📻 Ça chauffe' : '🙉 Trop court !') : g === n ? '👑 Oreille absolue' : g >= n * .8 ? '🎧 DJ résident' : g >= n * .6 ? '🎶 Mélomane' : g >= n * .4 ? '📻 Auditeur du dimanche' : '🙉 Il va falloir réviser';
   $('endBox').innerHTML = '<div class="lbl" style="margin-top:0">' + esc(S.cat.e + ' ' + S.cat.n) + ' · ' + DIFFS.find(d => d.id === diff).n + (artMode() ? ' · Artiste' : '') + (sv ? ' · Survie' : '') + '</div><div class="big">' + S.score.toLocaleString('fr-FR') + '</div><div class="rank">' + rank + '</div>' + (rec ? '<div style="color:var(--gold);font-weight:700">★ Nouveau record !</div>' : best[key] ? '<div style="color:var(--mut);font-size:13px">Record : ' + best[key].toLocaleString('fr-FR') + '</div>' : '') +
-    '<div class="stats"><div><b>' + g + '/' + n + '</b>bonnes réponses</div><div><b>' + S.best + '</b>meilleure série</div></div>' +
-    (S.score > 0 ? '<form class="row" id="pubForm" style="justify-content:center"><input class="inp" id="pseudo" maxlength="16" placeholder="Ton pseudo" style="max-width:200px;flex:none" value="' + esc(ls.get('gs_name', '')) + '"><button class="btn" type="submit">Publier mon score 🌍</button></form><div class="note" id="pubMsg">' + (S.daily ? 'Ton pseudo et ton score seront visibles dans le classement du jour.' : 'Ton pseudo et ton score seront visibles dans le classement mondial.') + '</div>' : '') + '<div class="note" style="margin-bottom:-6px">Réécoute les titres de la partie :</div><div class="recap">' + S.rounds.slice(0, n).map((r, ri) => '<div><img src="' + esc(r.t.cover) + '" alt=""><div>' + esc(r.t.title) + '<br><span class="a">' + esc(r.t.artist) + '</span></div><span style="color:' + (r.ok ? 'var(--ok)' : 'var(--bad)') + '">' + (r.ok ? '+' + r.pts : '✗') + '</span><button class="pl" data-r="' + ri + '" aria-label="Réécouter">▶</button></div>').join('') + '</div>' +
+    '<div class="stats"><div><b>' + g + '/' + n + '</b>bonnes réponses</div><div><b>' + S.best + '</b>meilleure série</div></div>' + '<div class="row" style="justify-content:center;margin-bottom:12px"><button class="btn ghost" id="share" type="button">📤 Partager mon résultat</button></div>' +
+    (S.score > 0 ? '<form class="row" id="pubForm" style="justify-content:center"><input class="inp" id="pseudo" maxlength="16" placeholder="Ton pseudo" style="max-width:200px;flex:none" value="' + esc(ls.get('gs_name', '')) + '"><button class="btn" type="submit">Publier mon score 🌍</button></form><div class="note" id="pubMsg">' + (S.daily ? 'Ton pseudo et ton score seront visibles dans le classement du jour.' : 'Ton pseudo et ton score seront visibles dans le classement mondial.') + '</div>' : '') + '<div class="note" style="margin-bottom:-6px">Réécoute les titres de la partie :</div><div class="recap">' + S.rounds.slice(0, n).map((r, ri) => '<div><img src="' + esc(r.t.cover) + '" alt=""><div>' + esc(r.t.title) + '<br><span class="a">' + esc(r.t.artist) + '</span></div><span style="color:' + (r.ok ? 'var(--ok)' : 'var(--bad)') + '">' + (r.ok ? '+' + r.pts : '✗') + '</span><button class="fav" data-fr="' + ri + '" aria-label="Favori">' + (isFav(r.t) ? '♥' : '♡') + '</button><button class="pl" data-r="' + ri + '" aria-label="Réécouter">▶</button></div>').join('') + '</div>' +
     (R ? '<div class="lbl">Classement du salon ' + R.code + '</div><div class="list" id="roomRank" style="max-height:26dvh;margin-bottom:14px">' + rankHtml() + '</div><div class="row" style="justify-content:center"><button class="btn" id="again">Retour au salon</button><button class="btn ghost" id="menu">Quitter le salon</button></div>' : S.daily ? '<div class="row" style="justify-content:center"><button class="btn" id="again">Classement du jour</button><button class="btn ghost" id="menu">Accueil</button></div>' : '<div class="row" style="justify-content:center"><button class="btn" id="again">Rejouer ▶</button><button class="btn ghost" id="menu">Changer de catégorie</button></div>') + '<p style="color:var(--mut);font-size:12px;margin-top:12px">Astuce : les orbes autour du vinyle sont tes réponses — clique dessus.</p>';
-  if ($('pubForm')) $('pubForm').onsubmit = publish; $('again').onclick = () => { if (R) toLobby(); else if (S.daily) { goHome(); lbMode = 'day'; setTab('lb'); } else startGame(S.cat); }; $('menu').onclick = goHome; show('end');
+  $('share').onclick = shareResult; if ($('pubForm')) $('pubForm').onsubmit = publish; $('again').onclick = () => { if (R) toLobby(); else if (S.daily) { goHome(); lbMode = 'day'; setTab('lb'); } else startGame(S.cat); }; $('menu').onclick = goHome; show('end');
 }
 function goHome(){ leaveRoom(); clearTimeout(nextTO); if (fly) { fly = null; $('flash').style.opacity = 0; } clearTimeout(loadTO); S.phase = 'idle'; S.streak = 0; au.pause(); doorsHide(); discNow = -1; recNow = -1; diff = ls.get('gs_diff', 'norm'); gmode = ls.get('gs_mode', 'title'); setTheme(0); setLabel(''); clearOrbs(); renderHome(); show('home'); }
 $('answers').onmouseover = e => { const b = e.target.closest('.ans'); if (b) setHov(+b.dataset.k); }; $('answers').onmouseleave = () => setHov(-1);
 $('answers').onclick = e => { const b = e.target.closest('.ans'); if (b && !b.disabled) answer(+b.dataset.k); };
 let recNow = -1;
 function recBtns(){ document.querySelectorAll('.recap .pl').forEach(b => { b.textContent = +b.dataset.r === recNow ? '❚❚' : '▶'; }); }
-$('endBox').addEventListener('click', e => { const b = e.target.closest('.recap .pl'); if (!b) return; const i = +b.dataset.r; initAudio(); if (i === recNow) { au.pause(); recNow = -1; } else { recNow = i; const t = S.rounds[i].t, go = () => { if (recNow !== i) return; au.src = t.preview; const p = au.play(); if (p && p.catch) p.catch(() => {}); }; fresh(t).then(go, go); setLabel(t.cover); } recBtns(); });
+$('endBox').addEventListener('click', e => { const f = e.target.closest('.recap .fav'); if (f) { f.textContent = toggleFav(S.rounds[+f.dataset.fr].t) ? '♥' : '♡'; return; } const b = e.target.closest('.recap .pl'); if (!b) return; const i = +b.dataset.r; initAudio(); if (i === recNow) { au.pause(); recNow = -1; } else { recNow = i; const t = S.rounds[i].t, go = () => { if (recNow !== i) return; au.src = t.preview; const p = au.play(); if (p && p.catch) p.catch(() => {}); }; fresh(t).then(go, go); setLabel(t.cover); } recBtns(); });
 au.addEventListener('ended', () => { if (recNow >= 0) { recNow = -1; recBtns(); } });
 $('joker').onclick = joker; $('nextBtn').onclick = next; $('quit').onclick = goHome;
 $('vol').value = vol; $('vol').oninput = e => setVol(+e.target.value);
@@ -758,7 +782,7 @@ function drawBoard(){
   const sb = $('sb'); if (!R || !R.live) { sb.classList.add('hide'); return; }
   sb.classList.toggle('hide', S.screen !== 'game');
   if (S.screen === 'game') { const h = roomPlayers().map((p, k) => '<div>' + (k === 0 ? '<b>' : '') + (k + 1) + '. ' + esc(p.n || '?') + (k === 0 ? '</b>' : '') + ' <span>' + Number(p.s | 0).toLocaleString('fr-FR') + (p.done ? ' ✓' : '') + '</span></div>').join(''); if (h !== R.sbSig) { R.sbSig = h; sb.innerHTML = h + emoBar(); } }
-  const rr = $('roomRank'); if (rr && S.screen === 'end') rr.innerHTML = rankHtml();
+  const rr = $('roomRank'); if (rr && S.screen === 'end') { rr.innerHTML = rankHtml(); const ps = roomPlayers(); if (ps.length > 1 && ps[0].id === PID && (ps[0].s | 0) > 0 && ps.every(q => q.done)) unlock('duelwin'); }
 }
 function drawLobby(){
   if (!R) return; const pl = roomPlayers(), m = R.live && R.live.meta || {}, cat = CATS.find(c => c.id === m.catId) || CATS[0], df = DIFFS.find(d => d.id === m.diff) || DIFFS[1];
@@ -848,7 +872,7 @@ async function startDaily(){
     clearOrbs(); setTheme(0); setScore3D(0); $('hScore').textContent = '0'; show('game'); startRound();
   } catch(e) { S.phase = 'idle'; toast('Impossible de charger le défi du jour. Réessaie.'); }
 }
-function addStats(n){ const st = ls.get('gs_stats', {games: 0, good: 0, total: 0, streak: 0, pts: 0}); st.games++; st.good += S.good; st.total += n; st.streak = Math.max(st.streak, S.best); st.pts += S.score; ls.set('gs_stats', st); }
+function addStats(n){ const st = ls.get('gs_stats', {games: 0, good: 0, total: 0, streak: 0, pts: 0}); st.games++; st.good += S.good; st.total += n; st.streak = Math.max(st.streak, S.best); st.pts += S.score; st.cats = st.cats || {}; if (!S.cat.q && S.cat.id !== 'duel' && S.cat.id !== 'daily') st.cats[S.cat.id] = 1; ls.set('gs_stats', st); }
 function statsHtml(){
   const st = ls.get('gs_stats', null); if (!st || !st.games) return '';
   return '<span>⭐ Niveau ' + (Math.floor(Math.sqrt(st.pts / 3000)) + 1) + '</span><span>🎮 ' + st.games + ' partie' + (st.games > 1 ? 's' : '') + '</span><span>🎯 ' + Math.round(st.good / Math.max(1, st.total) * 100) + ' % de bonnes réponses</span><span>🔥 Série max ' + st.streak + '</span><span>💎 ' + Number(st.pts).toLocaleString('fr-FR') + ' points cumulés</span>';
@@ -903,31 +927,91 @@ $('revForm').onsubmit = async ev => {
     $('revMsg').value = ''; sfx.ok(0); renderRev('✓ Merci pour ton avis !'); }
   catch(x) { $('revInfo').textContent = 'Envoi impossible pour le moment. Réessaie.'; }
 };
+/* ---------------- Succès, favoris, partage, profil ---------------- */
+const ACH = [
+  ['first', '🎬', 'Première partie', 'Terminer une partie'],
+  ['perfect', '👑', 'Sans faute', '10 sur 10 en mode Classique'],
+  ['streak5', '🔥', 'En feu', 'Enchaîner 5 bonnes réponses'],
+  ['streak10', '🌋', 'Inarrêtable', 'Enchaîner 10 bonnes réponses'],
+  ['fast', '⚡', 'Réflexe éclair', '3 réponses éclair dans une partie'],
+  ['expert', '🎓', 'Oreille d\'expert', '8 sur 10 ou mieux en Expert'],
+  ['score20k', '💎', 'Gros score', 'Dépasser 20 000 points'],
+  ['surv15', '❤️', 'Survivant', 'Trouver 15 titres en Survie'],
+  ['surv30', '🛡️', 'Increvable', 'Trouver 30 titres en Survie'],
+  ['daily', '📅', 'Rendez-vous', 'Jouer un Défi du jour'],
+  ['duel', '⚔️', 'Duelliste', 'Terminer un duel en ligne'],
+  ['duelwin', '🏆', 'Champion du salon', 'Finir premier d\'un duel'],
+  ['artist', '🎤', 'Fan absolu', 'Jouer une partie sur un artiste'],
+  ['explorer', '🧭', 'Explorateur', 'Jouer 5 catégories différentes'],
+  ['games25', '🎮', 'Habitué', 'Terminer 25 parties'],
+  ['fav5', '💖', 'Collectionneur', 'Ajouter 5 titres en favoris']
+];
+let ach = ls.get('gs_ach', {}), favs = ls.get('gs_fav', []); const achQ = [];
+function unlock(id){ if (ach[id]) return; const a = ACH.find(x => x[0] === id); if (!a) return; ach[id] = Date.now(); ls.set('gs_ach', ach); achQ.push(a); if (achQ.length === 1) achNext(); }
+function achNext(){
+  const a = achQ[0]; if (!a) return; const d = document.createElement('div'); d.className = 'ach glass'; d.setAttribute('role', 'status');
+  d.innerHTML = '<span>' + a[1] + '</span><div><b>Succès débloqué</b><br>' + esc(a[2]) + '</div>'; document.body.appendChild(d); tone(988, 0, .15, 'triangle'); tone(1319, .12, .3, 'triangle');
+  setTimeout(() => { d.remove(); achQ.shift(); achNext(); }, 3200);
+}
+function checkAch(n){
+  const st = ls.get('gs_stats', {}), sv = S.kind === 'survie';
+  unlock('first'); if (!sv && n >= ROUNDS && S.good === n) unlock('perfect'); if (S.best >= 5) unlock('streak5'); if (S.best >= 10) unlock('streak10'); if ((S.fast | 0) >= 3) unlock('fast');
+  if (!sv && diff === 'hard' && S.good >= 8) unlock('expert'); if (S.score >= 20000) unlock('score20k'); if (sv && S.good >= 15) unlock('surv15'); if (sv && S.good >= 30) unlock('surv30');
+  if (S.daily) unlock('daily'); if (R) unlock('duel'); if (S.cat.q) unlock('artist'); if ((st.games | 0) >= 25) unlock('games25'); if (Object.keys(st.cats || {}).length >= 5) unlock('explorer');
+}
+const favKey = t => String(t.id || norm(t.title + (t.artist && t.artist.name || t.artist || '')));
+const isFav = t => favs.some(f => favKey(f) === favKey(t));
+function toggleFav(t){
+  const k = favKey(t), i = favs.findIndex(f => favKey(f) === k);
+  if (i >= 0) favs.splice(i, 1);
+  else { favs.unshift({id: t.id, title: t.title, artist: {name: t.artist && t.artist.name || t.artist}, album: {cover_small: t.album ? t.album.cover_small : t.cover, cover_big: t.album ? t.album.cover_big : t.cover}, preview: t.preview, link: t.link}); favs = favs.slice(0, 200); sfx.orb(4); }
+  ls.set('gs_fav', favs); if (favs.length >= 5) unlock('fav5'); return i < 0;
+}
+function shareResult(){
+  const n = S.kind === 'survie' ? Math.min(S.i, S.rounds.length) : S.rounds.length, sq = S.rounds.slice(0, Math.min(n, 30)).map(r => r.ok ? '🟩' : '🟥').join('');
+  const txt = '🎵 Guess the Song — ' + S.cat.n + (S.kind === 'survie' ? ' (Survie)' : '') + '\n' + S.score.toLocaleString('fr-FR') + ' points · ' + S.good + '/' + n + ' bonnes réponses\n' + sq + '\nÀ toi de jouer : ' + location.origin + location.pathname;
+  if (navigator.share) navigator.share({text: txt}).catch(() => {});
+  else (navigator.clipboard ? navigator.clipboard.writeText(txt) : Promise.reject()).then(() => toast('Résultat copié : colle-le où tu veux.'), () => { const ta = document.createElement('textarea'); ta.value = txt; ta.style.cssText = 'position:fixed;opacity:0'; document.body.appendChild(ta); ta.select(); let ok = false; try { ok = document.execCommand('copy'); } catch(e) {} ta.remove(); toast(ok ? 'Résultat copié : colle-le où tu veux.' : 'Copie impossible sur ce navigateur.'); });
+}
+function renderProf(){
+  const st = ls.get('gs_stats', {games: 0, good: 0, total: 0, streak: 0, pts: 0}), lvl = Math.floor(Math.sqrt(st.pts / 3000)) + 1, lo = 3000 * (lvl - 1) * (lvl - 1), hi = 3000 * lvl * lvl, got = ACH.filter(a => ach[a[0]]).length;
+  const card = (v, l) => '<div><b>' + v + '</b>' + l + '</div>';
+  $('tabProf').innerHTML = '<div class="lbl" style="margin-top:0">Niveau ' + lvl + '</div><div class="lvl"><i style="width:' + Math.round((st.pts - lo) / (hi - lo) * 100) + '%"></i></div><div class="note" style="margin-top:4px">Encore ' + Number(hi - st.pts).toLocaleString('fr-FR') + ' points avant le niveau ' + (lvl + 1) + '.</div>' +
+    '<div class="pcards" style="margin-top:14px">' + card(st.games, 'parties terminées') + card(Math.round(st.good / Math.max(1, st.total) * 100) + ' %', 'de bonnes réponses') + card(st.streak, 'meilleure série') + card(Number(st.pts).toLocaleString('fr-FR'), 'points cumulés') + card(Object.keys(st.cats || {}).length, 'catégories jouées') + card(favs.length, 'titres favoris') + '</div>' +
+    '<div class="lbl">Succès (' + got + '/' + ACH.length + ')</div><div class="achs">' + ACH.map(a => '<div class="ac' + (ach[a[0]] ? ' on' : '') + '"><span>' + a[1] + '</span><b>' + a[2] + '</b><small>' + a[3] + '</small></div>').join('') + '</div><div class="note">Ton profil est enregistré sur cet appareil.</div>';
+}
 /* ---------------- Découvrir ---------------- */
-let discNow = -1, discList = [];
+let discNow = -1, discList = [], discMode = 'top';
+function discSeg(){ $('discSeg').innerHTML = [['top', '🔥 Titres du moment'], ['fav', '♥ Mes favoris (' + favs.length + ')']].map(m => '<button type="button" data-dm="' + m[0] + '" class="' + (m[0] === discMode ? 'on' : '') + '">' + m[1] + '</button>').join(''); }
 async function loadDisc(q){
-  const el = $('discList'); el.innerHTML = '<div class="note">Chargement…</div>';
-  try { const d = await jp(q ? 'search?q=' + encodeURIComponent(q) + '&limit=30' : 'chart/0/tracks?limit=30'); discList = (d.data || []).filter(t => t.preview && t.artist); discNow = -1; drawDisc(); }
+  discMode = 'top'; discSeg(); const el = $('discList'); el.innerHTML = '<div class="note">Chargement…</div>';
+  try { const d = await jp(q ? 'search?q=' + encodeURIComponent(q) + '&limit=30' : 'chart/0/tracks?limit=30'); if (discMode !== 'top') return; discList = (d.data || []).filter(t => t.preview && t.artist); discNow = -1; drawDisc(); }
   catch(e) { el.innerHTML = '<div class="note">Impossible de charger les titres. Réessaie.</div>'; }
 }
+function showFavs(){ discMode = 'fav'; if (discNow >= 0) au.pause(); discNow = -1; discList = favs.slice(); discSeg(); drawDisc(); }
 function drawDisc(){
-  $('discList').innerHTML = discList.length ? discList.map((t, i) => '<div class="li"><img src="' + esc(t.album && t.album.cover_small || '') + '" alt=""><div>' + esc(t.title) + '<br><span class="a">' + esc(t.artist.name) + '</span></div><button class="pl" data-i="' + i + '" aria-label="' + (i === discNow ? 'Pause' : 'Écouter') + '">' + (i === discNow ? '❚❚' : '▶') + '</button></div>').join('') : '<div class="note">Aucun titre trouvé.</div>';
+  $('discList').innerHTML = discList.length ? discList.map((t, i) => '<div class="li"><img src="' + esc(t.album && t.album.cover_small || '') + '" alt=""><div>' + esc(t.title) + '<br><span class="a">' + esc(t.artist && t.artist.name || '') + '</span></div><button class="fav" data-f="' + i + '" aria-label="' + (isFav(t) ? 'Retirer des favoris' : 'Ajouter aux favoris') + '">' + (isFav(t) ? '♥' : '♡') + '</button><button class="pl" data-i="' + i + '" aria-label="' + (i === discNow ? 'Pause' : 'Écouter') + '">' + (i === discNow ? '❚❚' : '▶') + '</button></div>').join('')
+    : '<div class="note">' + (discMode === 'fav' ? 'Aucun favori pour l\'instant : touche ♡ à côté d\'un titre, ici ou à la fin d\'une partie.' : 'Aucun titre trouvé.') + '</div>';
 }
 $('discList').onclick = e => {
+  const f = e.target.closest('.fav');
+  if (f) { toggleFav(discList[+f.dataset.f]); if (discMode === 'fav') { if (discNow >= 0) au.pause(); discNow = -1; discList = favs.slice(); } discSeg(); drawDisc(); return; }
   const b = e.target.closest('.pl'); if (!b) return; const i = +b.dataset.i; initAudio();
-  if (i === discNow) { au.pause(); discNow = -1; } else { discNow = i; au.src = discList[i].preview; const p = au.play(); if (p && p.catch) p.catch(() => {}); setLabel(discList[i].album && discList[i].album.cover_big || ''); }
+  if (i === discNow) { au.pause(); discNow = -1; }
+  else { discNow = i; const t = discList[i], go = () => { if (discNow !== i || discList[i] !== t) return; au.src = t.preview; const p = au.play(); if (p && p.catch) p.catch(() => {}); }; fresh(t).then(go, go); setLabel(t.album && t.album.cover_big || ''); }
   drawDisc();
 };
+$('discSeg').onclick = e => { const m = e.target.dataset.dm; if (!m || m === discMode) return; sfx.click(); if (m === 'fav') showFavs(); else loadDisc($('discQ').value.trim()); };
 $('discForm').onsubmit = e => { e.preventDefault(); loadDisc($('discQ').value.trim()); };
 au.addEventListener('ended', () => { if (discNow >= 0) { discNow = -1; drawDisc(); } });
 function setTab(t){
-  ['Play', 'Lb', 'Disc', 'Rev'].forEach(n => $('tab' + n).classList.toggle('hide', n.toLowerCase() !== t));
+  ['Play', 'Lb', 'Disc', 'Prof', 'Rev'].forEach(n => $('tab' + n).classList.toggle('hide', n.toLowerCase() !== t));
   document.querySelectorAll('#tabs button').forEach(b => b.classList.toggle('on', b.dataset.t === t));
-  if (t === 'lb') renderLb(); if (t === 'rev') { $('revName').value = ls.get('gs_name', ''); drawStars(); renderRev(); } if (t === 'disc' && !discList.length) loadDisc('');
+  if (t === 'lb') renderLb(); if (t === 'prof') renderProf(); if (t === 'disc') discSeg(); if (t === 'rev') { $('revName').value = ls.get('gs_name', ''); drawStars(); renderRev(); } if (t === 'disc' && !discList.length) loadDisc('');
 }
 $('tabLb').addEventListener('click', e => { const m = e.target.dataset.lb; if (m && m !== lbMode) { lbMode = m; sfx.click(); renderLb(); } });
 $('tabs').onclick = e => { const t = e.target.dataset.t; if (t) { sfx.click(); setTab(t); } };
-const NOTES_V = '2.3';
+const NOTES_V = '3.0';
 function showNotes(on){ $('notes').classList.toggle('hide', !on); }
 $('notesOk').onclick = () => { ls.set('gs_notes', NOTES_V); initAudio(); sfx.click(); showNotes(false); };
 $('notesLink').onclick = e => { e.preventDefault(); showNotes(true); };
