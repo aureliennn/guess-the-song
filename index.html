@@ -143,6 +143,7 @@ select.inp{appearance:none;-webkit-appearance:none;min-width:0}select.inp option
 .recap>div>div{display:block;flex:1;min-width:0;padding:0;background:none;overflow:hidden;text-overflow:ellipsis}.recap>div>span{flex:none}.recap img{flex:none}
 @media(max-width:620px){#pubForm{flex-direction:column;align-items:stretch}#pubForm .inp{max-width:none !important;width:100%}#pubForm .btn{width:100%}.ach{top:8px;left:12px;right:12px;justify-content:center}.recap>div{gap:8px;font-size:13px}.recap .fav,.recap .pl{width:32px;height:32px;margin-left:4px}#end .row .btn{flex:1}}
 @media(max-width:620px){#panel.rev #tools>span{display:none}#panel.rev #tools{justify-content:space-between}#sb{top:calc(max(12px,env(safe-area-inset-top)) + 40px);left:8px;right:8px;max-width:none;display:flex;gap:12px;overflow-x:auto;white-space:nowrap;padding:5px 10px;border-radius:10px;font-size:11px}#sb .emos{display:none}#emoRow:not(.hide){display:block;margin-top:8px}#emoRow .emos{justify-content:space-between;flex-wrap:nowrap}#emoRow .emos button{font-size:18px;padding:4px 6px;flex:1}}
+#pause{position:fixed;inset:0;z-index:17;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(4,2,10,.8);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}#pause .box{width:min(340px,100%);padding:24px;display:grid;gap:12px;text-align:center}#pause h2{font-size:26px}#pause .note{margin:0}#pauseBtn{padding:2px 6px;font-size:15px}
 #notes{position:fixed;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(4,2,10,.72)}
 #notes .box{width:min(520px,100%);max-height:86dvh;overflow:auto;-webkit-overflow-scrolling:touch;padding:22px}
 #notes h2{font-size:22px;margin-bottom:4px}#notes ul{list-style:none;display:grid;gap:8px;margin:14px 0 18px}#notes li{padding:9px 12px;border-radius:12px;background:rgba(255,255,255,.05);font-size:14px;line-height:1.35}#notes li b{display:block}#notes .btn{width:100%}
@@ -156,7 +157,7 @@ select.inp{appearance:none;-webkit-appearance:none;min-width:0}select.inp option
 <div id="hud" class="hide">
   <div class="pill glass"><span id="hRound">1/10</span><span id="hCombo"></span></div>
   <div class="pill glass"><span id="hScore">0</span> pts</div>
-  <div class="pill glass"><span id="volIco">🔊</span><input id="vol" type="range" min="0" max="100" aria-label="Volume"><button id="quit" title="Quitter la partie">✕</button></div>
+  <div class="pill glass"><span id="volIco">🔊</span><input id="vol" type="range" min="0" max="100" aria-label="Volume"><button id="pauseBtn" title="Pause" aria-label="Pause">⏸</button><button id="quit" title="Quitter la partie" aria-label="Quitter la partie">✕</button></div>
 </div>
 
 <div id="home" class="screen">
@@ -208,7 +209,7 @@ select.inp{appearance:none;-webkit-appearance:none;min-width:0}select.inp option
       <div><b>⚡ Vitesse</b>De 1000 à 100 points selon ton temps de réponse, +200 en moins de 2 secondes.</div>
       <div><b>🔥 Combo</b>×1,5 puis ×2, ×2,5 et ×3 tant que tu ne te trompes pas.</div>
       <div><b>🚪 Portes</b>Quatre portes 3D, une par réponse : clique sur la bonne pour l'ouvrir.</div>
-      <div><b>⌨️ Clavier</b>Touches 1 à 4 pour répondre, J pour le 50/50, Entrée pour continuer.</div>
+      <div><b>⌨️ Clavier</b>Touches 1 à 4 pour répondre, J pour le 50/50, Entrée pour continuer, P pour la pause.</div>
     </div>
     </div>
     <div class="foot"><span>Extraits de 30 s fournis par Deezer.</span><span><a href="#" id="notesLink">Nouveautés</a> · <a href="foot.html">Ancien jeu de foot</a></span></div>
@@ -228,6 +229,7 @@ select.inp{appearance:none;-webkit-appearance:none;min-width:0}select.inp option
 <div id="lobby" class="screen hide"><div class="box glass" id="lobbyBox"></div></div>
 <div id="sb" class="glass hide"></div>
 <div id="count" class="hide"></div>
+<div id="pause" class="hide"><div class="box glass"><h2 id="pauseT">Pause</h2><p class="note" id="pauseN"></p><button class="btn" id="resumeBtn">Reprendre ▶</button><button class="btn ghost" id="pauseQuit">Quitter la partie</button></div></div>
 <div id="end" class="screen hide"><div class="box glass" id="endBox"></div></div>
 <div id="notes" class="hide"><div class="box glass"><div class="lbl" style="margin-top:0">Notes de version · v3.0</div><h2>Quoi de neuf ?</h2><ul><li><b>🏅 Succès et profil</b>16 succès à débloquer, niveau et statistiques dans l'onglet Profil.</li><li><b>💖 Favoris</b>Garde les titres que tu aimes (♡) et réécoute-les dans l'onglet Écoute.</li><li><b>⚡ Réponse éclair</b>+200 points en répondant en moins de 2 secondes, et des flammes à partir de 3 bonnes réponses d'affilée.</li><li><b>📤 Partage</b>Envoie ton résultat à tes amis en un clic.</li><li><b>🎶 8 nouvelles catégories</b>Années 70, Latino, Reggae, Metal, Soul & Funk, Jazz, K-Pop, Disney.</li><li><b>📅 Défi du jour</b>Les 10 mêmes titres pour tout le monde, un seul essai, et un classement du jour.</li><li><b>❤️ Mode Survie</b>Trois vies, les titres s'enchaînent jusqu'à la troisième erreur.</li><li><b>⭐ Profil</b>Niveau, parties jouées, précision et meilleure série affichés sur l'accueil.</li><li><b>⚔️ Multijoueur complet</b>Salons privés (code ou lien d'invitation) ou publics, jusqu'à 8 joueurs, classement en direct.</li><li><b>🎛️ Salon de l'hôte</b>Catégorie, mode et difficulté réglés dans le salon, compte à rebours, exclusion d'un joueur, victoires cumulées.</li><li><b>😂 Réactions</b>Envoie des émojis aux autres joueurs pendant la partie.</li><li><b>🚪 Portes 3D</b>Choisis ta réponse en touchant une porte, puis traverse-la pour passer au titre suivant.</li><li><b>🎨 Un thème par porte</b>Couleurs et décor 3D changent à chaque manche.</li><li><b>🎤 Titre ou artiste</b>Deux façons de jouer, plus la recherche d'un artiste précis (corrigée).</li><li><b>🌍 Classement mondial et avis</b>Publie ton score et note le jeu.</li><li><b>🎧 Réécoute</b>Retrouve les titres de ta partie à la fin, et l'onglet Découvrir.</li><li><b>📱 Téléphone</b>Affichage revu pour iPhone et Android, son débloqué sur iOS.</li></ul><button class="btn" id="notesOk">C'est parti ▶</button></div></div>
 <div id="tip" class="glass hide"></div>
@@ -585,7 +587,7 @@ function frame(now){
 const S = {screen: 'home', phase: 'idle', cat: null, pool: [], rounds: [], spare: [], i: 0, score: 0, shown: 0, streak: 0, best: 0, good: 0, jok: 2, jokUsed: false, t0: 0, dur: 14, fails: 0};
 let loadTO = 0, nextTO = 0, toastTO = 0;
 function toast(m){ const t = $('toast'); t.textContent = m; t.classList.remove('hide'); clearTimeout(toastTO); toastTO = setTimeout(() => t.classList.add('hide'), 3800); }
-function show(scr){ S.screen = scr; $('home').classList.toggle('hide', scr !== 'home'); $('game').classList.toggle('hide', scr !== 'game'); $('hud').classList.toggle('hide', scr !== 'game'); $('end').classList.toggle('hide', scr !== 'end'); $('lobby').classList.toggle('hide', scr !== 'lobby'); if (scr !== 'game') $('sb').classList.add('hide'); $('emoRow').classList.toggle('hide', !(R && scr === 'game')); if (R && scr === 'game' && !$('emoRow').innerHTML) $('emoRow').innerHTML = emoBar(); $('tip').classList.add('hide'); }
+function show(scr){ S.screen = scr; $('home').classList.toggle('hide', scr !== 'home'); $('game').classList.toggle('hide', scr !== 'game'); $('hud').classList.toggle('hide', scr !== 'game'); $('end').classList.toggle('hide', scr !== 'end'); $('lobby').classList.toggle('hide', scr !== 'lobby'); if (scr !== 'game') { $('sb').classList.add('hide'); $('pause').classList.add('hide'); S.paused = false; } $('emoRow').classList.toggle('hide', !(R && scr === 'game')); if (R && scr === 'game' && !$('emoRow').innerHTML) $('emoRow').innerHTML = emoBar(); $('tip').classList.add('hide'); }
 function renderHome(){
   $('diff').innerHTML = DIFFS.map(d => '<button type="button" data-d="' + d.id + '" class="' + (d.id === diff ? 'on' : '') + '">' + d.n + '</button>').join('');
   $('gmode').innerHTML = [['title', '🎵 Trouver le titre'], ['artist', '🎤 Trouver l\'artiste']].map(m => '<button type="button" data-m="' + m[0] + '" class="' + (m[0] === gmode ? 'on' : '') + '">' + m[1] + '</button>').join('');
@@ -621,7 +623,7 @@ function startRound(){
   $('bar').classList.remove('low'); $('bar').firstElementChild.style.transform = 'scaleX(1)';
   $('answers').innerHTML = r.ch.map((c, k) => '<button class="ans wait" data-k="' + k + '" disabled><span class="k">' + (k + 1) + '</span><span><span class="t">' + esc(c.title) + '</span><br><span class="a">' + esc(c.artist) + '</span></span></button>').join('');
   $('nextBtn').classList.add('hide'); jokerBtn(); doorsShow(r); setHov(-1);
-  const go = () => { if (S.rounds[S.i] !== r || S.phase !== 'load' || S.screen !== 'game') return; au.src = r.t.preview; const p = au.play(); if (p && p.catch) p.catch(() => {}); };
+  const go = () => { if (S.rounds[S.i] !== r || S.phase !== 'load' || S.screen !== 'game' || S.paused) return; au.src = r.t.preview; const p = au.play(); if (p && p.catch) p.catch(() => {}); };
   fresh(r.t).then(go, go);
   clearTimeout(loadTO); loadTO = setTimeout(broken, 9000);
 }
@@ -644,11 +646,11 @@ au.addEventListener('playing', () => {
   document.querySelectorAll('.ans').forEach(b => { b.disabled = false; b.classList.remove('wait'); }); jokerBtn();
 });
 setInterval(() => {
-  if (S.phase === 'play') { const left = 1 - (performance.now() - S.t0) / (S.dur * 1000); $('bar').firstElementChild.style.transform = 'scaleX(' + Math.max(0, left) + ')'; $('bar').classList.toggle('low', left < .3); const sec = Math.ceil(left * S.dur); if (sec >= 1 && sec <= 3 && sec !== S.tickS) { S.tickS = sec; tone(1100, 0, .05, 'square', .05); } if (left <= 0) answer(-1); }
+  if (S.phase === 'play' && !S.paused) { const left = 1 - (performance.now() - S.t0) / (S.dur * 1000); $('bar').firstElementChild.style.transform = 'scaleX(' + Math.max(0, left) + ')'; $('bar').classList.toggle('low', left < .3); const sec = Math.ceil(left * S.dur); if (sec >= 1 && sec <= 3 && sec !== S.tickS) { S.tickS = sec; tone(1100, 0, .05, 'square', .05); } if (left <= 0) answer(-1); }
   if (S.shown !== S.score) { S.shown += Math.ceil((S.score - S.shown) / 4); $('hScore').textContent = S.shown.toLocaleString('fr-FR'); }
 }, 80);
 function answer(k){
-  if (S.phase !== 'play') return;
+  if (S.phase !== 'play' || S.paused) return;
   const r = S.rounds[S.i], left = Math.max(0, 1 - (performance.now() - S.t0) / (S.dur * 1000)), ok = k === r.correct, quick = ok && performance.now() - S.t0 < 2000; let pts = 0, m = 1;
   if (ok) { m = MULT[Math.min(S.streak, 4)]; pts = Math.round((100 + 900 * left + (quick ? 200 : 0)) * m / 10) * 10; if (quick) S.fast = (S.fast | 0) + 1; S.score += pts; S.streak++; S.best = Math.max(S.best, S.streak); S.good++; S.fails = 0; } else { S.streak = 0; if (S.kind === 'survie') { S.lives--; hudRound(); } }
   r.ok = ok; r.pts = pts; S.phase = 'reveal'; $('panel').classList.add('rev'); roomPush();
@@ -663,7 +665,7 @@ function answer(k){
 }
 let fly = null;
 function next(){
-  if (S.phase !== 'reveal') return; clearTimeout(nextTO);
+  if (S.phase !== 'reveal' || S.paused) return; clearTimeout(nextTO);
   const r = S.rounds[S.i];
   const dg = doors[r.correct].G;
   S.phase = 'fly'; fly = {t: 0, x: dg.position.x, y: dg.position.y + DH * dg.scale.x * .5, from: cam.position.clone()}; sfx.whoosh();
@@ -698,6 +700,20 @@ let recNow = -1;
 function recBtns(){ document.querySelectorAll('.recap .pl').forEach(b => { b.textContent = +b.dataset.r === recNow ? '❚❚' : '▶'; }); }
 $('endBox').addEventListener('click', e => { const f = e.target.closest('.recap .fav'); if (f) { f.textContent = toggleFav(S.rounds[+f.dataset.fr].t) ? '♥' : '♡'; return; } const b = e.target.closest('.recap .pl'); if (!b) return; const i = +b.dataset.r; initAudio(); if (i === recNow) { au.pause(); recNow = -1; } else { recNow = i; const t = S.rounds[i].t, go = () => { if (recNow !== i) return; au.src = t.preview; const p = au.play(); if (p && p.catch) p.catch(() => {}); }; fresh(t).then(go, go); setLabel(t.cover); } recBtns(); });
 au.addEventListener('ended', () => { if (recNow >= 0) { recNow = -1; recBtns(); } });
+function pauseGame(){
+  if (S.screen !== 'game' || !$('pause').classList.contains('hide') || S.phase === 'fly') return;
+  $('pauseT').textContent = R ? 'Menu' : 'Pause'; $('pauseN').textContent = R ? 'Le duel continue pendant ce temps : les autres joueurs ne sont pas en pause.' : 'Le chrono et la musique sont arrêtés.'; $('pauseQuit').textContent = R ? 'Quitter le salon' : 'Quitter la partie'; $('pause').classList.remove('hide');
+  if (R) return;
+  S.paused = true; S.pauseAt = performance.now(); clearTimeout(nextTO); clearTimeout(loadTO); au.pause();
+}
+function resumeGame(){
+  if ($('pause').classList.contains('hide')) return; $('pause').classList.add('hide'); if (!S.paused) return; S.paused = false;
+  if (S.phase === 'load') { startRound(); return; }
+  S.t0 += performance.now() - S.pauseAt; const p = au.play(); if (p && p.catch) p.catch(() => {});
+  if (S.phase === 'reveal') nextTO = setTimeout(next, 2500);
+}
+$('pauseBtn').onclick = pauseGame; $('resumeBtn').onclick = resumeGame; $('pauseQuit').onclick = goHome;
+document.addEventListener('visibilitychange', () => { if (document.hidden && !R) pauseGame(); });
 $('joker').onclick = joker; $('nextBtn').onclick = next; $('quit').onclick = goHome;
 $('vol').value = vol; $('vol').oninput = e => setVol(+e.target.value);
 addEventListener('keydown', e => {
@@ -707,7 +723,7 @@ addEventListener('keydown', e => {
   if (i >= 0) { const b = document.querySelector('.ans[data-k="' + i + '"]'); if (b && !b.disabled) answer(i); }
   else if (e.code === 'KeyJ') joker();
   else if (e.code === 'Enter' || e.code === 'Space') { e.preventDefault(); next(); }
-  else if (e.code === 'Escape') goHome();
+  else if (e.code === 'Escape' || e.code === 'KeyP') { if ($('pause').classList.contains('hide')) pauseGame(); else resumeGame(); }
 });
 /* ---------------- Duel en ligne ---------------- */
 let R = null; const emoSeen = new Set();
