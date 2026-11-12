@@ -14,14 +14,14 @@
 <style>
 :root{--bg:#07040f;--glass:rgba(22,14,44,.62);--line:rgba(255,255,255,.14);--txt:#f4f0ff;--mut:#a79fc4;--acc:#b86bff;--acc2:#38e1ff;--ok:#3dffa2;--bad:#ff4d6d;--gold:#ffd166}
 *{box-sizing:border-box;margin:0;padding:0}
-html,body{height:100%;overflow:hidden;position:fixed;inset:0;width:100%;overscroll-behavior:none;-webkit-text-size-adjust:100%;background:var(--bg);color:var(--txt);font-family:Inter,system-ui,sans-serif;-webkit-tap-highlight-color:transparent}
+body{position:fixed;inset:0;width:100%}html,body{height:100%;overflow:hidden;overscroll-behavior:none;-webkit-text-size-adjust:100%;background:var(--bg);color:var(--txt);font-family:Inter,system-ui,sans-serif;-webkit-tap-highlight-color:transparent}
 canvas#c{position:fixed;inset:0;width:100%;height:100%;display:block}
 .hide{display:none!important}
 h1,h2,.disp{font-family:Unbounded,Inter,sans-serif}
 button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
 .glass{background:var(--glass);border:1px solid var(--line);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-radius:20px}
 .screen{position:fixed;inset:0;overflow:auto;-webkit-overflow-scrolling:touch;display:flex;justify-content:center;align-items:flex-start;padding:max(18px,env(safe-area-inset-top)) 16px 28px;pointer-events:none}
-.screen>*{pointer-events:auto}
+.screen>*{pointer-events:auto}.screen{pointer-events:auto;touch-action:pan-y;overscroll-behavior:contain}
 /* home */
 #home .box{width:min(980px,100%);margin:auto;padding:26px clamp(16px,3vw,34px) 22px}
 .logo{font-size:clamp(30px,6vw,60px);font-weight:800;line-height:1;letter-spacing:-.02em;background:linear-gradient(92deg,#fff 0%,var(--acc) 45%,var(--acc2) 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
@@ -144,6 +144,9 @@ select.inp{appearance:none;-webkit-appearance:none;min-width:0}select.inp option
 @media(max-width:620px){#pubForm{flex-direction:column;align-items:stretch}#pubForm .inp{max-width:none !important;width:100%}#pubForm .btn{width:100%}.ach{top:8px;left:12px;right:12px;justify-content:center}.recap>div{gap:8px;font-size:13px}.recap .fav,.recap .pl{width:32px;height:32px;margin-left:4px}#end .row .btn{flex:1}}
 @media(max-width:620px){#panel.rev #tools>span{display:none}#panel.rev #tools{justify-content:space-between}#sb{top:calc(max(12px,env(safe-area-inset-top)) + 40px);left:8px;right:8px;max-width:none;display:flex;gap:12px;overflow-x:auto;white-space:nowrap;padding:5px 10px;border-radius:10px;font-size:11px}#sb .emos{display:none}#emoRow:not(.hide){display:block;margin-top:8px}#emoRow .emos{justify-content:space-between;flex-wrap:nowrap}#emoRow .emos button{font-size:18px;padding:4px 6px;flex:1}}
 #pause{position:fixed;inset:0;z-index:17;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(4,2,10,.8);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}#pause .box{width:min(340px,100%);padding:24px;display:grid;gap:12px;text-align:center}#pause h2{font-size:26px}#pause .note{margin:0}#pauseBtn{padding:2px 6px;font-size:15px}
+.dc{flex-wrap:wrap}#duelWatch{padding:12px 14px}
+#lobby .box.tv{width:min(920px,100%)}.tv .tvcode{font-size:clamp(64px,15vw,160px);letter-spacing:.12em}.tv .li{font-size:18px;padding:12px 16px}.tv .li .sc{font-size:24px}.tv .li .rk{font-size:22px;width:44px}.tv .list{max-height:44dvh}
+@media (pointer:coarse){.glass{backdrop-filter:none;-webkit-backdrop-filter:none;background:rgba(20,12,40,.94)}#pause{backdrop-filter:none;-webkit-backdrop-filter:none;background:rgba(4,2,10,.96)}}
 #notes{position:fixed;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(4,2,10,.72)}
 #notes .box{width:min(520px,100%);max-height:86dvh;overflow:auto;-webkit-overflow-scrolling:touch;padding:22px}
 #notes h2{font-size:22px;margin-bottom:4px}#notes ul{list-style:none;display:grid;gap:8px;margin:14px 0 18px}#notes li{padding:9px 12px;border-radius:12px;background:rgba(255,255,255,.05);font-size:14px;line-height:1.35}#notes li b{display:block}#notes .btn{width:100%}
@@ -191,9 +194,10 @@ select.inp{appearance:none;-webkit-appearance:none;min-width:0}select.inp option
       <div class="dh"><b>⚔️ Duel en ligne</b><span>Jusqu'à 8 joueurs, mêmes titres pour tous, classement en direct.</span></div>
       <input class="inp" id="duelName" maxlength="16" placeholder="Ton pseudo" autocomplete="off" aria-label="Ton pseudo">
       <div class="dg">
-        <div class="dc"><button class="btn" type="button" id="duelCreate">Créer un salon</button><label class="chk"><input type="checkbox" id="duelPub"> Public</label></div>
-        <div class="dc"><input class="inp" id="duelCode" maxlength="4" placeholder="CODE" autocomplete="off" autocapitalize="characters" aria-label="Code du salon"><button class="btn ghost" type="button" id="duelJoin">Rejoindre</button></div>
+        <div class="dc"><button class="btn" type="button" id="duelCreate">Créer un salon</button><label class="chk"><input type="checkbox" id="duelPub"> Public</label><label class="chk"><input type="checkbox" id="duelTv"> Écran seul</label></div>
+        <div class="dc"><input class="inp" id="duelCode" maxlength="4" placeholder="CODE" autocomplete="off" autocapitalize="characters" aria-label="Code du salon"><button class="btn ghost" type="button" id="duelJoin">Rejoindre</button><button class="btn ghost" type="button" id="duelWatch" title="Regarder ce salon sans jouer" aria-label="Regarder ce salon sans jouer">👁</button></div>
       </div>
+      <div class="note" style="margin:0">« Écran seul » ou 👁 : cet appareil affiche le salon et le classement en direct sans jouer — idéal sur un PC ou une télé pendant que les joueurs sont sur leur téléphone.</div>
       <div class="dl">🌍 Salons publics ouverts</div>
       <div class="list" id="pubRooms" style="max-height:200px;margin-top:0"></div>
     </div>
@@ -231,7 +235,7 @@ select.inp{appearance:none;-webkit-appearance:none;min-width:0}select.inp option
 <div id="count" class="hide"></div>
 <div id="pause" class="hide"><div class="box glass"><h2 id="pauseT">Pause</h2><p class="note" id="pauseN"></p><button class="btn" id="resumeBtn">Reprendre ▶</button><button class="btn ghost" id="pauseQuit">Quitter la partie</button></div></div>
 <div id="end" class="screen hide"><div class="box glass" id="endBox"></div></div>
-<div id="notes" class="hide"><div class="box glass"><div class="lbl" style="margin-top:0">Notes de version · v3.0</div><h2>Quoi de neuf ?</h2><ul><li><b>🏅 Succès et profil</b>16 succès à débloquer, niveau et statistiques dans l'onglet Profil.</li><li><b>💖 Favoris</b>Garde les titres que tu aimes (♡) et réécoute-les dans l'onglet Écoute.</li><li><b>⚡ Réponse éclair</b>+200 points en répondant en moins de 2 secondes, et des flammes à partir de 3 bonnes réponses d'affilée.</li><li><b>📤 Partage</b>Envoie ton résultat à tes amis en un clic.</li><li><b>🎶 8 nouvelles catégories</b>Années 70, Latino, Reggae, Metal, Soul & Funk, Jazz, K-Pop, Disney.</li><li><b>📅 Défi du jour</b>Les 10 mêmes titres pour tout le monde, un seul essai, et un classement du jour.</li><li><b>❤️ Mode Survie</b>Trois vies, les titres s'enchaînent jusqu'à la troisième erreur.</li><li><b>⭐ Profil</b>Niveau, parties jouées, précision et meilleure série affichés sur l'accueil.</li><li><b>⚔️ Multijoueur complet</b>Salons privés (code ou lien d'invitation) ou publics, jusqu'à 8 joueurs, classement en direct.</li><li><b>🎛️ Salon de l'hôte</b>Catégorie, mode et difficulté réglés dans le salon, compte à rebours, exclusion d'un joueur, victoires cumulées.</li><li><b>😂 Réactions</b>Envoie des émojis aux autres joueurs pendant la partie.</li><li><b>🚪 Portes 3D</b>Choisis ta réponse en touchant une porte, puis traverse-la pour passer au titre suivant.</li><li><b>🎨 Un thème par porte</b>Couleurs et décor 3D changent à chaque manche.</li><li><b>🎤 Titre ou artiste</b>Deux façons de jouer, plus la recherche d'un artiste précis (corrigée).</li><li><b>🌍 Classement mondial et avis</b>Publie ton score et note le jeu.</li><li><b>🎧 Réécoute</b>Retrouve les titres de ta partie à la fin, et l'onglet Découvrir.</li><li><b>📱 Téléphone</b>Affichage revu pour iPhone et Android, son débloqué sur iOS.</li></ul><button class="btn" id="notesOk">C'est parti ▶</button></div></div>
+<div id="notes" class="hide"><div class="box glass"><div class="lbl" style="margin-top:0">Notes de version · v3.2</div><h2>Quoi de neuf ?</h2><ul><li><b>📺 Écran du salon</b>Affiche un salon et son classement en direct sur un PC ou une télé (« Écran seul » ou 👁), pendant que les joueurs sont sur leur téléphone.</li><li><b>⏸ Pause</b>Un bouton pause en haut à droite pendant la partie.</li><li><b>📱 Téléphone</b>Accueil plus léger et plus fluide, défilement corrigé sur iPhone.</li><li><b>🏅 Succès et profil</b>16 succès à débloquer, niveau et statistiques dans l'onglet Profil.</li><li><b>💖 Favoris</b>Garde les titres que tu aimes (♡) et réécoute-les dans l'onglet Écoute.</li><li><b>⚡ Réponse éclair</b>+200 points en répondant en moins de 2 secondes, et des flammes à partir de 3 bonnes réponses d'affilée.</li><li><b>📤 Partage</b>Envoie ton résultat à tes amis en un clic.</li><li><b>🎶 8 nouvelles catégories</b>Années 70, Latino, Reggae, Metal, Soul & Funk, Jazz, K-Pop, Disney.</li><li><b>📅 Défi du jour</b>Les 10 mêmes titres pour tout le monde, un seul essai, et un classement du jour.</li><li><b>❤️ Mode Survie</b>Trois vies, les titres s'enchaînent jusqu'à la troisième erreur.</li><li><b>⭐ Profil</b>Niveau, parties jouées, précision et meilleure série affichés sur l'accueil.</li><li><b>⚔️ Multijoueur complet</b>Salons privés (code ou lien d'invitation) ou publics, jusqu'à 8 joueurs, classement en direct.</li><li><b>🎛️ Salon de l'hôte</b>Catégorie, mode et difficulté réglés dans le salon, compte à rebours, exclusion d'un joueur, victoires cumulées.</li><li><b>😂 Réactions</b>Envoie des émojis aux autres joueurs pendant la partie.</li><li><b>🚪 Portes 3D</b>Choisis ta réponse en touchant une porte, puis traverse-la pour passer au titre suivant.</li><li><b>🎨 Un thème par porte</b>Couleurs et décor 3D changent à chaque manche.</li><li><b>🎤 Titre ou artiste</b>Deux façons de jouer, plus la recherche d'un artiste précis (corrigée).</li><li><b>🌍 Classement mondial et avis</b>Publie ton score et note le jeu.</li><li><b>🎧 Réécoute</b>Retrouve les titres de ta partie à la fin, et l'onglet Découvrir.</li><li><b>📱 Téléphone</b>Affichage revu pour iPhone et Android, son débloqué sur iOS.</li></ul><button class="btn" id="notesOk">C'est parti ▶</button></div></div>
 <div id="tip" class="glass hide"></div>
 <div id="toast" class="glass hide"></div>
 <audio id="au" crossorigin="anonymous" preload="auto"></audio>
@@ -419,7 +423,7 @@ const PN = 500, pPos = new Float32Array(PN * 3), pVel = new Float32Array(PN * 3)
 const pGeo = new THREE.BufferGeometry(); pGeo.setAttribute('position', new THREE.BufferAttribute(pPos, 3));
 const parts = new THREE.Points(pGeo, new THREE.PointsMaterial({size: .32, map: dotTex, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, color: 0xffd166})); parts.frustumCulled = false; scene.add(parts);
 for (let i = 0; i < PN; i++) pPos[i*3+1] = -50;
-let pNext = 0, auraAcc = 0, uiH = 150; setInterval(() => { if (S.screen === 'game') uiH = $('panel').offsetHeight + 14; }, 300);
+let pNext = 0, auraAcc = 0, uiH = 150, frameN = 0; setInterval(() => { if (S.screen === 'game') uiH = $('panel').offsetHeight + 14; }, 300);
 function burst(n, col, power){ parts.material.color.set(col); for (let k = 0; k < n; k++) { const i = pNext = (pNext + 1) % PN, a = Math.random() * 6.283, s = (.4 + Math.random()) * power; pPos[i*3] = Math.cos(a) * 1.2; pPos[i*3+1] = .6; pPos[i*3+2] = Math.sin(a) * 1.2; pVel[i*3] = Math.cos(a) * s; pVel[i*3+1] = 3 + Math.random() * 7 * power / 6; pVel[i*3+2] = Math.sin(a) * s; pLife[i] = 1.2 + Math.random(); } }
 
 // sprites texte
@@ -528,7 +532,7 @@ renderer.domElement.addEventListener('pointerdown', e => { mx = e.clientX / inne
 function setHov(k){ if (k === hovDoor) return; hovDoor = k; document.querySelectorAll('.ans').forEach((b, j) => b.classList.toggle('hov', j === k)); }
 
 function frame(now){
-  requestAnimationFrame(frame); if (document.hidden) { last = now; return; }
+  requestAnimationFrame(frame); if (document.hidden) { last = now; return; } if (MOBILE && S.screen !== 'game' && (frameN++ & 1)) return;
   const dt = Math.min(.05, (now - last) / 1000); last = now; T += dt;
   // niveaux audio
   const live = analyser && !au.paused; if (live) analyser.getByteFrequencyData(fft);
@@ -580,7 +584,7 @@ function frame(now){
   if (fly) { fly.t = Math.min(1, fly.t + dt / .95); const e = fly.t * fly.t * (3 - 2 * fly.t), e2 = fly.t * fly.t; cam.position.set(fly.from.x + (fly.x - fly.from.x) * e, fly.from.y + (fly.y - fly.from.y) * e, fly.from.z + (DZ - 3 - fly.from.z) * e2); cam.lookAt(fly.x * e, .5 + (fly.y - .5) * e, -1.5 + (DZ - 10 + 1.5) * e); } else
   cam.lookAt(0, inGame ? (grid || short ? gridLook : .5) : .8, inGame ? -1.5 : 0);
   if (bloom) bloom.strength = .4 + bass * .3;
-  if (composer) composer.render(); else renderer.render(scene, cam);
+  if (composer && !(MOBILE && S.screen !== 'game')) composer.render(); else renderer.render(scene, cam);
 }
 
 /* ---------------- Jeu ---------------- */
@@ -690,7 +694,7 @@ function end(){
   $('endBox').innerHTML = '<div class="lbl" style="margin-top:0">' + esc(S.cat.e + ' ' + S.cat.n) + ' · ' + DIFFS.find(d => d.id === diff).n + (artMode() ? ' · Artiste' : '') + (sv ? ' · Survie' : '') + '</div><div class="big">' + S.score.toLocaleString('fr-FR') + '</div><div class="rank">' + rank + '</div>' + (rec ? '<div style="color:var(--gold);font-weight:700">★ Nouveau record !</div>' : best[key] ? '<div style="color:var(--mut);font-size:13px">Record : ' + best[key].toLocaleString('fr-FR') + '</div>' : '') +
     '<div class="stats"><div><b>' + g + '/' + n + '</b>bonnes réponses</div><div><b>' + S.best + '</b>meilleure série</div></div>' + '<div class="row" style="justify-content:center;margin-bottom:12px"><button class="btn ghost" id="share" type="button">📤 Partager mon résultat</button></div>' +
     (S.score > 0 ? '<form class="row" id="pubForm" style="justify-content:center"><input class="inp" id="pseudo" maxlength="16" placeholder="Ton pseudo" style="max-width:200px;flex:none" value="' + esc(ls.get('gs_name', '')) + '"><button class="btn" type="submit">Publier mon score 🌍</button></form><div class="note" id="pubMsg">' + (S.daily ? 'Ton pseudo et ton score seront visibles dans le classement du jour.' : 'Ton pseudo et ton score seront visibles dans le classement mondial.') + '</div>' : '') + '<div class="note" style="margin-bottom:-6px">Réécoute les titres de la partie :</div><div class="recap">' + S.rounds.slice(0, n).map((r, ri) => '<div><img src="' + esc(r.t.cover) + '" alt=""><div>' + esc(r.t.title) + '<br><span class="a">' + esc(r.t.artist) + '</span></div><span style="color:' + (r.ok ? 'var(--ok)' : 'var(--bad)') + '">' + (r.ok ? '+' + r.pts : '✗') + '</span><button class="fav" data-fr="' + ri + '" aria-label="Favori">' + (isFav(r.t) ? '♥' : '♡') + '</button><button class="pl" data-r="' + ri + '" aria-label="Réécouter">▶</button></div>').join('') + '</div>' +
-    (R ? '<div class="lbl">Classement du salon ' + R.code + '</div><div class="list" id="roomRank" style="max-height:26dvh;margin-bottom:14px">' + rankHtml() + '</div><div class="row" style="justify-content:center"><button class="btn" id="again">Retour au salon</button><button class="btn ghost" id="menu">Quitter le salon</button></div>' : S.daily ? '<div class="row" style="justify-content:center"><button class="btn" id="again">Classement du jour</button><button class="btn ghost" id="menu">Accueil</button></div>' : '<div class="row" style="justify-content:center"><button class="btn" id="again">Rejouer ▶</button><button class="btn ghost" id="menu">Changer de catégorie</button></div>') + '<p style="color:var(--mut);font-size:12px;margin-top:12px">Astuce : les orbes autour du vinyle sont tes réponses — clique dessus.</p>';
+    (R ? '<div class="lbl">Classement du salon ' + R.code + '</div><div class="list" id="roomRank" style="max-height:26dvh;margin-bottom:14px">' + rankHtml() + '</div><div class="row" style="justify-content:center"><button class="btn" id="again">Retour au salon</button><button class="btn ghost" id="menu">Quitter le salon</button></div>' : S.daily ? '<div class="row" style="justify-content:center"><button class="btn" id="again">Classement du jour</button><button class="btn ghost" id="menu">Accueil</button></div>' : '<div class="row" style="justify-content:center"><button class="btn" id="again">Rejouer ▶</button><button class="btn ghost" id="menu">Changer de catégorie</button></div>') + '';
   $('share').onclick = shareResult; if ($('pubForm')) $('pubForm').onsubmit = publish; $('again').onclick = () => { if (R) toLobby(); else if (S.daily) { goHome(); lbMode = 'day'; setTab('lb'); } else startGame(S.cat); }; $('menu').onclick = goHome; show('end');
 }
 function goHome(){ leaveRoom(); clearTimeout(nextTO); if (fly) { fly = null; $('flash').style.opacity = 0; } clearTimeout(loadTO); S.phase = 'idle'; S.streak = 0; au.pause(); doorsHide(); discNow = -1; recNow = -1; diff = ls.get('gs_diff', 'norm'); gmode = ls.get('gs_mode', 'title'); setTheme(0); setLabel(''); clearOrbs(); renderHome(); show('home'); }
@@ -736,54 +740,54 @@ const newPlayer = n => ({n, s: 0, i: 0, g: 0, w: 0, gm: -1, done: false, t: SV})
 const modeName = m => m === 'artist' ? 'Trouver l\'artiste' : 'Trouver le titre';
 function roomName(){ const n = $('duelName').value.replace(/\s+/g, ' ').trim().slice(0, 16); if (n.length < 2) { toast('Choisis un pseudo d\'au moins 2 caractères.'); $('duelName').focus(); return null; } ls.set('gs_name', n); return n; }
 async function roomCreate(){
-  const n = roomName(); if (!n || R) return; initAudio(); sfx.click(); const pub = $('duelPub').checked;
+  const n = roomName(); if (!n || R) return; initAudio(); sfx.click(); const pub = $('duelPub').checked, spec = $('duelTv').checked;
   try {
     for (let k = 0; k < 6; k++) {
       const code = Array.from({length: 4}, () => 'ABCDEFGHJKLMNPQRSTUVWXYZ'[Math.random() * 24 | 0]).join('');
       if (await db('rooms/' + code + '/live/meta')) continue;
-      await db('rooms/' + code + '/live', 'PUT', {meta: {host: PID, hn: n, state: 'lobby', game: 0, won: 0, pub, catId: 'top', diff, mode: gmode, t: SV}, players: {[PID]: newPlayer(n)}});
-      roomEnter(code, n); return;
+      await db('rooms/' + code + '/live', 'PUT', {meta: {host: PID, hn: n, state: 'lobby', game: 0, won: 0, pub, catId: 'top', diff, mode: gmode, t: SV, ht: SV}, players: spec ? null : {[PID]: newPlayer(n)}});
+      roomEnter(code, n, spec); return;
     }
     toast('Impossible de créer un salon pour le moment. Réessaie.');
   } catch(e) { toast('Connexion au serveur impossible. Réessaie.'); }
 }
-async function roomJoin(c){
-  const n = roomName(); if (!n || R) return;
+async function roomJoin(c, spec){
+  const n = spec ? (ls.get('gs_name', '') || 'Spectateur') : roomName(); if (!n || R) return;
   const code = String(c || $('duelCode').value).toUpperCase().replace(/[^A-Z]/g, '').slice(0, 4); if (code.length < 4) { toast('Entre le code à 4 lettres du salon.'); return; }
   initAudio(); sfx.click();
   try {
     const live = await db('rooms/' + code + '/live'); if (!live || !live.meta) { toast('Salon introuvable : vérifie le code.'); return; }
     if (live.meta.kick && live.meta.kick[PID]) { toast('Tu ne peux plus rejoindre ce salon.'); return; }
     const pl = live.players || {}, t = Math.max(0, ...Object.values(pl).map(p => p && p.t || 0));
-    if (Object.values(pl).filter(p => p && t - (p.t || 0) < 30000).length >= 8 && !pl[PID]) { toast('Ce salon est complet (8 joueurs).'); return; }
-    await db('rooms/' + code + '/live/players/' + PID, 'PUT', newPlayer(n));
-    roomEnter(code, n);
+    if (!spec && Object.values(pl).filter(p => p && t - (p.t || 0) < 30000).length >= 8 && !pl[PID]) { toast('Ce salon est complet (8 joueurs).'); return; }
+    if (!spec) await db('rooms/' + code + '/live/players/' + PID, 'PUT', newPlayer(n));
+    roomEnter(code, n, spec);
   } catch(e) { toast('Connexion au serveur impossible. Réessaie.'); }
 }
-function roomEnter(code, n){
-  R = {code, n, host: false, live: null, game: -1, sig: '', starting: false, launching: false, timer: 0, off: 0, tick: 0, beatAt: Date.now()};
+function roomEnter(code, n, spec){
+  R = {code, n, spec: !!spec, host: false, live: null, game: -1, sig: '', starting: false, launching: false, timer: 0, off: 0, tick: 0, beatAt: Date.now()};
   try { history.replaceState(null, '', location.pathname + '?salon=' + code); } catch(e) {}
   show('lobby'); drawLobby(); roomPoll(); R.timer = setInterval(roomPoll, 1500);
 }
 function leaveRoom(kicked){
-  if (!R) return; clearInterval(R.timer); const code = R.code, wasHost = R.host, pub = R.live && R.live.meta && R.live.meta.pub; R = null;
+  if (!R) return; clearInterval(R.timer); const code = R.code, wasHost = R.host, spec = R.spec, pub = R.live && R.live.meta && R.live.meta.pub; R = null;
   $('sb').classList.add('hide'); $('count').classList.add('hide'); try { history.replaceState(null, '', location.pathname); } catch(e) {}
-  if (!kicked) fetch(DB_URL + '/rooms/' + code + '/live/players/' + PID + '.json', {method: 'DELETE', keepalive: true}).catch(() => {});
+  if (!kicked && !spec) fetch(DB_URL + '/rooms/' + code + '/live/players/' + PID + '.json', {method: 'DELETE', keepalive: true}).catch(() => {});
   if (wasHost && pub) fetch(DB_URL + '/lobbies/' + code + '.json', {method: 'DELETE', keepalive: true}).catch(() => {});
 }
 addEventListener('pagehide', () => leaveRoom());
 async function roomPoll(){
   if (!R) return; const code = R.code; R.tick++;
   try {
-    if (R.tick % 4 === 1 && R.live) { R.beatAt = Date.now(); db('rooms/' + code + '/live/players/' + PID, 'PATCH', {n: R.n, t: SV}).catch(() => {}); }
+    if (R.tick % 4 === 1 && R.live) { R.beatAt = Date.now(); if (!R.spec) db('rooms/' + code + '/live/players/' + PID, 'PATCH', {n: R.n, t: SV}).catch(() => {}); else if (R.host) db('rooms/' + code + '/live/meta', 'PATCH', {ht: SV}).catch(() => {}); }
     const live = await db('rooms/' + code + '/live'); if (!R || R.code !== code) return;
     if (!live || !live.meta) { toast('Ce salon n\'existe plus.'); goHome(); return; }
     const m = live.meta, pl = live.players || {};
     if (m.kick && m.kick[PID]) { toast('L\'hôte t\'a retiré du salon.'); leaveRoom(true); goHome(); return; }
-    if (pl[PID] && pl[PID].t) R.off = pl[PID].t - R.beatAt;
+    if (pl[PID] && pl[PID].t) R.off = pl[PID].t - R.beatAt; else if (R.spec && R.host && m.ht && R.tick > 2) R.off = m.ht - R.beatAt;
     R.live = live;
     const al = Object.keys(pl).filter(id => alive(pl[id])).sort();
-    if (!alive(pl[m.host]) && al[0] === PID && m.host !== PID) { m.host = PID; m.hn = R.n; db('rooms/' + code + '/live/meta', 'PATCH', {host: PID, hn: R.n}).catch(() => {}); }
+    if (!alive(pl[m.host]) && !(rnow() - (m.ht || 0) < 30000) && !R.spec && al[0] === PID && m.host !== PID) { m.host = PID; m.hn = R.n; db('rooms/' + code + '/live/meta', 'PATCH', {host: PID, hn: R.n}).catch(() => {}); }
     R.host = m.host === PID;
     if (R.host && m.pub && R.tick % 4 === 1) db('lobbies/' + code, 'PUT', {n: m.hn || R.n, c: al.length, cat: (CATS.find(c => c.id === m.catId) || CATS[0]).n, p: m.state === 'play' && al.some(id => !pl[id].done) ? 1 : 0, t: SV}).catch(() => {});
     if (R.host && m.state === 'play' && (m.won | 0) !== (m.game | 0) && al.length && al.every(id => pl[id].done && (pl[id].gm | 0) === (m.game | 0))) {
@@ -793,14 +797,15 @@ async function roomPoll(){
     }
     for (const id in live.emo || {}) { const e = live.emo[id]; if (e && e.k && !emoSeen.has(e.k)) { emoSeen.add(e.k); if (rnow() - (e.t || 0) < 9000 && pl[id] && EMOS.includes(e.e)) floatEmo(pl[id].n, e.e); } }
     if (R.game < 0) R.game = m.state === 'play' && rnow() - (m.st || 0) < 45000 ? (m.game | 0) - 1 : (m.game | 0);
-    if (m.state === 'play' && (m.game | 0) !== R.game && !R.starting) {
+    if (R.spec) R.game = m.game | 0;
+    else if (m.state === 'play' && (m.game | 0) !== R.game && !R.starting) {
       R.starting = true;
       try { const rounds = await db('rooms/' + code + '/rounds'); if (R && R.code === code && Array.isArray(rounds) && rounds.length) { R.game = m.game | 0; countdown(() => startOnlineGame(m, rounds)); } } finally { if (R) R.starting = false; }
     }
     if (S.screen === 'lobby') drawLobby(); drawBoard();
   } catch(e) {}
 }
-function roomPush(done){ if (!R) return; R.beatAt = Date.now(); db('rooms/' + R.code + '/live/players/' + PID, 'PATCH', {n: R.n, s: S.score, i: S.i + (S.phase === 'reveal' ? 1 : 0), g: S.good, gm: R.game, done: !!done, t: SV}).catch(() => {}); }
+function roomPush(done){ if (!R || R.spec) return; R.beatAt = Date.now(); db('rooms/' + R.code + '/live/players/' + PID, 'PATCH', {n: R.n, s: S.score, i: S.i + (S.phase === 'reveal' ? 1 : 0), g: S.good, gm: R.game, done: !!done, t: SV}).catch(() => {}); }
 function roomPlayers(){ return Object.entries(R && R.live && R.live.players || {}).filter(e => alive(e[1])).map(([id, p]) => Object.assign({id}, p)).sort((x, y) => (y.s | 0) - (x.s | 0) || String(x.n).localeCompare(String(y.n))); }
 function rankHtml(kick){
   const m = R && R.live && R.live.meta || {}, g = m.game | 0;
@@ -820,18 +825,29 @@ function drawBoard(){
 function drawLobby(){
   if (!R) return; const pl = roomPlayers(), m = R.live && R.live.meta || {}, cat = CATS.find(c => c.id === m.catId) || CATS[0], df = DIFFS.find(d => d.id === m.diff) || DIFFS[1];
   const busy = m.state === 'play' ? pl.filter(p => (p.gm | 0) === (m.game | 0) && !p.done).length : 0;
-  const sig = [R.host, m.catId, m.diff, m.mode, m.pub, m.hn, busy, m.state].join('|') + pl.map(p => p.id + p.n + p.s + p.done + p.w + p.gm).join(',');
+  const sig = [R.host, R.spec, m.catId, m.diff, m.mode, m.pub, m.hn, busy, m.state].join('|') + pl.map(p => p.id + p.n + p.s + p.done + p.w + p.gm + p.i + p.g).join(',');
   if (sig === R.sig) return; R.sig = sig;
   const opt = (v, cur, label) => '<option value="' + v + '"' + (v === cur ? ' selected' : '') + '>' + label + '</option>';
+  const where = location.host + location.pathname.replace(/index\.html$/, '');
+  const settings = '<div class="lbl">Réglages de la partie</div><div class="row" style="justify-content:center"><select class="inp" id="lobbyCat" aria-label="Catégorie" style="max-width:210px;flex:none">' + CATS.map(c => opt(c.id, cat.id, c.e + ' ' + c.n)).join('') + '</select><select class="inp" id="lobbyMode" aria-label="Mode" style="max-width:190px;flex:none">' + opt('title', m.mode, '🎵 Trouver le titre') + opt('artist', m.mode, '🎤 Trouver l\'artiste') + '</select><select class="inp" id="lobbyDiff" aria-label="Difficulté" style="max-width:170px;flex:none">' + DIFFS.map(d => opt(d.id, df.id, d.n + ' · ' + d.s + ' s')).join('') + '</select></div>' +
+    '<div class="row" style="justify-content:center;margin-top:10px"><label class="chk"><input type="checkbox" id="lobbyPub"' + (m.pub ? ' checked' : '') + '> Salon public</label></div>' +
+    (busy ? '<p class="note">' + busy + ' joueur' + (busy > 1 ? 's' : '') + ' encore en jeu : relancer les fera recommencer.</p>' : '') +
+    '<div class="row" style="justify-content:center;margin-top:14px"><button class="btn" id="lobbyGo">' + (m.state === 'play' ? 'Nouvelle partie ▶' : 'Lancer la partie ▶') + '</button><button class="btn ghost" id="lobbyQuit">Quitter</button></div>';
+  const guest = '<div class="lbl">Réglages de la partie</div><p class="note" style="margin-top:0">' + cat.e + ' ' + cat.n + ' · ' + modeName(m.mode) + ' · ' + df.n + ' (' + df.s + ' s)</p>';
+  $('lobbyBox').classList.toggle('tv', !!R.spec);
+  if (R.spec) {
+    $('lobbyBox').innerHTML = '<div class="lbl" style="margin-top:0">📺 Écran du salon · ' + (R.host ? 'tu es l\'animateur' : 'spectateur') + '</div><div class="big tvcode">' + R.code + '</div>' +
+      '<p class="note">Pour jouer : ouvre <b style="color:var(--txt)">' + esc(where) + '</b> sur ton téléphone, puis « Rejoindre » avec ce code.</p>' +
+      '<div class="row" style="justify-content:center;margin-top:10px"><button class="btn ghost" id="lobbyCopy">🔗 Copier le lien d\'invitation</button></div>' +
+      '<div class="lbl">' + (busy ? '🔴 Partie en cours · ' + cat.e + ' ' + cat.n : m.state === 'play' && pl.length ? '🏁 Classement final' : 'Joueurs') + ' (' + pl.length + '/8)</div><div class="list">' + (rankHtml(true) || '<div class="note">En attente de joueurs…</div>') + '</div>' +
+      (R.host ? settings : guest + '<p class="note" style="margin:14px 0">' + (busy ? 'Classement mis à jour en direct.' : 'En attente du lancement par ' + esc(m.hn || 'l\'hôte') + '…') + '</p><button class="btn ghost" id="lobbyQuit">Quitter</button>');
+    return;
+  }
   $('lobbyBox').innerHTML = '<div class="lbl" style="margin-top:0">⚔️ Salon de duel</div><div class="big" style="letter-spacing:.12em">' + R.code + '</div>' +
     '<div class="row" style="justify-content:center;margin-top:10px"><button class="btn ghost" id="lobbyCopy">🔗 Copier le lien d\'invitation</button></div>' +
     '<p class="note">' + (m.pub ? '🌍 Salon public : visible par tout le monde sur l\'accueil.' : '🔒 Salon privé : accessible seulement avec le code ou le lien.') + '</p>' +
     '<div class="lbl">Joueurs (' + pl.length + '/8)</div><div class="list" style="max-height:28dvh;margin-bottom:10px">' + (rankHtml(true) || '<div class="note">Connexion…</div>') + '</div>' + emoBar() +
-    (R.host ? '<div class="lbl">Réglages de la partie</div><div class="row" style="justify-content:center"><select class="inp" id="lobbyCat" aria-label="Catégorie" style="max-width:210px;flex:none">' + CATS.map(c => opt(c.id, cat.id, c.e + ' ' + c.n)).join('') + '</select><select class="inp" id="lobbyMode" aria-label="Mode" style="max-width:190px;flex:none">' + opt('title', m.mode, '🎵 Trouver le titre') + opt('artist', m.mode, '🎤 Trouver l\'artiste') + '</select><select class="inp" id="lobbyDiff" aria-label="Difficulté" style="max-width:170px;flex:none">' + DIFFS.map(d => opt(d.id, df.id, d.n + ' · ' + d.s + ' s')).join('') + '</select></div>' +
-      '<div class="row" style="justify-content:center;margin-top:10px"><label class="chk"><input type="checkbox" id="lobbyPub"' + (m.pub ? ' checked' : '') + '> Salon public</label></div>' +
-      (busy ? '<p class="note">' + busy + ' joueur' + (busy > 1 ? 's' : '') + ' encore en jeu : relancer les fera recommencer.</p>' : '') +
-      '<div class="row" style="justify-content:center;margin-top:14px"><button class="btn" id="lobbyGo">' + (m.state === 'play' ? 'Nouvelle partie ▶' : 'Lancer la partie ▶') + '</button><button class="btn ghost" id="lobbyQuit">Quitter</button></div>'
-      : '<div class="lbl">Réglages de la partie</div><p class="note" style="margin-top:0">' + cat.e + ' ' + cat.n + ' · ' + modeName(m.mode) + ' · ' + df.n + ' (' + df.s + ' s)</p><p class="note" style="margin:14px 0">' + (busy ? 'Partie en cours…' : 'En attente du lancement par ' + esc(m.hn || 'l\'hôte') + '…') + '</p><button class="btn ghost" id="lobbyQuit">Quitter le salon</button>');
+    (R.host ? settings : guest + '<p class="note" style="margin:14px 0">' + (busy ? 'Partie en cours…' : 'En attente du lancement par ' + esc(m.hn || 'l\'hôte') + '…') + '</p><button class="btn ghost" id="lobbyQuit">Quitter le salon</button>');
 }
 async function roomLaunch(){
   if (!R || !R.host || R.launching || !R.live) return; R.launching = true; const code = R.code, m = R.live.meta, cat = CATS.find(c => c.id === m.catId) || CATS[0]; toast('Préparation de la partie…');
@@ -857,7 +873,7 @@ function startOnlineGame(m, rounds){
   roomPush(); clearOrbs(); setTheme(0); setScore3D(0); $('hScore').textContent = '0'; R.sbSig = ''; show('game'); startRound(); drawBoard();
 }
 function toLobby(){ if (!R) return; au.pause(); recNow = -1; S.phase = 'idle'; clearOrbs(); setTheme(0); setLabel(''); R.sig = ''; show('lobby'); drawLobby(); }
-$('duelCreate').onclick = roomCreate; $('duelJoin').onclick = () => roomJoin();
+$('duelCreate').onclick = roomCreate; $('duelJoin').onclick = () => roomJoin(); $('duelWatch').onclick = () => roomJoin(null, true);
 $('lobbyBox').addEventListener('click', e => {
   const k = e.target.closest('[data-kick]');
   if (k && R && R.host) { const id = k.dataset.kick; db('rooms/' + R.code + '/live/meta/kick/' + id, 'PUT', true).then(() => db('rooms/' + R.code + '/live/players/' + id, 'DELETE')).catch(() => {}); if (R.live && R.live.players) delete R.live.players[id]; R.sig = ''; drawLobby(); }
@@ -1044,7 +1060,9 @@ function setTab(t){
 }
 $('tabLb').addEventListener('click', e => { const m = e.target.dataset.lb; if (m && m !== lbMode) { lbMode = m; sfx.click(); renderLb(); } });
 $('tabs').onclick = e => { const b = e.target.closest('button'), t = b && b.dataset.t; if (t) { sfx.click(); setTab(t); } };
-const NOTES_V = '3.0';
+const BUILD = '3.2';
+fetch(location.pathname + '?_=' + Date.now(), {cache: 'no-store'}).then(r => r.text()).then(t => { const m = /const BUILD = '([^']+)'/.exec(t); let tried = null; try { tried = sessionStorage.getItem('gs_upd'); } catch(e) {} if (m && m[1] !== BUILD && tried !== m[1] && S.screen === 'home' && !R) { try { sessionStorage.setItem('gs_upd', m[1]); } catch(e) {} const q = new URLSearchParams(location.search); q.set('v', m[1]); location.replace(location.pathname + '?' + q.toString()); } }).catch(() => {});
+const NOTES_V = '3.2';
 function showNotes(on){ $('notes').classList.toggle('hide', !on); }
 $('notesOk').onclick = () => { ls.set('gs_notes', NOTES_V); initAudio(); sfx.click(); showNotes(false); };
 $('notesLink').onclick = e => { e.preventDefault(); showNotes(true); };
