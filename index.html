@@ -5,6 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <title>Guess the Song 3D — Blind test</title>
 <meta name="theme-color" content="#07040f">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Guess the Song">
 <meta property="og:title" content="Guess the Song 3D">
 <meta property="og:description" content="Blind test en 3D : devine la chanson, affronte tes amis en ligne et grimpe au classement mondial.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='30' fill='%23120a2a'/%3E%3Ccircle cx='32' cy='32' r='22' fill='none' stroke='%23b86bff' stroke-width='3'/%3E%3Ccircle cx='32' cy='32' r='11' fill='%2338e1ff'/%3E%3Ccircle cx='32' cy='32' r='3' fill='%23120a2a'/%3E%3C/svg%3E">
@@ -147,6 +153,8 @@ select.inp{appearance:none;-webkit-appearance:none;min-width:0}select.inp option
 .dc{flex-wrap:wrap}#duelWatch{padding:12px 14px}
 #lobby .box.tv{width:min(920px,100%)}.tv .tvcode{font-size:clamp(64px,15vw,160px);letter-spacing:.12em}.tv .li{font-size:18px;padding:12px 16px}.tv .li .sc{font-size:24px}.tv .li .rk{font-size:22px;width:44px}.tv .list{max-height:44dvh}
 @media (pointer:coarse){.glass{backdrop-filter:none;-webkit-backdrop-filter:none;background:rgba(20,12,40,.94)}#pause{backdrop-filter:none;-webkit-backdrop-filter:none;background:rgba(4,2,10,.96)}}
+.li.me{border:1px solid var(--acc);background:rgba(184,107,255,.14)}#installBtn{margin:-6px 0 14px;padding:9px 14px;font-size:13px}
+#inst{position:fixed;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(4,2,10,.78)}#inst .box{width:min(520px,100%);max-height:88dvh;overflow:auto;-webkit-overflow-scrolling:touch;padding:22px}#inst h2{font-size:22px}#inst ol{margin:6px 0 4px 20px;display:grid;gap:5px;font-size:14px;line-height:1.4}#inst .btn{width:100%;margin-top:16px}#nameForm .inp{flex:1;min-width:0}
 #notes{position:fixed;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(4,2,10,.72)}
 #notes .box{width:min(520px,100%);max-height:86dvh;overflow:auto;-webkit-overflow-scrolling:touch;padding:22px}
 #notes h2{font-size:22px;margin-bottom:4px}#notes ul{list-style:none;display:grid;gap:8px;margin:14px 0 18px}#notes li{padding:9px 12px;border-radius:12px;background:rgba(255,255,255,.05);font-size:14px;line-height:1.35}#notes li b{display:block}#notes .btn{width:100%}
@@ -167,6 +175,7 @@ select.inp{appearance:none;-webkit-appearance:none;min-width:0}select.inp option
   <div class="box glass">
     <h1 class="logo">GUESS THE SONG</h1>
     <p class="sub">Un extrait démarre, quatre réponses s'affichent. Plus tu réponds vite, plus tu marques — et chaque bonne réponse d'affilée fait grimper le multiplicateur.</p>
+    <button class="btn ghost hide" id="installBtn" type="button">📲 Installer l'application</button>
     <div class="prof" id="profile"></div>
     <div class="seg" id="tabs" style="margin-bottom:16px"><button type="button" data-t="play" class="on"><span>🎮</span>Jouer</button><button type="button" data-t="lb"><span>🌍</span>Top</button><button type="button" data-t="disc"><span>🎧</span>Écoute</button><button type="button" data-t="prof"><span>⭐</span>Profil</button><button type="button" data-t="rev"><span>💬</span>Avis</button></div>
     <div id="tabProf" class="hide"></div>
@@ -235,7 +244,8 @@ select.inp{appearance:none;-webkit-appearance:none;min-width:0}select.inp option
 <div id="count" class="hide"></div>
 <div id="pause" class="hide"><div class="box glass"><h2 id="pauseT">Pause</h2><p class="note" id="pauseN"></p><button class="btn" id="resumeBtn">Reprendre ▶</button><button class="btn ghost" id="pauseQuit">Quitter la partie</button></div></div>
 <div id="end" class="screen hide"><div class="box glass" id="endBox"></div></div>
-<div id="notes" class="hide"><div class="box glass"><div class="lbl" style="margin-top:0">Notes de version · v3.2</div><h2>Quoi de neuf ?</h2><ul><li><b>📺 Écran du salon</b>Affiche un salon et son classement en direct sur un PC ou une télé (« Écran seul » ou 👁), pendant que les joueurs sont sur leur téléphone.</li><li><b>⏸ Pause</b>Un bouton pause en haut à droite pendant la partie.</li><li><b>📱 Téléphone</b>Accueil plus léger et plus fluide, défilement corrigé sur iPhone.</li><li><b>🏅 Succès et profil</b>16 succès à débloquer, niveau et statistiques dans l'onglet Profil.</li><li><b>💖 Favoris</b>Garde les titres que tu aimes (♡) et réécoute-les dans l'onglet Écoute.</li><li><b>⚡ Réponse éclair</b>+200 points en répondant en moins de 2 secondes, et des flammes à partir de 3 bonnes réponses d'affilée.</li><li><b>📤 Partage</b>Envoie ton résultat à tes amis en un clic.</li><li><b>🎶 8 nouvelles catégories</b>Années 70, Latino, Reggae, Metal, Soul & Funk, Jazz, K-Pop, Disney.</li><li><b>📅 Défi du jour</b>Les 10 mêmes titres pour tout le monde, un seul essai, et un classement du jour.</li><li><b>❤️ Mode Survie</b>Trois vies, les titres s'enchaînent jusqu'à la troisième erreur.</li><li><b>⭐ Profil</b>Niveau, parties jouées, précision et meilleure série affichés sur l'accueil.</li><li><b>⚔️ Multijoueur complet</b>Salons privés (code ou lien d'invitation) ou publics, jusqu'à 8 joueurs, classement en direct.</li><li><b>🎛️ Salon de l'hôte</b>Catégorie, mode et difficulté réglés dans le salon, compte à rebours, exclusion d'un joueur, victoires cumulées.</li><li><b>😂 Réactions</b>Envoie des émojis aux autres joueurs pendant la partie.</li><li><b>🚪 Portes 3D</b>Choisis ta réponse en touchant une porte, puis traverse-la pour passer au titre suivant.</li><li><b>🎨 Un thème par porte</b>Couleurs et décor 3D changent à chaque manche.</li><li><b>🎤 Titre ou artiste</b>Deux façons de jouer, plus la recherche d'un artiste précis (corrigée).</li><li><b>🌍 Classement mondial et avis</b>Publie ton score et note le jeu.</li><li><b>🎧 Réécoute</b>Retrouve les titres de ta partie à la fin, et l'onglet Découvrir.</li><li><b>📱 Téléphone</b>Affichage revu pour iPhone et Android, son débloqué sur iOS.</li></ul><button class="btn" id="notesOk">C'est parti ▶</button></div></div>
+<div id="notes" class="hide"><div class="box glass"><div class="lbl" style="margin-top:0">Notes de version · v3.3</div><h2>Quoi de neuf ?</h2><ul><li><b>🏆 Classement cumulé</b>Qui a gagné le plus de points depuis ses débuts ? Nouveau classement en ligne dans l'onglet Top. Choisis ton pseudo dans Profil pour y entrer.</li><li><b>📲 Application</b>Installe le jeu sur iPhone, Android, Mac ou Windows depuis le bouton « Installer l'application » : icône sur l'écran d'accueil et plein écran.</li><li><b>📺 Écran du salon</b>Affiche un salon et son classement en direct sur un PC ou une télé (« Écran seul » ou 👁), pendant que les joueurs sont sur leur téléphone.</li><li><b>⏸ Pause</b>Un bouton pause en haut à droite pendant la partie.</li><li><b>📱 Téléphone</b>Accueil plus léger et plus fluide, défilement corrigé sur iPhone.</li><li><b>🏅 Succès et profil</b>16 succès à débloquer, niveau et statistiques dans l'onglet Profil.</li><li><b>💖 Favoris</b>Garde les titres que tu aimes (♡) et réécoute-les dans l'onglet Écoute.</li><li><b>⚡ Réponse éclair</b>+200 points en répondant en moins de 2 secondes, et des flammes à partir de 3 bonnes réponses d'affilée.</li><li><b>📤 Partage</b>Envoie ton résultat à tes amis en un clic.</li><li><b>🎶 8 nouvelles catégories</b>Années 70, Latino, Reggae, Metal, Soul & Funk, Jazz, K-Pop, Disney.</li><li><b>📅 Défi du jour</b>Les 10 mêmes titres pour tout le monde, un seul essai, et un classement du jour.</li><li><b>❤️ Mode Survie</b>Trois vies, les titres s'enchaînent jusqu'à la troisième erreur.</li><li><b>⭐ Profil</b>Niveau, parties jouées, précision et meilleure série affichés sur l'accueil.</li><li><b>⚔️ Multijoueur complet</b>Salons privés (code ou lien d'invitation) ou publics, jusqu'à 8 joueurs, classement en direct.</li><li><b>🎛️ Salon de l'hôte</b>Catégorie, mode et difficulté réglés dans le salon, compte à rebours, exclusion d'un joueur, victoires cumulées.</li><li><b>😂 Réactions</b>Envoie des émojis aux autres joueurs pendant la partie.</li><li><b>🚪 Portes 3D</b>Choisis ta réponse en touchant une porte, puis traverse-la pour passer au titre suivant.</li><li><b>🎨 Un thème par porte</b>Couleurs et décor 3D changent à chaque manche.</li><li><b>🎤 Titre ou artiste</b>Deux façons de jouer, plus la recherche d'un artiste précis (corrigée).</li><li><b>🌍 Classement mondial et avis</b>Publie ton score et note le jeu.</li><li><b>🎧 Réécoute</b>Retrouve les titres de ta partie à la fin, et l'onglet Découvrir.</li><li><b>📱 Téléphone</b>Affichage revu pour iPhone et Android, son débloqué sur iOS.</li></ul><button class="btn" id="notesOk">C'est parti ▶</button></div></div>
+<div id="inst" class="hide"><div class="box glass"><div class="lbl" style="margin-top:0">Application</div><h2>Installer Guess the Song</h2><p class="note" style="margin:6px 0 12px">Le jeu s'installe comme une vraie application : icône sur l'écran d'accueil, plein écran, sans barre de navigateur. Gratuit, sans passer par un magasin d'applications.</p><div id="instBody"></div><button class="btn" id="instOk">Compris</button></div></div>
 <div id="tip" class="glass hide"></div>
 <div id="toast" class="glass hide"></div>
 <audio id="au" crossorigin="anonymous" preload="auto"></audio>
@@ -283,7 +293,7 @@ const DIFFS = [{id:'easy', n:'Facile', s:20}, {id:'norm', n:'Normal', s:14}, {id
 const MULT = [1, 1.5, 2, 2.5, 3], ROUNDS = 10;
 // Base du classement mondial : URL d'une Firebase Realtime Database (vide = classement local a l'appareil).
 const DB_URL = 'https://guess-the-song-27134-default-rtdb.europe-west1.firebasedatabase.app';
-let best = ls.get('gs_best', {}), diff = ls.get('gs_diff', 'norm'), gmode = ls.get('gs_mode', 'title'), kind = ls.get('gs_kind', 'classic'), lbMode = 'all';
+let best = ls.get('gs_best', {}), diff = ls.get('gs_diff', 'norm'), gmode = ls.get('gs_mode', 'title'), kind = ls.get('gs_kind', 'classic'), lbMode = 'cum';
 const artMode = () => gmode === 'artist' && S.cat && !S.cat.q, bestKey = (id, k) => id + ':' + diff + (gmode === 'artist' ? ':a' : '') + ((k || kind) === 'survie' ? ':s' : '');
 function fresh(t){ const ex = +(/exp=(\d+)/.exec(t.preview || '') || [])[1]; return t.id && ex && ex - Date.now() / 1000 < 40 ? jp('track/' + t.id).then(d => { if (d && d.preview) t.preview = d.preview; }).catch(() => {}) : Promise.resolve(); }
 
@@ -689,7 +699,7 @@ function joker(){
 function end(){
   S.phase = 'idle'; au.pause(); doorsHide(); roomPush(true); sfx.end(); burst(400, '#ffd166', 9); hueT = 45;
   const key = bestKey(S.cat.id, S.kind), rec = S.score > (best[key] || 0) && S.score > 0; if (rec) { best[key] = S.score; ls.set('gs_best', best); }
-  const sv = S.kind === 'survie', g = S.good, n = sv ? Math.min(S.i, S.rounds.length) : S.rounds.length; addStats(n); checkAch(n); if (S.daily) ls.set('gs_daily', {date: S.daily, score: S.score});
+  const sv = S.kind === 'survie', g = S.good, n = sv ? Math.min(S.i, S.rounds.length) : S.rounds.length; addStats(n); checkAch(n); syncTotal(); if (S.daily) ls.set('gs_daily', {date: S.daily, score: S.score});
   const rank = sv ? (g >= 30 ? '👑 Increvable' : g >= 20 ? '🎧 Marathonien du son' : g >= 10 ? '🎶 Bonne endurance' : g >= 5 ? '📻 Ça chauffe' : '🙉 Trop court !') : g === n ? '👑 Oreille absolue' : g >= n * .8 ? '🎧 DJ résident' : g >= n * .6 ? '🎶 Mélomane' : g >= n * .4 ? '📻 Auditeur du dimanche' : '🙉 Il va falloir réviser';
   $('endBox').innerHTML = '<div class="lbl" style="margin-top:0">' + esc(S.cat.e + ' ' + S.cat.n) + ' · ' + DIFFS.find(d => d.id === diff).n + (artMode() ? ' · Artiste' : '') + (sv ? ' · Survie' : '') + '</div><div class="big">' + S.score.toLocaleString('fr-FR') + '</div><div class="rank">' + rank + '</div>' + (rec ? '<div style="color:var(--gold);font-weight:700">★ Nouveau record !</div>' : best[key] ? '<div style="color:var(--mut);font-size:13px">Record : ' + best[key].toLocaleString('fr-FR') + '</div>' : '') +
     '<div class="stats"><div><b>' + g + '/' + n + '</b>bonnes réponses</div><div><b>' + S.best + '</b>meilleure série</div></div>' + '<div class="row" style="justify-content:center;margin-bottom:12px"><button class="btn ghost" id="share" type="button">📤 Partager mon résultat</button></div>' +
@@ -738,7 +748,7 @@ const rnow = () => Date.now() + (R ? R.off : 0);
 const alive = p => !!p && typeof p.n === 'string' && rnow() - (p.t || 0) < 30000;
 const newPlayer = n => ({n, s: 0, i: 0, g: 0, w: 0, gm: -1, done: false, t: SV});
 const modeName = m => m === 'artist' ? 'Trouver l\'artiste' : 'Trouver le titre';
-function roomName(){ const n = $('duelName').value.replace(/\s+/g, ' ').trim().slice(0, 16); if (n.length < 2) { toast('Choisis un pseudo d\'au moins 2 caractères.'); $('duelName').focus(); return null; } ls.set('gs_name', n); return n; }
+function roomName(){ const n = $('duelName').value.replace(/\s+/g, ' ').trim().slice(0, 16); if (n.length < 2) { toast('Choisis un pseudo d\'au moins 2 caractères.'); $('duelName').focus(); return null; } ls.set('gs_name', n); syncTotal(); return n; }
 async function roomCreate(){
   const n = roomName(); if (!n || R) return; initAudio(); sfx.click(); const pub = $('duelPub').checked, spec = $('duelTv').checked;
   try {
@@ -940,18 +950,53 @@ async function publish(ev){
   ev.preventDefault(); if (published) return;
   const n = $('pseudo').value.replace(/\s+/g, ' ').trim().slice(0, 16), msg = $('pubMsg');
   if (n.length < 2) { msg.textContent = 'Choisis un pseudo d\'au moins 2 caractères.'; return; }
-  ls.set('gs_name', n); published = true; msg.textContent = 'Envoi…';
+  ls.set('gs_name', n); published = true; msg.textContent = 'Envoi…'; syncTotal();
   const reg = ((navigator.language || '').split('-')[1] || '').toUpperCase().slice(0, 2);
   const path = S.daily ? 'daily/' + S.daily + '/scores' : 'scores';
   try { await lbPost({n, s: S.score, g: S.good, k: S.kind === 'survie' ? 's' : 'c', c: S.cat.n.slice(0, 30), d: diff, r: reg, t: Date.now()}, path); const a = await lbFetch(path), i = a.findIndex(e => e.n === n && e.s === S.score); msg.innerHTML = '✓ Score publié' + (i >= 0 ? ' — tu es <b style="color:var(--gold)">n°' + (i + 1) + '</b> du classement' + (S.daily ? ' du jour.' : '.') : '.'); $('pubForm').classList.add('hide'); }
   catch(e) { published = false; msg.textContent = 'Envoi impossible pour le moment. Réessaie.'; }
 }
+const UID = (() => { let u = ls.get('gs_uid', ''); if (!u) { u = Math.random().toString(36).slice(2, 12) + Date.now().toString(36); ls.set('gs_uid', u); } return u; })();
+function syncTotal(){
+  const n = String(ls.get('gs_name', '') || '').trim().slice(0, 16), st = ls.get('gs_stats', null);
+  if (!DB_URL || n.length < 2 || !st || !(st.pts > 0)) return Promise.resolve(false);
+  return db('totals/' + UID, 'PUT', {n, p: Math.round(st.pts), g: st.games | 0, t: Date.now()}).then(() => true, () => false);
+}
 async function renderLb(){
-  const el = $('tabLb'), day = lbMode === 'day', head = '<div class="seg"><button type="button" data-lb="all" class="' + (day ? '' : 'on') + '">🌍 Général</button><button type="button" data-lb="day" class="' + (day ? 'on' : '') + '">📅 Défi du jour</button></div>'; el.innerHTML = head + '<div class="note">Chargement…</div>'; let a;
-  try { a = await lbFetch(day ? 'daily/' + today() + '/scores' : 'scores'); } catch(e) { el.innerHTML = head + '<div class="note">Classement indisponible pour le moment.</div>'; return; }
-  if ((lbMode === 'day') !== day) return;
-  el.innerHTML = head + '<div class="note">' + (day ? 'Les meilleurs scores du défi d\'aujourd\'hui : mêmes titres pour tous, un essai par jour.' : 'Les 50 meilleurs scores, tous joueurs confondus.') + '</div><div class="list">' +
-    (a.length ? a.map((e, i) => '<div class="li' + (i < 3 ? ' top' : '') + '"><span class="rk">' + (i + 1) + '</span><div>' + esc(e.n) + (e.r ? ' <span class="a">' + esc(e.r) + '</span>' : '') + '<br><span class="a">' + esc(e.c || '') + ' · ' + esc((DIFFS.find(d => d.id === e.d) || {n: ''}).n) + ' · ' + (e.k === 's' ? 'Survie · ' + (e.g | 0) + ' trouvés' : (e.g | 0) + '/10') + '</span></div><span class="sc">' + Number(e.s).toLocaleString('fr-FR') + '</span></div>').join('') : '<div class="note">Aucun score pour l\'instant. Joue une partie et publie le tien !</div>') + '</div>';
+  const el = $('tabLb'), mode = lbMode, head = '<div class="seg">' + [['cum', '🏆 Cumul'], ['all', '🌍 Meilleures parties'], ['day', '📅 Défi du jour']].map(m => '<button type="button" data-lb="' + m[0] + '" class="' + (m[0] === mode ? 'on' : '') + '">' + m[1] + '</button>').join('') + '</div>';
+  el.innerHTML = head + '<div class="note">Chargement…</div>';
+  try {
+    if (mode === 'cum') {
+      await syncTotal();
+      const r = await fetch(DB_URL + '/totals.json?orderBy=%22p%22&limitToLast=100'); if (!r.ok) throw new Error('db');
+      const a = Object.entries(await r.json() || {}).filter(e => e[1] && typeof e[1].p === 'number' && typeof e[1].n === 'string').sort((x, y) => y[1].p - x[1].p);
+      if (lbMode !== mode) return; const me = a.findIndex(e => e[0] === UID), named = String(ls.get('gs_name', '') || '').trim().length >= 2;
+      el.innerHTML = head + '<div class="note">Le total des points gagnés par chaque joueur depuis ses débuts, toutes parties confondues.' + (me >= 0 ? ' Tu es <b style="color:var(--gold)">n°' + (me + 1) + '</b> sur ' + a.length + '.' : named ? ' Termine une partie pour y entrer.' : ' Choisis un pseudo dans l\'onglet Profil pour y apparaître.') + '</div><div class="list">' +
+        (a.length ? a.map(([id, e], i) => '<div class="li' + (i < 3 ? ' top' : '') + (id === UID ? ' me' : '') + '"><span class="rk">' + (i < 3 ? ['🥇', '🥈', '🥉'][i] : i + 1) + '</span><div>' + esc(e.n) + (id === UID ? ' <span class="a">(toi)</span>' : '') + '<br><span class="a">Niveau ' + (Math.floor(Math.sqrt(e.p / 3000)) + 1) + ' · ' + (e.g | 0) + ' partie' + ((e.g | 0) > 1 ? 's' : '') + '</span></div><span class="sc">' + Number(e.p).toLocaleString('fr-FR') + '</span></div>').join('') : '<div class="note">Personne pour l\'instant. Choisis un pseudo et joue une partie pour ouvrir le classement !</div>') + '</div>';
+      return;
+    }
+    const day = mode === 'day', a = await lbFetch(day ? 'daily/' + today() + '/scores' : 'scores'); if (lbMode !== mode) return;
+    el.innerHTML = head + '<div class="note">' + (day ? 'Les meilleurs scores du défi d\'aujourd\'hui : mêmes titres pour tous, un essai par jour.' : 'Les 50 meilleures parties, tous joueurs confondus.') + '</div><div class="list">' +
+      (a.length ? a.map((e, i) => '<div class="li' + (i < 3 ? ' top' : '') + '"><span class="rk">' + (i < 3 ? ['🥇', '🥈', '🥉'][i] : i + 1) + '</span><div>' + esc(e.n) + (e.r ? ' <span class="a">' + esc(e.r) + '</span>' : '') + '<br><span class="a">' + esc(e.c || '') + ' · ' + esc((DIFFS.find(d => d.id === e.d) || {n: ''}).n) + ' · ' + (e.k === 's' ? 'Survie · ' + (e.g | 0) + ' trouvés' : (e.g | 0) + '/10') + '</span></div><span class="sc">' + Number(e.s).toLocaleString('fr-FR') + '</span></div>').join('') : '<div class="note">Aucun score pour l\'instant. Joue une partie et publie le tien !</div>') + '</div>';
+  } catch(e) { if (lbMode === mode) el.innerHTML = head + '<div class="note">Classement indisponible pour le moment.</div>'; }
+}
+/* ---------------- Application installable ---------------- */
+let deferredInstall = null; const standalone = matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(() => {});
+addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferredInstall = e; });
+addEventListener('appinstalled', () => { deferredInstall = null; $('installBtn').classList.add('hide'); toast('Application installée : retrouve-la sur ton écran d\'accueil.'); });
+function installApp(){
+  if (deferredInstall) { deferredInstall.prompt(); deferredInstall.userChoice.then(() => { deferredInstall = null; }).catch(() => {}); return; }
+  const ua = navigator.userAgent, ios = /iPhone|iPad|iPod/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1), android = /Android/.test(ua), mac = /Macintosh/.test(ua) && !ios;
+  const steps = {
+    ios: ['iPhone et iPad', ['Ouvre ce site dans <b>Safari</b>.', 'Touche le bouton <b>Partager</b> (le carré avec une flèche vers le haut).', 'Choisis <b>« Sur l\'écran d\'accueil »</b>, puis « Ajouter ».']],
+    android: ['Android', ['Ouvre ce site dans <b>Chrome</b>.', 'Touche le menu <b>⋮</b> en haut à droite.', 'Choisis <b>« Installer l\'application »</b> ou « Ajouter à l\'écran d\'accueil ».']],
+    mac: ['Mac', ['Dans <b>Safari</b> : menu Fichier → <b>« Ajouter au Dock »</b>.', 'Dans <b>Chrome</b> ou <b>Edge</b> : clique sur l\'icône d\'installation à droite de la barre d\'adresse.']],
+    pc: ['Windows', ['Dans <b>Chrome</b> ou <b>Edge</b> : clique sur l\'icône d\'installation à droite de la barre d\'adresse.', 'Ou ouvre le menu <b>⋮</b> → « Installer Guess the Song 3D ».']]
+  };
+  const first = ios ? 'ios' : android ? 'android' : mac ? 'mac' : 'pc', order = [first].concat(Object.keys(steps).filter(k => k !== first));
+  $('instBody').innerHTML = order.map((k, i) => '<div class="lbl"' + (i ? '' : ' style="margin-top:0;color:var(--gold)"') + '>' + (i ? '' : 'Ton appareil · ') + steps[k][0] + '</div><ol>' + steps[k][1].map(s => '<li>' + s + '</li>').join('') + '</ol>').join('');
+  $('inst').classList.remove('hide');
 }
 /* ---------------- Avis ---------------- */
 let revStars = 5;
@@ -1025,7 +1070,7 @@ function shareResult(){
 function renderProf(){
   const st = ls.get('gs_stats', {games: 0, good: 0, total: 0, streak: 0, pts: 0}), lvl = Math.floor(Math.sqrt(st.pts / 3000)) + 1, lo = 3000 * (lvl - 1) * (lvl - 1), hi = 3000 * lvl * lvl, got = ACH.filter(a => ach[a[0]]).length;
   const card = (v, l) => '<div><b>' + v + '</b>' + l + '</div>';
-  $('tabProf').innerHTML = '<div class="lbl" style="margin-top:0">Niveau ' + lvl + '</div><div class="lvl"><i style="width:' + Math.round((st.pts - lo) / (hi - lo) * 100) + '%"></i></div><div class="note" style="margin-top:4px">Encore ' + Number(hi - st.pts).toLocaleString('fr-FR') + ' points avant le niveau ' + (lvl + 1) + '.</div>' +
+  $('tabProf').innerHTML = '<form class="row" id="nameForm"><input class="inp" id="profName" maxlength="16" placeholder="Ton pseudo" autocomplete="off" aria-label="Ton pseudo" value="' + esc(ls.get('gs_name', '')) + '"><button class="btn" type="submit">Enregistrer</button></form><div class="note" id="nameMsg">Ton pseudo t\'identifie dans le classement cumulé, les duels et les avis.</div><div class="lbl">Niveau ' + lvl + '</div><div class="lvl"><i style="width:' + Math.round((st.pts - lo) / (hi - lo) * 100) + '%"></i></div><div class="note" style="margin-top:4px">Encore ' + Number(hi - st.pts).toLocaleString('fr-FR') + ' points avant le niveau ' + (lvl + 1) + '.</div>' +
     '<div class="pcards" style="margin-top:14px">' + card(st.games, 'parties terminées') + card(Math.round(st.good / Math.max(1, st.total) * 100) + ' %', 'de bonnes réponses') + card(st.streak, 'meilleure série') + card(Number(st.pts).toLocaleString('fr-FR'), 'points cumulés') + card(Object.keys(st.cats || {}).length, 'catégories jouées') + card(favs.length, 'titres favoris') + '</div>' +
     '<div class="lbl">Succès (' + got + '/' + ACH.length + ')</div><div class="achs">' + ACH.map(a => '<div class="ac' + (ach[a[0]] ? ' on' : '') + '"><span>' + a[1] + '</span><b>' + a[2] + '</b><small>' + a[3] + '</small></div>').join('') + '</div><div class="note">Ton profil est enregistré sur cet appareil.</div>';
 }
@@ -1059,10 +1104,12 @@ function setTab(t){
   if (t === 'lb') renderLb(); if (t === 'prof') renderProf(); if (t === 'disc') discSeg(); if (t === 'rev') { $('revName').value = ls.get('gs_name', ''); drawStars(); renderRev(); } if (t === 'disc' && !discList.length) loadDisc('');
 }
 $('tabLb').addEventListener('click', e => { const m = e.target.dataset.lb; if (m && m !== lbMode) { lbMode = m; sfx.click(); renderLb(); } });
+$('tabProf').addEventListener('submit', e => { e.preventDefault(); const v = $('profName').value.replace(/\s+/g, ' ').trim().slice(0, 16); if (v.length < 2) { $('nameMsg').textContent = 'Choisis un pseudo d\'au moins 2 caractères.'; return; } ls.set('gs_name', v); $('duelName').value = v; $('nameMsg').textContent = 'Enregistrement…'; syncTotal().then(ok => { if ($('nameMsg')) $('nameMsg').textContent = ok ? '✓ Pseudo enregistré : tu apparais dans le classement cumulé.' : '✓ Pseudo enregistré. Termine une partie pour entrer dans le classement cumulé.'; }); });
+$('instOk').onclick = () => $('inst').classList.add('hide'); $('installBtn').onclick = installApp; if (!standalone) $('installBtn').classList.remove('hide');
 $('tabs').onclick = e => { const b = e.target.closest('button'), t = b && b.dataset.t; if (t) { sfx.click(); setTab(t); } };
-const BUILD = '3.2';
+const BUILD = '3.3';
 fetch(location.pathname + '?_=' + Date.now(), {cache: 'no-store'}).then(r => r.text()).then(t => { const m = /const BUILD = '([^']+)'/.exec(t); let tried = null; try { tried = sessionStorage.getItem('gs_upd'); } catch(e) {} if (m && m[1] !== BUILD && tried !== m[1] && S.screen === 'home' && !R) { try { sessionStorage.setItem('gs_upd', m[1]); } catch(e) {} const q = new URLSearchParams(location.search); q.set('v', m[1]); location.replace(location.pathname + '?' + q.toString()); } }).catch(() => {});
-const NOTES_V = '3.2';
+const NOTES_V = '3.3';
 function showNotes(on){ $('notes').classList.toggle('hide', !on); }
 $('notesOk').onclick = () => { ls.set('gs_notes', NOTES_V); initAudio(); sfx.click(); showNotes(false); };
 $('notesLink').onclick = e => { e.preventDefault(); showNotes(true); };
