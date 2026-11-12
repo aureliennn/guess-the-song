@@ -132,6 +132,17 @@ select.inp{appearance:none;-webkit-appearance:none;min-width:0}select.inp option
 @keyframes achIn{0%{opacity:0;transform:translateX(30px)}8%,88%{opacity:1;transform:none}100%{opacity:0;transform:translateX(30px)}}
 @media(max-width:620px){#tabs button{font-size:11px;padding:8px 1px}.achs{grid-template-columns:1fr 1fr}.pcards{grid-template-columns:1fr 1fr}}
 @media(prefers-reduced-motion:reduce){.emo,.ach,.eq i{animation-duration:.01s}}
+.duel{display:grid;gap:10px;margin-top:12px;padding:14px 16px;border-radius:16px;border:1px solid var(--line);background:rgba(255,255,255,.04)}.dh b{display:block;font-size:16px}.dh span{font-size:13px;color:var(--mut)}.duel>.inp{width:100%;min-width:0}.dg{display:grid;grid-template-columns:1fr 1fr;gap:10px}.dc{display:flex;gap:8px;align-items:center;min-width:0}.dc .btn{flex:none;white-space:nowrap}.dc .inp{flex:1 1 80px;min-width:0;width:100%;text-transform:uppercase;text-align:center;letter-spacing:.2em}.dl{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--mut);font-weight:700;margin-top:2px}
+#tabs{max-width:100%;overflow-x:auto}#tabs button{white-space:nowrap}
+@media(max-width:620px){.dg{grid-template-columns:1fr}.dc .btn{flex:1}#cats.cats{grid-template-columns:repeat(3,1fr);gap:8px}#cats .cat{min-height:0;padding:9px 8px;gap:2px}#cats .cat .e{font-size:20px}#cats .cat .n{font-size:12px;line-height:1.15}#cats .cat .b{display:none}.prof{gap:6px}.prof span{padding:5px 9px;font-size:11px}.seg{max-width:100%}.seg button{white-space:nowrap}#kind button,#gmode button{padding:8px 9px;font-size:12px}}
+#tools .btn{white-space:nowrap;flex:none}#emoRow{display:none}
+@media(max-height:520px) and (orientation:landscape){#panel{width:min(520px,100%);padding:8px 12px}#status{min-height:40px;margin-bottom:6px}.rv img{width:40px;height:40px}.rv .t{font-size:14px}.rv .p{font-size:17px}#tools{margin-top:6px;font-size:11px}#tools .btn{padding:6px 12px}#bar{height:6px}#hud{padding-top:6px}#hud .pill{padding:5px 10px;font-size:12px}#sb{top:44px;font-size:11px;padding:5px 9px}#sb .emos{display:none}#home .box,#end .box,#lobby .box{padding:14px 16px}}#tabs button span{margin-right:6px}
+@media(max-width:620px){#home #tabs{display:flex;width:100%;overflow:visible}#home #tabs button{display:flex;flex-direction:column;align-items:center;gap:1px;flex:1;min-width:0;padding:6px 2px;font-size:10.5px}#home #tabs button span{margin:0;font-size:17px;line-height:1.1}}
+@media(max-width:380px){#kind,#gmode{display:flex;width:100%}#kind button,#gmode button{flex:1;white-space:normal;padding:7px 4px;font-size:11.5px;line-height:1.2}.logo{font-size:26px}#home .box{padding:16px 12px}.screen{padding-left:10px;padding-right:10px}}
+.recap,.list{grid-template-columns:minmax(0,1fr)}.li>div{min-width:0;overflow-wrap:anywhere}
+.recap>div>div{display:block;flex:1;min-width:0;padding:0;background:none;overflow:hidden;text-overflow:ellipsis}.recap>div>span{flex:none}.recap img{flex:none}
+@media(max-width:620px){#pubForm{flex-direction:column;align-items:stretch}#pubForm .inp{max-width:none !important;width:100%}#pubForm .btn{width:100%}.ach{top:8px;left:12px;right:12px;justify-content:center}.recap>div{gap:8px;font-size:13px}.recap .fav,.recap .pl{width:32px;height:32px;margin-left:4px}#end .row .btn{flex:1}}
+@media(max-width:620px){#panel.rev #tools>span{display:none}#panel.rev #tools{justify-content:space-between}#sb{top:calc(max(12px,env(safe-area-inset-top)) + 40px);left:8px;right:8px;max-width:none;display:flex;gap:12px;overflow-x:auto;white-space:nowrap;padding:5px 10px;border-radius:10px;font-size:11px}#sb .emos{display:none}#emoRow:not(.hide){display:block;margin-top:8px}#emoRow .emos{justify-content:space-between;flex-wrap:nowrap}#emoRow .emos button{font-size:18px;padding:4px 6px;flex:1}}
 #notes{position:fixed;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(4,2,10,.72)}
 #notes .box{width:min(520px,100%);max-height:86dvh;overflow:auto;-webkit-overflow-scrolling:touch;padding:22px}
 #notes h2{font-size:22px;margin-bottom:4px}#notes ul{list-style:none;display:grid;gap:8px;margin:14px 0 18px}#notes li{padding:9px 12px;border-radius:12px;background:rgba(255,255,255,.05);font-size:14px;line-height:1.35}#notes li b{display:block}#notes .btn{width:100%}
@@ -153,7 +164,7 @@ select.inp{appearance:none;-webkit-appearance:none;min-width:0}select.inp option
     <h1 class="logo">GUESS THE SONG</h1>
     <p class="sub">Un extrait démarre, quatre réponses s'affichent. Plus tu réponds vite, plus tu marques — et chaque bonne réponse d'affilée fait grimper le multiplicateur.</p>
     <div class="prof" id="profile"></div>
-    <div class="seg" id="tabs" style="margin-bottom:16px"><button type="button" data-t="play" class="on">🎮 Jouer</button><button type="button" data-t="lb">🌍 Classement</button><button type="button" data-t="disc">🎧 Écoute</button><button type="button" data-t="prof">⭐ Profil</button><button type="button" data-t="rev">💬 Avis</button></div>
+    <div class="seg" id="tabs" style="margin-bottom:16px"><button type="button" data-t="play" class="on"><span>🎮</span>Jouer</button><button type="button" data-t="lb"><span>🌍</span>Top</button><button type="button" data-t="disc"><span>🎧</span>Écoute</button><button type="button" data-t="prof"><span>⭐</span>Profil</button><button type="button" data-t="rev"><span>💬</span>Avis</button></div>
     <div id="tabProf" class="hide"></div>
     <div id="tabRev" class="hide">
       <form id="revForm"><div class="row"><input class="inp" id="revName" maxlength="16" placeholder="Ton pseudo" style="max-width:200px;flex:none"><div id="revStars" role="group" aria-label="Note"></div></div>
@@ -175,6 +186,16 @@ select.inp{appearance:none;-webkit-appearance:none;min-width:0}select.inp option
       <span style="color:var(--mut);font-size:13px" id="diffTxt"></span>
     </div>
     <button class="daily" id="dailyBtn" type="button"></button>
+    <div class="duel">
+      <div class="dh"><b>⚔️ Duel en ligne</b><span>Jusqu'à 8 joueurs, mêmes titres pour tous, classement en direct.</span></div>
+      <input class="inp" id="duelName" maxlength="16" placeholder="Ton pseudo" autocomplete="off" aria-label="Ton pseudo">
+      <div class="dg">
+        <div class="dc"><button class="btn" type="button" id="duelCreate">Créer un salon</button><label class="chk"><input type="checkbox" id="duelPub"> Public</label></div>
+        <div class="dc"><input class="inp" id="duelCode" maxlength="4" placeholder="CODE" autocomplete="off" autocapitalize="characters" aria-label="Code du salon"><button class="btn ghost" type="button" id="duelJoin">Rejoindre</button></div>
+      </div>
+      <div class="dl">🌍 Salons publics ouverts</div>
+      <div class="list" id="pubRooms" style="max-height:200px;margin-top:0"></div>
+    </div>
     <div class="lbl">Choisis une catégorie</div>
     <div class="cats" id="cats"></div>
     <div class="lbl">Ou un artiste</div>
@@ -182,11 +203,6 @@ select.inp{appearance:none;-webkit-appearance:none;min-width:0}select.inp option
       <input class="inp" id="artist" placeholder="Ex. Daft Punk, Aya Nakamura, Queen…" autocomplete="off" maxlength="60">
       <button class="btn" type="submit">Jouer ▶</button>
     </form>
-    <div class="lbl">⚔️ Duel en ligne</div>
-    <div class="row"><input class="inp" id="duelName" maxlength="16" placeholder="Ton pseudo" style="max-width:180px" autocomplete="off"><button class="btn" type="button" id="duelCreate">Créer un salon</button><input class="inp" id="duelCode" maxlength="4" placeholder="CODE" style="max-width:110px;text-transform:uppercase;text-align:center;letter-spacing:.2em" autocomplete="off"><button class="btn ghost" type="button" id="duelJoin">Rejoindre</button><label class="chk"><input type="checkbox" id="duelPub"> Salon public</label></div>
-    <div class="note">Crée un salon privé et donne le code ou le lien à tes amis, ou coche « Salon public » pour jouer avec n'importe qui (8 joueurs max).</div>
-    <div class="lbl">🌍 Salons publics ouverts</div>
-    <div class="list" id="pubRooms" style="max-height:220px;margin-top:0"></div>
     <div class="lbl">Comment ça marche</div>
     <div class="how">
       <div><b>⚡ Vitesse</b>De 1000 à 100 points selon ton temps de réponse, +200 en moins de 2 secondes.</div>
@@ -205,6 +221,7 @@ select.inp{appearance:none;-webkit-appearance:none;min-width:0}select.inp option
     <div id="bar"><i></i></div>
     <div id="answers"></div>
     <div id="tools"><button class="btn ghost" id="joker">50/50 (2)</button><span>Touche la bonne porte<span class="kbd"> · touches 1–4 · J = 50/50</span></span><button class="btn hide" id="nextBtn">Suivant ▶</button></div>
+    <div id="emoRow" class="hide"></div>
   </div>
 </div>
 
@@ -400,7 +417,7 @@ const PN = 500, pPos = new Float32Array(PN * 3), pVel = new Float32Array(PN * 3)
 const pGeo = new THREE.BufferGeometry(); pGeo.setAttribute('position', new THREE.BufferAttribute(pPos, 3));
 const parts = new THREE.Points(pGeo, new THREE.PointsMaterial({size: .32, map: dotTex, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, color: 0xffd166})); parts.frustumCulled = false; scene.add(parts);
 for (let i = 0; i < PN; i++) pPos[i*3+1] = -50;
-let pNext = 0, auraAcc = 0;
+let pNext = 0, auraAcc = 0, uiH = 150; setInterval(() => { if (S.screen === 'game') uiH = $('panel').offsetHeight + 14; }, 300);
 function burst(n, col, power){ parts.material.color.set(col); for (let k = 0; k < n; k++) { const i = pNext = (pNext + 1) % PN, a = Math.random() * 6.283, s = (.4 + Math.random()) * power; pPos[i*3] = Math.cos(a) * 1.2; pPos[i*3+1] = .6; pPos[i*3+2] = Math.sin(a) * 1.2; pVel[i*3] = Math.cos(a) * s; pVel[i*3+1] = 3 + Math.random() * 7 * power / 6; pVel[i*3+2] = Math.sin(a) * s; pLife[i] = 1.2 + Math.random(); } }
 
 // sprites texte
@@ -534,7 +551,7 @@ function frame(now){
   bigDeco.rotation.y += dt * .12; bigDeco.rotation.x += dt * .05; bigDeco.scale.setScalar(1 + bass * .08);
   for (const sp of notes) { const u = sp.userData; sp.position.y += u.v * dt * (1 + bass * 2); sp.position.x = u.x + Math.sin(T * .8 + u.ph) * 1.2; if (sp.position.y > 22) sp.position.y = 0; sp.material.color.copy(c1); sp.material.opacity = .55 * Math.min(1, sp.position.y / 2, (22 - sp.position.y) / 4); }
   // portes
-  const grid = cam.aspect < .9, half = ((cam.aspect < 1 ? 11 + (1 - cam.aspect) * 15 : 11) + 8.1) * .466 * cam.aspect, dsc = grid ? Math.max(.8, Math.min(2, half * .86 / 3.1)) : Math.max(.5, Math.min(1.35, half / 6.4));
+  const grid = cam.aspect < .9, half = ((cam.aspect < 1 ? 11 + (1 - cam.aspect) * 15 : 11) + 8.1) * .466 * cam.aspect, visH = 2 * half / cam.aspect, short = !grid && innerHeight < 520, dsc = grid ? Math.max(.45, Math.min(2, half * .86 / 3.1, visH * (1 - (64 + uiH) / innerHeight) * .9 / (2 * DH + .4))) : Math.max(.5, Math.min(short ? 2 : 1.35, half / 6.4, short ? visH * (1 - (64 + uiH) / innerHeight) * .88 / (DH + .2) : 9)), gridLook = (grid ? 2 * DH + .4 : DH) * dsc / 2 - visH * (uiH - 64) / 2 / innerHeight;
   scene.background.lerp(bgT, Math.min(1, dt * 3)); scene.fog.color.copy(scene.background);
   doors.forEach((d, k) => {
     if (d.delay > 0) d.delay -= dt; else d.y += (d.yT - d.y) * Math.min(1, dt * 7);
@@ -559,7 +576,7 @@ function frame(now){
   const orbit = inGame ? 0 : T * .12, tx = Math.sin(orbit) * dist + mx * 1.4 + (Math.random() - .5) * shake * .5, tz = Math.cos(orbit) * dist, ty = (portrait ? 8.5 : 6.6) - my * .7 + (Math.random() - .5) * shake * .4;
   cam.position.x += (tx - cam.position.x) * Math.min(1, dt * 3); cam.position.y += (ty - cam.position.y) * Math.min(1, dt * 3); cam.position.z += (tz - cam.position.z) * Math.min(1, dt * 3);
   if (fly) { fly.t = Math.min(1, fly.t + dt / .95); const e = fly.t * fly.t * (3 - 2 * fly.t), e2 = fly.t * fly.t; cam.position.set(fly.from.x + (fly.x - fly.from.x) * e, fly.from.y + (fly.y - fly.from.y) * e, fly.from.z + (DZ - 3 - fly.from.z) * e2); cam.lookAt(fly.x * e, .5 + (fly.y - .5) * e, -1.5 + (DZ - 10 + 1.5) * e); } else
-  cam.lookAt(0, inGame ? (portrait ? 5.4 : .5) : .8, inGame ? -1.5 : 0);
+  cam.lookAt(0, inGame ? (grid || short ? gridLook : .5) : .8, inGame ? -1.5 : 0);
   if (bloom) bloom.strength = .4 + bass * .3;
   if (composer) composer.render(); else renderer.render(scene, cam);
 }
@@ -568,7 +585,7 @@ function frame(now){
 const S = {screen: 'home', phase: 'idle', cat: null, pool: [], rounds: [], spare: [], i: 0, score: 0, shown: 0, streak: 0, best: 0, good: 0, jok: 2, jokUsed: false, t0: 0, dur: 14, fails: 0};
 let loadTO = 0, nextTO = 0, toastTO = 0;
 function toast(m){ const t = $('toast'); t.textContent = m; t.classList.remove('hide'); clearTimeout(toastTO); toastTO = setTimeout(() => t.classList.add('hide'), 3800); }
-function show(scr){ S.screen = scr; $('home').classList.toggle('hide', scr !== 'home'); $('game').classList.toggle('hide', scr !== 'game'); $('hud').classList.toggle('hide', scr !== 'game'); $('end').classList.toggle('hide', scr !== 'end'); $('lobby').classList.toggle('hide', scr !== 'lobby'); if (scr !== 'game') $('sb').classList.add('hide'); $('tip').classList.add('hide'); }
+function show(scr){ S.screen = scr; $('home').classList.toggle('hide', scr !== 'home'); $('game').classList.toggle('hide', scr !== 'game'); $('hud').classList.toggle('hide', scr !== 'game'); $('end').classList.toggle('hide', scr !== 'end'); $('lobby').classList.toggle('hide', scr !== 'lobby'); if (scr !== 'game') $('sb').classList.add('hide'); $('emoRow').classList.toggle('hide', !(R && scr === 'game')); if (R && scr === 'game' && !$('emoRow').innerHTML) $('emoRow').innerHTML = emoBar(); $('tip').classList.add('hide'); }
 function renderHome(){
   $('diff').innerHTML = DIFFS.map(d => '<button type="button" data-d="' + d.id + '" class="' + (d.id === diff ? 'on' : '') + '">' + d.n + '</button>').join('');
   $('gmode').innerHTML = [['title', '🎵 Trouver le titre'], ['artist', '🎤 Trouver l\'artiste']].map(m => '<button type="button" data-m="' + m[0] + '" class="' + (m[0] === gmode ? 'on' : '') + '">' + m[1] + '</button>').join('');
@@ -598,7 +615,7 @@ async function startGame(cat){
   show('game'); startRound();
 }
 function startRound(){
-  clearTimeout(nextTO); const r = S.rounds[S.i]; S.phase = 'load'; S.jokUsed = false; if (S.i === 0) S.fast = 0; setLabel(''); setTheme(S.i);
+  clearTimeout(nextTO); const r = S.rounds[S.i]; S.phase = 'load'; S.jokUsed = false; $('panel').classList.remove('rev'); if (S.i === 0) S.fast = 0; setLabel(''); setTheme(S.i);
   hudRound(); comboHud();
   $('status').innerHTML = '<div class="msg"><span class="eq"><i></i><i></i><i></i><i></i></span>Chargement de l\'extrait…</div>';
   $('bar').classList.remove('low'); $('bar').firstElementChild.style.transform = 'scaleX(1)';
@@ -634,7 +651,7 @@ function answer(k){
   if (S.phase !== 'play') return;
   const r = S.rounds[S.i], left = Math.max(0, 1 - (performance.now() - S.t0) / (S.dur * 1000)), ok = k === r.correct, quick = ok && performance.now() - S.t0 < 2000; let pts = 0, m = 1;
   if (ok) { m = MULT[Math.min(S.streak, 4)]; pts = Math.round((100 + 900 * left + (quick ? 200 : 0)) * m / 10) * 10; if (quick) S.fast = (S.fast | 0) + 1; S.score += pts; S.streak++; S.best = Math.max(S.best, S.streak); S.good++; S.fails = 0; } else { S.streak = 0; if (S.kind === 'survie') { S.lives--; hudRound(); } }
-  r.ok = ok; r.pts = pts; S.phase = 'reveal'; roomPush();
+  r.ok = ok; r.pts = pts; S.phase = 'reveal'; $('panel').classList.add('rev'); roomPush();
   document.querySelectorAll('.ans').forEach((b, j) => { b.disabled = true; if (j === r.correct) b.classList.add('ok'); else if (j === k) b.classList.add('bad'); else b.classList.add('out'); });
   $('status').innerHTML = '<div class="rv"><img src="' + esc(r.t.cover) + '" alt=""><div><div class="t">' + esc(r.t.title) + '</div><div class="a">' + esc(r.t.artist) + ' · <a href="' + esc(r.t.link) + '" target="_blank" rel="noopener">Écouter sur Deezer ↗</a></div></div><div class="p" style="color:' + (ok ? 'var(--ok)' : 'var(--bad)') + '">' + (ok ? '+' + pts : k < 0 ? 'Trop tard' : 'Raté') + (ok && (m > 1 || quick) ? '<small>' + (quick ? '⚡ éclair ' : '') + (m > 1 ? 'combo ×' + String(m).replace('.', ',') : '') + '</small>' : '') + '</div></div>';
   setLabel(r.t.cover); addOrb(r, S.i); comboHud(ok); jokerBtn(); doorsReveal(r, k); setHov(-1);
@@ -1010,7 +1027,7 @@ function setTab(t){
   if (t === 'lb') renderLb(); if (t === 'prof') renderProf(); if (t === 'disc') discSeg(); if (t === 'rev') { $('revName').value = ls.get('gs_name', ''); drawStars(); renderRev(); } if (t === 'disc' && !discList.length) loadDisc('');
 }
 $('tabLb').addEventListener('click', e => { const m = e.target.dataset.lb; if (m && m !== lbMode) { lbMode = m; sfx.click(); renderLb(); } });
-$('tabs').onclick = e => { const t = e.target.dataset.t; if (t) { sfx.click(); setTab(t); } };
+$('tabs').onclick = e => { const b = e.target.closest('button'), t = b && b.dataset.t; if (t) { sfx.click(); setTab(t); } };
 const NOTES_V = '3.0';
 function showNotes(on){ $('notes').classList.toggle('hide', !on); }
 $('notesOk').onclick = () => { ls.set('gs_notes', NOTES_V); initAudio(); sfx.click(); showNotes(false); };
