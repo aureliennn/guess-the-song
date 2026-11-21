@@ -1,7 +1,7 @@
 {
-  "name": "Guess the Song 3D",
-  "short_name": "Guess the Song",
-  "description": "Blind test en 3D : devine la chanson, affronte tes amis en ligne et grimpe au classement mondial.",
+  "name": "Arcade Néon",
+  "short_name": "Arcade Néon",
+  "description": "Salle d'arcade : blind test 3D, échecs, mots croisés, sudoku, quatre en ligne et plus.",
   "lang": "fr",
   "start_url": "./",
   "scope": "./",
