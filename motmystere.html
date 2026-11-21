@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Mot mystère — Arcade Néon</title>
+<meta name="description" content="Trouve le mot mystère en 6 essais : mot du jour ou parties libres, de 5 à 7 lettres.">
+<meta name="theme-color" content="#07040f">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;800&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="arcade.css">
+<style>
+:root{--hit:#2fe08c;--near:#ffa336;--miss:#2b2346}
+body.cb{--hit:#ff8a3d;--near:#3db4ff}
+.wrap{max-width:620px}
+.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:center;margin-bottom:12px}
+.info{text-align:center;font-size:13px;color:var(--mut);min-height:18px;margin-bottom:10px}
+.board{display:grid;gap:6px;justify-content:center;margin:0 auto 14px}
+.rw{display:grid;gap:6px;grid-template-columns:repeat(var(--n),var(--t))}
+.rw.shake{animation:shake .45s}
+@keyframes shake{20%,60%{transform:translateX(-7px)}40%,80%{transform:translateX(7px)}}
+.tl{width:var(--t);height:var(--t);border-radius:10px;border:2px solid rgba(255,255,255,.16);display:flex;align-items:center;justify-content:center;font:800 calc(var(--t) * .5)/1 Unbounded,Inter,sans-serif;background:rgba(255,255,255,.03);text-transform:uppercase;perspective:400px}
+.tl.f{border-color:rgba(255,255,255,.45);animation:pop .12s}
+@keyframes pop{50%{transform:scale(1.1)}}
+.tl.hit,.tl.near,.tl.miss{border-color:transparent;color:#fff}
+.tl.hit{background:var(--hit);color:#05140c;box-shadow:0 0 18px color-mix(in srgb,var(--hit) 55%,transparent)}
+.tl.near{background:var(--near);color:#1a0d00}
+.tl.miss{background:var(--miss);color:#a59cc4}
+.tl.flip{animation:flip .5s ease both}
+@keyframes flip{0%{transform:rotateX(0)}50%{transform:rotateX(90deg)}100%{transform:rotateX(0)}}
+.rw.win .tl{animation:jump .5s ease both}
+@keyframes jump{40%{transform:translateY(-16px)}70%{transform:translateY(4px)}}
+.kbd{display:grid;gap:7px;user-select:none;-webkit-user-select:none;touch-action:manipulation}
+.kr{display:flex;gap:5px;justify-content:center}
+.k{flex:1;max-width:46px;height:54px;border-radius:9px;background:rgba(255,255,255,.12);font:700 16px/1 Inter,sans-serif;display:flex;align-items:center;justify-content:center;padding:0}
+.k.wide{flex:1.6;max-width:72px;font-size:13px}
+.k.hit{background:var(--hit);color:#05140c}.k.near{background:var(--near);color:#1a0d00}.k.miss{background:var(--miss);color:#6f6790}
+.k:active{transform:scale(.94)}
+.opts{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-top:16px}
+.opts label{display:flex;gap:6px;align-items:center;font-size:13px;color:var(--mut)}
+.opts input{accent-color:var(--acc);width:17px;height:17px}
+.dist{display:grid;gap:4px;text-align:left;margin-top:4px}
+.dist div{display:grid;grid-template-columns:16px 1fr;gap:6px;align-items:center;font-size:13px}
+.dist i{display:block;background:rgba(255,255,255,.14);padding:2px 6px;border-radius:4px;text-align:right;font-style:normal;font-weight:700;min-width:22px}
+.dist i.me{background:var(--hit);color:#05140c}
+.st4{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.st4 div{font-size:11px;color:var(--mut)}.st4 b{display:block;font:800 22px/1.1 Unbounded,sans-serif;color:var(--txt)}
+.help{display:grid;gap:6px;text-align:left;font-size:14px}
+.help .ex{display:flex;gap:4px;margin:4px 0}.help .ex .tl{--t:34px}
+@media(max-width:400px){.k{height:50px;font-size:14px}.kr{gap:4px}.kbd{gap:6px}}
+@media(max-width:480px){.top{flex-wrap:nowrap;gap:6px;margin-bottom:10px}.top h1{font-size:18px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}.top .back{padding:6px 10px;font-size:13px}.top .btn.sm{padding:7px 10px;flex:none}.bar{gap:6px;margin-bottom:8px}.bar .seg button{padding:6px 9px;font-size:12px}.info{font-size:12px;margin-bottom:8px}}
+@media(max-height:700px){.k{height:44px}.kbd{gap:5px}.board{gap:5px;margin-bottom:10px}.rw{gap:5px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top"><a class="back" href="./">← Arcade</a><h1>🔤 Mot mystère</h1><button class="btn ghost sm" id="helpBtn" aria-label="Règles">?</button><button class="btn ghost sm" id="statBtn" aria-label="Statistiques">📊</button></div>
+  <div class="bar"><div class="seg" id="modeSeg"></div><div class="seg" id="lenSeg"></div></div>
+  <div class="info" id="info" role="status"></div>
+  <div class="board" id="board" aria-label="Grille de jeu"></div>
+  <div class="kbd" id="kbd"></div>
+  <div class="opts"><label><input type="checkbox" id="hardChk"> Mode difficile</label><label><input type="checkbox" id="cbChk"> Couleurs contrastées</label></div>
+  <p class="note" style="text-align:center;margin-top:14px">Dictionnaire : liste libre « an-array-of-french-words » (licence MIT).</p>
+</div>
+<script src="arcade.js"></script>
+<script>
+const TRIES = 6;
+const ANS = {
+  5: 'ARBRE AVION BALLE BANDE BARBE BETON BIERE BLANC BLOND BOIRE BOITE BRAVE BRUIT CABLE CADRE CALME CANAL CARTE CHAIR CHAMP CHANT CHAUD CHIEN CHOIX CHOSE CIBLE CLAIR CLOWN COEUR CORDE CORPS COUPE COURT CRABE CREME DANSE DEBUT DOIGT DOUCE DROIT ECOLE ELEVE ENVIE ETAGE FABLE FAUTE FERME FIBRE FILLE FLEUR FORET FORME FRAIS FRUIT FUMEE GAMME GARDE GENOU GESTE GLACE GLOBE GRAIN GRAND GUIDE HERBE HEURE HIVER HOMME HOTEL HUILE IMAGE JAMBE JAUNE JEUNE JOUER JOUET JUSTE LAPIN LARGE LIVRE LOURD LUTIN MAGIE MARDI MELON MERCI METRO MONDE MUSEE NAGER NEIGE NUAGE OCEAN OMBRE ONCLE ORAGE ORDRE PIANO PIECE PLAGE PLUIE POCHE POIDS POMME PORTE POULE RADIO REINE RIVAL ROBOT ROUGE ROUTE SABLE SALON SAUCE SCENE SIGNE SINGE SPORT STADE STYLO SUCRE SUITE TABLE TARTE TEMPS TERRE TEXTE TIGRE TITRE TRAIN USINE VACHE VAGUE VALSE VERRE VIDEO VILLE VITRE VOILE ZEBRE',
+  6: 'ANIMAL ARGENT BALLON BATEAU BEURRE BONBON BOUCHE BOUGIE CADEAU CAHIER CAMION CANARD CASQUE CERISE CHAINE CHAISE CHANCE CHATON CHEMIN CHEVAL CHEVEU CINEMA CITRON CLOCHE COUSIN CRAYON DANGER DESSIN DRAGON ECLAIR ENFANT EPONGE ETOILE FEUTRE FIGURE FLEUVE FOURMI FRAISE GARAGE GATEAU GIRAFE HUMAIN JARDIN JOUEUR JUNGLE LEGUME LETTRE MAISON MARCHE MIROIR MONTRE MOUCHE MOUTON MUSCLE NATURE NUMERO OISEAU ORANGE PAPIER PAQUET PARFUM PIERRE PIRATE PLANTE POISON POULET PRINCE RAISIN RAPIDE RENARD REQUIN RIVAGE SALADE SAUMON SECRET SIRENE SOLEIL SOURIS STATUE TENNIS TOMATE TORTUE TRESOR TUNNEL VALISE VIOLON VIRAGE VOLCAN VOYAGE ZOMBIE',
+  7: 'ABEILLE ARMOIRE BALEINE BISCUIT CAMPING CAROTTE CERVEAU CHANSON CHAPEAU CHATEAU CONCERT COSTUME CRAPAUD CRISTAL CUISINE DAUPHIN DESSERT DIAMANT DOCTEUR ECHELLE FAMILLE FANTOME FENETRE FLAMANT FROMAGE GALAXIE GENERAL GRENIER GUITARE HAMSTER HORLOGE JOURNAL LICORNE LUMIERE MACHINE MAGASIN MAILLOT MANTEAU MARMITE MELODIE MIRACLE MUSIQUE OREILLE PENDULE PINCEAU PLANETE POISSON POMPIER RECETTE RIVIERE SANDALE SEMAINE SERPENT SORCIER SOURIRE TABLEAU TAMBOUR TEMPETE TORNADE TROPHEE VAMPIRE VOITURE'
+};
+let DICT = {}, dictOk = false;
+const AZ = ['AZERTYUIOP', 'QSDFGHJKLM', '⏎WXCVBN⌫'];
+const today = () => new Date().toISOString().slice(0, 10);
+const dayNo = () => Math.floor((Date.parse(today()) - Date.parse('2026-01-01')) / 864e5) + 1;
+function seeded(list, seed){ let s = seed >>> 0; const r = () => { s += 0x6D2B79F5; let t = s; t = Math.imul(t ^ t >>> 15, t | 1); t ^= t + Math.imul(t ^ t >>> 7, t | 61); return ((t ^ t >>> 14) >>> 0) / 4294967296; }; const a = list.slice(); for (let i = a.length - 1; i > 0; i--) { const j = r() * (i + 1) | 0; [a[i], a[j]] = [a[j], a[i]]; } return a; }
+const answers = n => ANS[n].split(' ').filter(w => w.length === n && (!dictOk || DICT[n].has(w)));
+const dailyWord = n => { const a = seeded(answers(n), 2026 + n); return a[(dayNo() - 1) % a.length]; };
+
+let len = ls.get('arc_mm_len', 5), mode = ls.get('arc_mm_mode', 'day'), G = null, busy = false;
+const hard = () => $('hardChk').checked;
+function stKey(){ return mode === 'day' ? 'arc_mm_day_' + len : 'arc_mm_free_' + len; }
+function start(fresh){
+  const sk = stKey(), sv = ls.get(sk, null);
+  if (!fresh && sv && sv.len === len && (mode !== 'day' || sv.date === today())) G = sv;
+  else { const ans = mode === 'day' ? dailyWord(len) : (a => a[Math.random() * a.length | 0])(answers(len)); G = {len, mode, date: today(), ans, rows: [], cur: '', over: false, won: false}; save(); }
+  draw(); info();
+}
+function save(){ ls.set(stKey(), G); }
+function score(guess, ans){
+  const res = Array(guess.length).fill('miss'), left = {};
+  for (let i = 0; i < ans.length; i++) if (guess[i] === ans[i]) res[i] = 'hit'; else left[ans[i]] = (left[ans[i]] || 0) + 1;
+  for (let i = 0; i < guess.length; i++) if (res[i] !== 'hit' && left[guess[i]]) { res[i] = 'near'; left[guess[i]]--; }
+  return res;
+}
+function info(m){
+  const el = $('info');
+  if (m) { el.textContent = m; return; }
+  el.textContent = G.over ? (G.won ? 'Bravo ! Trouvé en ' + G.rows.length + ' essai' + (G.rows.length > 1 ? 's' : '') + '.' : 'Le mot était ' + G.ans + '.') + (mode === 'day' ? ' Nouveau mot du jour demain.' : '')
+    : mode === 'day' ? 'Mot du jour n°' + dayNo() + ' · ' + len + ' lettres · le même pour tout le monde' : 'Partie libre · ' + len + ' lettres';
+}
+function tileSize(){ const b = $('board'), top = b.getBoundingClientRect().top + scrollY, kh = $('kbd').offsetHeight || 180, w = Math.min(innerWidth, 620) - 32, h = innerHeight - top - kh - 26; return Math.max(26, Math.min(62, Math.floor((w - (len - 1) * 6) / len), Math.floor((h - 5 * 6) / TRIES))); }
+function draw(reveal){
+  const b = $('board'); b.style.setProperty('--n', len); b.style.setProperty('--t', tileSize() + 'px');
+  let h = '';
+  for (let r = 0; r < TRIES; r++) {
+    const row = G.rows[r], cur = r === G.rows.length && !G.over ? G.cur : '';
+    h += '<div class="rw' + (G.won && r === G.rows.length - 1 && reveal === 'win' ? ' win' : '') + '" data-r="' + r + '">';
+    for (let i = 0; i < len; i++) {
+      if (row) { const fl = reveal === r; h += '<div class="tl ' + (fl ? 'flip' : row.s[i]) + '" data-s="' + row.s[i] + '" style="' + (fl ? 'animation-delay:' + i * .22 + 's' : '') + '">' + row.w[i] + '</div>'; }
+      else h += '<div class="tl' + (cur[i] ? ' f' : '') + '">' + (cur[i] || '') + '</div>';
+    }
+    h += '</div>';
+  }
+  b.innerHTML = h;
+  if (typeof reveal === 'number') b.querySelectorAll('.rw[data-r="' + reveal + '"] .tl').forEach((t, i) => setTimeout(() => t.classList.add(t.dataset.s), i * 220 + 250));
+  const best = {}; const rank = {miss: 1, near: 2, hit: 3};
+  G.rows.forEach((row, ri) => { if (ri === reveal) return; row.w.split('').forEach((ch, i) => { if (!best[ch] || rank[row.s[i]] > rank[best[ch]]) best[ch] = row.s[i]; }); });
+  $('kbd').innerHTML = AZ.map(r => '<div class="kr">' + r.split('').map(k => k === '⏎' ? '<button type="button" class="k wide" data-k="Enter" aria-label="Valider">Valider</button>' : k === '⌫' ? '<button type="button" class="k wide" data-k="Backspace" aria-label="Effacer">⌫</button>' : '<button type="button" class="k ' + (best[k] || '') + '" data-k="' + k + '">' + k + '</button>').join('') + '</div>').join('');
+  $('modeSeg').innerHTML = [['day', '📅 Mot du jour'], ['free', '🎲 Partie libre']].map(m => '<button type="button" data-v="' + m[0] + '" class="' + (m[0] === mode ? 'on' : '') + '">' + m[1] + '</button>').join('');
+  $('lenSeg').innerHTML = [5, 6, 7].map(n => '<button type="button" data-v="' + n + '" class="' + (n === len ? 'on' : '') + '">' + n + ' lettres</button>').join('');
+}
+function shakeRow(msg){ const r = $('board').querySelector('.rw[data-r="' + G.rows.length + '"]'); if (r) { r.classList.remove('shake'); void r.offsetWidth; r.classList.add('shake'); } sfx.bad(); toast(msg, 1800); }
+function key(k){
+  if (busy || G.over) return;
+  if (k === 'Enter') return submit();
+  if (k === 'Backspace') { G.cur = G.cur.slice(0, -1); draw(); return; }
+  if (/^[A-Z]$/.test(k) && G.cur.length < len) { G.cur += k; tone(500 + G.cur.length * 40, 0, .05, 'sine', .05); draw(); }
+}
+function submit(){
+  const w = G.cur;
+  if (w.length < len) return shakeRow('Il manque des lettres.');
+  if (dictOk && !DICT[len].has(w)) return shakeRow('« ' + w + ' » n\'est pas dans le dictionnaire.');
+  if (hard() && G.rows.length) {
+    const prev = G.rows;
+    for (const row of prev) for (let i = 0; i < len; i++) { if (row.s[i] === 'hit' && w[i] !== row.w[i]) return shakeRow('Mode difficile : la lettre ' + (i + 1) + ' doit être ' + row.w[i] + '.'); }
+    for (const row of prev) { const need = {}; row.w.split('').forEach((ch, i) => { if (row.s[i] !== 'miss') need[ch] = (need[ch] || 0) + 1; }); for (const ch in need) if (w.split(ch).length - 1 < need[ch]) return shakeRow('Mode difficile : il faut utiliser le ' + ch + '.'); }
+  }
+  const s = score(w, G.ans); G.rows.push({w, s}); G.cur = '';
+  G.won = s.every(x => x === 'hit'); G.over = G.won || G.rows.length >= TRIES;
+  busy = true; save(); draw(G.rows.length - 1);
+  setTimeout(() => { busy = false; draw(G.won ? 'win' : undefined); info(); if (G.over) finish(); else sfx.move(); }, len * 220 + 600);
+}
+function finish(){
+  const st = stat('arc_mm', v => { const k = 'l' + len; const s = v[k] = v[k] || {p: 0, w: 0, cs: 0, ms: 0, d: [0, 0, 0, 0, 0, 0]}; s.p++; if (G.won) { s.w++; s.d[G.rows.length - 1]++; s.cs++; s.ms = Math.max(s.ms, s.cs); } else s.cs = 0; v.g = (v.g | 0) + 1; });
+  (G.won ? sfx.win : sfx.lose)();
+  setTimeout(() => showStats(true), 900);
+}
+function grid(){ const e = {hit: $('cbChk').checked ? '🟧' : '🟩', near: $('cbChk').checked ? '🟦' : '🟨', miss: '⬛'}; return G.rows.map(r => r.s.map(x => e[x]).join('')).join('\n'); }
+function share(){
+  const txt = '🔤 Mot mystère' + (mode === 'day' ? ' n°' + dayNo() : '') + ' · ' + len + ' lettres · ' + (G.won ? G.rows.length : 'X') + '/' + TRIES + (hard() ? ' (difficile)' : '') + '\n' + grid() + '\n' + location.origin + location.pathname;
+  if (navigator.share) navigator.share({text: txt}).catch(() => {});
+  else (navigator.clipboard ? navigator.clipboard.writeText(txt) : Promise.reject()).then(() => toast('Résultat copié !'), () => toast('Copie impossible sur ce navigateur.'));
+}
+function showStats(end){
+  const s = (ls.get('arc_mm', {})['l' + len]) || {p: 0, w: 0, cs: 0, ms: 0, d: [0, 0, 0, 0, 0, 0]}, mx = Math.max(1, ...s.d);
+  const html = (end ? '<p class="note" style="font-size:15px">' + (G.won ? '🎉 Trouvé en <b>' + G.rows.length + '</b> essai' + (G.rows.length > 1 ? 's' : '') + ' !' : 'Le mot était <b style="color:var(--gold)">' + G.ans + '</b>.') + '</p>' : '') +
+    '<div class="lbl" style="margin:4px 0 0">Statistiques · ' + len + ' lettres</div><div class="st4"><div><b>' + s.p + '</b>parties</div><div><b>' + (s.p ? Math.round(s.w / s.p * 100) : 0) + '</b>% gagnées</div><div><b>' + s.cs + '</b>série</div><div><b>' + s.ms + '</b>record</div></div>' +
+    '<div class="dist">' + s.d.map((n, i) => '<div><span>' + (i + 1) + '</span><i class="' + (end && G.won && G.rows.length === i + 1 ? 'me' : '') + '" style="width:' + Math.max(8, n / mx * 100) + '%">' + n + '</i></div>').join('') + '</div>';
+  const btns = [];
+  if (end) btns.push(['📤 Partager', () => { share(); return false; }]);
+  btns.push([mode === 'day' && G.over ? '🎲 Partie libre' : end ? 'Rejouer' : 'Fermer', () => { if (mode === 'day' && G.over) { setMode('free'); } else if (end) start(true); }, !end]);
+  modal(end ? (G.won ? 'Gagné !' : 'Perdu…') : 'Statistiques', html, btns.concat(end ? [['Fermer', null, true]] : []));
+}
+function setMode(m){ mode = m; ls.set('arc_mm_mode', m); start(); }
+$('kbd').addEventListener('click', e => { const b = e.target.closest('.k'); if (b) key(b.dataset.k); });
+$('modeSeg').onclick = e => { const v = e.target.dataset.v; if (v && v !== mode) { sfx.click(); setMode(v); } };
+$('lenSeg').onclick = e => { const v = +e.target.dataset.v; if (v && v !== len) { len = v; ls.set('arc_mm_len', v); sfx.click(); start(); } };
+$('statBtn').onclick = () => showStats(false);
+$('helpBtn').onclick = () => modal('Comment jouer', '<div class="help"><p>Trouve le mot mystère en ' + TRIES + ' essais. Chaque essai doit être un vrai mot français (les accents ne comptent pas).</p><p>Après chaque essai, les cases changent de couleur :</p><div class="ex"><div class="tl hit">P</div><div class="tl miss">I</div><div class="tl near">A</div><div class="tl miss">N</div><div class="tl miss">O</div></div><p><b>Vert</b> : la lettre est à la bonne place. <b>Orange</b> : elle est dans le mot mais ailleurs. <b>Sombre</b> : elle n\'y est pas.</p><p><b>Mot du jour</b> : le même pour tout le monde, un essai par jour. <b>Partie libre</b> : autant de mots que tu veux.</p><p><b>Mode difficile</b> : tu dois réutiliser les lettres déjà trouvées.</p></div>', [['Compris']]);
+$('hardChk').checked = ls.get('arc_mm_hard', false); $('hardChk').onchange = e => { ls.set('arc_mm_hard', e.target.checked); if (G.rows.length && !G.over) toast('Le mode difficile s\'applique à tes prochains essais.'); };
+$('cbChk').checked = ls.get('arc_mm_cb', false); document.body.classList.toggle('cb', $('cbChk').checked); $('cbChk').onchange = e => { ls.set('arc_mm_cb', e.target.checked); document.body.classList.toggle('cb', e.target.checked); };
+addEventListener('keydown', e => {
+  if ($('modal') || e.ctrlKey || e.metaKey || e.altKey) return;
+  if (e.key === 'Enter') { e.preventDefault(); key('Enter'); } else if (e.key === 'Backspace') { e.preventDefault(); key('Backspace'); }
+  else if (e.key.length === 1) { const ch = e.key.normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase(); if (/^[A-Z]$/.test(ch)) key(ch); }
+});
+addEventListener('resize', () => G && draw());
+info('Chargement du dictionnaire…'); start(); requestAnimationFrame(() => draw());
+fetch('mots.txt').then(r => { if (!r.ok) throw 0; return r.text(); }).then(t => {
+  t.split('\n').forEach(l => { const w = l.trim().split(' '); if (w[0]) DICT[w[0].length] = new Set(w); });
+  dictOk = !!(DICT[5] && DICT[6] && DICT[7]); info();
+  if (!ls.get('arc_mm_seen', false)) { ls.set('arc_mm_seen', true); $('helpBtn').click(); }
+}).catch(() => { dictOk = false; info(); toast('Dictionnaire indisponible : tous les mots sont acceptés pour l\'instant.'); });
+</script>
+</body>
+</html>
