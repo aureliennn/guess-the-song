@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Quatre en ligne — Arcade Néon</title>
+<meta name="description" content="Aligne 4 jetons avant l'ordinateur ou un ami.">
+<meta name="theme-color" content="#07040f">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;800&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="arcade.css">
+<style>
+:root{--p1:#ff4fa3;--p2:#ffd166}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 290px;gap:18px;align-items:start}
+.left{width:min(100%,620px,calc((100vh - 230px) * 7 / 6));width:min(100%,620px,calc((100dvh - 230px) * 7 / 6));min-width:min(100%,280px);justify-self:center;display:grid;gap:10px}
+@media(max-width:900px){.layout{grid-template-columns:minmax(0,1fr)}}
+.score{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:10px;font-weight:700;font-size:14px}
+.score .p{display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:14px;border:1px solid transparent;min-width:0}
+.score .p:last-child{justify-content:flex-end}
+.score .p.on{border-color:var(--line);background:rgba(255,255,255,.06)}
+.score .tk{width:16px;height:16px;border-radius:50%;flex:none}
+.score .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.score .num{font:800 22px/1 Unbounded,sans-serif}
+.ghost{display:grid;grid-template-columns:repeat(7,1fr);height:min(9vw,52px);padding:0 2%}
+.ghost span{display:flex;justify-content:center;align-items:center}
+.ghost i{width:72%;aspect-ratio:1/1;border-radius:50%;opacity:0;transition:opacity .12s}
+.ghost i.on{opacity:.55}
+.bd{position:relative;display:grid;grid-template-columns:repeat(7,1fr);gap:1.6%;padding:2%;aspect-ratio:7/6;border-radius:18px;background:linear-gradient(160deg,#3b23a8,#22126a);box-shadow:0 20px 60px rgba(0,0,0,.5),inset 0 0 0 2px rgba(255,255,255,.12),0 0 40px rgba(120,80,255,.3);overflow:hidden;touch-action:manipulation;user-select:none;-webkit-user-select:none}
+.cell{position:relative;aspect-ratio:1/1;border-radius:50%;background:#0d0720;box-shadow:inset 0 4px 8px rgba(0,0,0,.6);cursor:pointer;padding:0}
+.tok{position:absolute;inset:0;border-radius:50%;box-shadow:inset 0 -5px 10px rgba(0,0,0,.25),inset 0 5px 8px rgba(255,255,255,.35)}
+.t1{background:radial-gradient(circle at 35% 30%,#ff9fd0,var(--p1) 60%,#c51f72)}
+.t2{background:radial-gradient(circle at 35% 30%,#fff1c2,var(--p2) 60%,#d99a1a)}
+.tok.drop{animation:drop .5s cubic-bezier(.4,0,.6,1)}
+@keyframes drop{from{transform:translateY(calc(var(--d) * -118%))}70%{transform:translateY(0)}85%{transform:translateY(-9%)}to{transform:translateY(0)}}
+.tok.win{animation:pulse 1s ease-in-out infinite;box-shadow:0 0 0 4px #fff,0 0 22px #fff}
+@keyframes pulse{50%{transform:scale(.84)}}
+.status{text-align:center;font-weight:700;font-size:15px;min-height:22px}
+@media(max-width:420px){.score{font-size:12px}.score .num{font-size:18px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top"><a class="back" href="./">← Arcade</a><h1>🔴 Quatre en ligne</h1></div>
+  <div class="layout">
+    <div class="left">
+      <div class="score" id="score"></div>
+      <div class="ghost" id="ghost" aria-hidden="true"></div>
+      <div class="bd" id="bd" role="grid" aria-label="Plateau"></div>
+      <div class="status" id="status" role="status"></div>
+    </div>
+    <aside class="panel glass">
+      <button class="btn" id="newBtn">Nouvelle partie</button>
+      <div><div class="lbl" style="margin-top:4px">Mode</div><div class="seg" id="modeSeg"></div></div>
+      <div id="lvlWrap"><div class="lbl">Niveau de l'ordinateur</div><div class="seg" id="lvlSeg"></div></div>
+      <div class="note">Fais tomber tes jetons dans les colonnes. Le premier qui en aligne 4 (en ligne, en colonne ou en diagonale) gagne. Celui qui commence change à chaque partie.<br><br>Au clavier : touches 1 à 7.</div>
+      <div class="note" id="stats"></div>
+    </aside>
+  </div>
+</div>
+<script src="arcade.js"></script>
+<script>
+const R = 6, C = 7, ORDER = [3, 2, 4, 1, 5, 0, 6];
+const LEVELS = [{n: 'Facile', d: 2, rnd: .3}, {n: 'Moyen', d: 4, rnd: 0}, {n: 'Difficile', d: 7, rnd: 0}];
+const WIN = []; // toutes les fenêtres de 4
+for (let r = 0; r < R; r++) for (let c = 0; c < C; c++) [[0, 1], [1, 0], [1, 1], [1, -1]].forEach(([dr, dc]) => { const w = []; for (let k = 0; k < 4; k++) { const rr = r + dr * k, cc = c + dc * k; if (rr < 0 || rr >= R || cc < 0 || cc >= C) return; w.push(rr * C + cc); } WIN.push(w); });
+let b, turn, first = ls.get('arc_c4_first', 1), over = null, last = -1, busy = false, mode = ls.get('arc_c4_mode', 'ai'), level = ls.get('arc_c4_lvl', 1), tally = {1: 0, 2: 0}, gid = 0;
+
+const dropRow = (bb, c) => { for (let r = R - 1; r >= 0; r--) if (!bb[r * C + c]) return r; return -1; };
+const winLine = (bb, p) => WIN.find(w => w.every(i => bb[i] === p));
+function scoreFor(bb, p){
+  const o = 3 - p; let s = 0;
+  for (let r = 0; r < R; r++) if (bb[r * C + 3] === p) s += 3;
+  for (const w of WIN) { let a = 0, e = 0, z = 0; for (const i of w) { if (bb[i] === p) a++; else if (!bb[i]) e++; else z++; } if (a === 3 && e === 1) s += 5; else if (a === 2 && e === 2) s += 2; if (z === 3 && e === 1) s -= 4; }
+  return s;
+}
+function negamax(bb, depth, alpha, beta, p){
+  const o = 3 - p;
+  if (winLine(bb, o)) return -(100000 + depth);
+  if (bb.every(x => x)) return 0;
+  if (!depth) return scoreFor(bb, p);
+  for (const c of ORDER) { const r = dropRow(bb, c); if (r < 0) continue; bb[r * C + c] = p; const v = -negamax(bb, depth - 1, -beta, -alpha, o); bb[r * C + c] = 0; if (v > alpha) alpha = v; if (alpha >= beta) break; }
+  return alpha;
+}
+function aiCol(){
+  const lv = LEVELS[level], free = ORDER.filter(c => dropRow(b, c) >= 0), p = turn;
+  for (const c of free) { const r = dropRow(b, c); b[r * C + c] = p; const w = winLine(b, p); b[r * C + c] = 0; if (w) return c; }
+  if (Math.random() < lv.rnd) return free[Math.random() * free.length | 0];
+  let best = free[0], bv = -Infinity;
+  for (const c of free) { const r = dropRow(b, c); b[r * C + c] = p; const v = -negamax(b, lv.d - 1, -Infinity, -bv, 3 - p); b[r * C + c] = 0; if (v > bv) { bv = v; best = c; } }
+  return best;
+}
+
+const bd = $('bd'), cells = [];
+for (let i = 0; i < R * C; i++) { const d = document.createElement('button'); d.type = 'button'; d.className = 'cell'; d.dataset.c = i % C; bd.appendChild(d); cells.push(d); }
+$('ghost').innerHTML = Array.from({length: C}, () => '<span><i></i></span>').join('');
+const ghosts = [...$('ghost').querySelectorAll('i')];
+bd.addEventListener('click', e => { const d = e.target.closest('.cell'); if (d) human(+d.dataset.c); });
+bd.addEventListener('pointermove', e => { const d = e.target.closest('.cell'); ghostAt(d && e.pointerType === 'mouse' ? +d.dataset.c : -1); });
+bd.addEventListener('pointerleave', () => ghostAt(-1));
+function ghostAt(c){ ghosts.forEach((g, i) => { g.className = i === c && !over && !busy && canHuman() ? 'on t' + turn : ''; }); }
+const canHuman = () => mode === 'pvp' || turn === 1;
+const pname = p => mode === 'ai' ? (p === 1 ? 'Toi' : 'Ordinateur') : 'Joueur ' + p;
+
+function render(anim){
+  cells.forEach((d, i) => { const v = b[i]; d.innerHTML = v ? '<span class="tok t' + v + (i === anim ? ' drop' : '') + (over && over.line && over.line.includes(i) ? ' win' : '') + '" style="--d:' + ((i / C | 0) + 1) + '"></span>' : ''; d.setAttribute('aria-label', 'Colonne ' + (i % C + 1) + ', ligne ' + ((i / C | 0) + 1) + (v ? ', ' + pname(v) : ', vide')); });
+  $('score').innerHTML = [1, 2].map(p => '<div class="p' + (!over && turn === p ? ' on' : '') + '">' + (p === 2 ? '<span class="num">' + tally[2] + '</span>' : '') + '<span class="tk t' + p + '"></span><span class="nm">' + pname(p) + (mode === 'ai' && p === 2 ? ' · ' + LEVELS[level].n : '') + '</span>' + (p === 1 ? '<span class="num">' + tally[1] + '</span>' : '') + '</div>').join('<span class="note">contre</span>');
+  $('status').textContent = over ? (over.w ? (mode === 'ai' ? (over.w === 1 ? '🏆 Tu as gagné !' : 'L\'ordinateur a gagné.') : '🏆 ' + pname(over.w) + ' a gagné !') : '🤝 Match nul : le plateau est plein.') : busy ? '🤖 L\'ordinateur réfléchit…' : (mode === 'ai' ? (turn === 1 ? 'À toi de jouer' : '') : 'Au tour du ' + pname(turn));
+  $('modeSeg').innerHTML = [['ai', '🤖 Contre l\'ordi'], ['pvp', '👥 À deux']].map(m => '<button type="button" data-v="' + m[0] + '" class="' + (m[0] === mode ? 'on' : '') + '">' + m[1] + '</button>').join('');
+  $('lvlSeg').innerHTML = LEVELS.map((l, i) => '<button type="button" data-v="' + i + '" class="' + (i === level ? 'on' : '') + '">' + l.n + '</button>').join('');
+  $('lvlWrap').classList.toggle('hide', mode !== 'ai');
+  const s = ls.get('arc_c4', {}); $('stats').innerHTML = 'Contre l\'ordinateur : <b>' + (s.w | 0) + '</b> victoire' + ((s.w | 0) > 1 ? 's' : '') + ', <b>' + (s.d | 0) + '</b> nul' + ((s.d | 0) > 1 ? 's' : '') + ', <b>' + (s.l | 0) + '</b> défaite' + ((s.l | 0) > 1 ? 's' : '') + '.';
+}
+function newGame(){
+  gid++; b = new Array(R * C).fill(0); over = null; last = -1; busy = false; turn = first; first = 3 - first; ls.set('arc_c4_first', first);
+  closeModal(); render(); ghostAt(-1); if (mode === 'ai' && turn === 2) aiTurn();
+}
+function drop(c){
+  const r = dropRow(b, c); if (r < 0) return false;
+  const i = r * C + c; b[i] = turn; last = i; tone(260 + r * 40, 0, .12, 'triangle', .1); setTimeout(() => tone(140, 0, .1, 'sine', .14), 380);
+  const line = winLine(b, turn);
+  if (line) over = {w: turn, line}; else if (b.every(x => x)) over = {w: 0};
+  else turn = 3 - turn;
+  render(i); if (over) finish(); return true;
+}
+function human(c){ if (over || busy || !canHuman()) return; if (!drop(c)) { sfx.bad(); return; } ghostAt(-1); if (!over && mode === 'ai') aiTurn(); }
+function aiTurn(){ busy = true; render(); const g = gid; setTimeout(() => { if (g !== gid) return; const c = aiCol(); busy = false; if (g === gid) drop(c); }, 520); }
+function finish(){
+  if (over.w) tally[over.w]++;
+  stat('arc_c4', s => { s.g = (s.g | 0) + 1; if (mode === 'ai') { if (!over.w) s.d = (s.d | 0) + 1; else if (over.w === 1) s.w = (s.w | 0) + 1; else s.l = (s.l | 0) + 1; } });
+  const lose = mode === 'ai' && over.w === 2; (over.w ? (lose ? sfx.lose : sfx.win) : sfx.ok)(); render(last);
+  setTimeout(() => modal(over.w ? (lose ? 'Perdu…' : 'Victoire !') : 'Match nul', '<p class="note">' + esc($('status').textContent) + '</p>', [['Rejouer', newGame], ['Voir le plateau', null, true]]), 1100);
+}
+$('newBtn').onclick = () => { if (!over && b.some(x => x)) modal('Nouvelle partie ?', '<p class="note">La partie en cours sera abandonnée.</p>', [['Oui', newGame], ['Continuer', null, true]]); else newGame(); };
+$('modeSeg').onclick = e => { const v = e.target.dataset.v; if (!v || v === mode) return; mode = v; ls.set('arc_c4_mode', v); tally = {1: 0, 2: 0}; sfx.click(); newGame(); };
+$('lvlSeg').onclick = e => { const v = e.target.dataset.v; if (v === undefined) return; level = +v; ls.set('arc_c4_lvl', level); sfx.click(); render(); };
+addEventListener('keydown', e => { if (!$('modal') && /^[1-7]$/.test(e.key)) human(+e.key - 1); });
+newGame();
+</script>
+</body>
+</html>
