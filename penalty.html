@@ -16,6 +16,10 @@
   #brand span { color:var(--accent); }
   #mute { position:fixed; top:10px; right:12px; z-index:6; background:var(--panel); color:var(--ink); border:1px solid var(--line);
           border-radius:10px; padding:7px 11px; font-size:13px; cursor:pointer; font-family:inherit; }
+  #quitP { position:fixed; top:10px; left:12px; z-index:6; background:rgba(255,90,90,.9); color:#fff; border:1px solid rgba(255,255,255,.35);
+           border-radius:10px; padding:7px 11px; font-size:13px; font-weight:700; cursor:pointer; font-family:inherit; }
+  .arc { display:inline-block; margin-bottom:12px; color:var(--accent); text-decoration:none; font-weight:700; font-size:14px;
+         background:rgba(20,30,56,.9); border:1px solid var(--line); border-radius:9px; padding:7px 12px; }
   #score { top:10px; left:50%; transform:translateX(-50%); background:var(--panel); border:1px solid var(--line); border-radius:14px;
            padding:8px 18px 9px; text-align:center; min-width:min(92vw,440px); }
   #score .stage { color:var(--accent); font-size:11px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; }
@@ -93,6 +97,7 @@
 <canvas id="c"></canvas>
 <div id="brand" class="hud">⚽ PENALTY <span>CUP</span> 3D</div>
 <button id="mute">🔊 Son</button>
+<button id="quitP" class="hide" type="button">✕ Abandonner</button>
 <div id="score" class="hud hide"></div>
 <div id="msg" class="hud hide"></div>
 <div id="gauge" class="hud hide"><i></i></div>
@@ -331,8 +336,8 @@ function selectTeam(t){
 function showMenu(){
   phase = 'menu'; view = 'menu'; m = null;
   [elScore, elMsg, elHint, elGauge].forEach(e => e.classList.add('hide')); aimMark.visible = false;
-  ov.className = 'menu';
-  ov.innerHTML = `<div class="left"><h2>Choisis ta sélection</h2><p>16 nations, 4 séances de tirs au but, un seul trophée.</p><div class="teams"></div>
+  ov.className = 'menu'; inMatch(false);
+  ov.innerHTML = `<div class="left"><a class="arc" href="./">← Arcade Néon</a><h2>Choisis ta sélection</h2><p>16 nations, 4 séances de tirs au but, un seul trophée.</p><div class="teams"></div>
     <div class="lab">Difficulté</div><div class="seg"><button data-d="-1">Facile</button><button data-d="0">Normal</button><button data-d="1">Difficile</button></div></div>
     <div class="right"><div class="card"></div></div>`;
   const grid = ov.querySelector('.teams');
@@ -346,9 +351,12 @@ function pathHtml(){
   return '<div class="path">' + STAGES.map((s, i) => { const r = results[i];
     return `<div class="${i === results.length ? 'cur' : ''}"><span>${s}</span>${opps[i].flag}${opps[i].name}<em style="color:${r ? (r.w ? 'var(--good)' : 'var(--bad)') : 'var(--mute)'}">${r ? r.p + ' – ' + r.a : '·'}</em></div>`; }).join('') + '</div>';
 }
+function inMatch(on){ $('quitP').classList.toggle('hide', !on); $('brand').classList.toggle('hide', on); }
+$('quitP').onclick = () => { if (phase === 'menu' || phase === 'over') return; if (confirm('Abandonner le tournoi et revenir au menu ?')) { sfx.click(); showMenu(); } };
 function showEnd(icon, title, text, label, action){
-  ov.className = 'end';
-  ov.innerHTML = `<div class="panel">${icon ? `<div class="big">${icon}</div>` : ''}<h2>${title}</h2><p>${text}</p>${pathHtml()}<button class="btn">${label}</button></div>`;
+  ov.className = 'end'; inMatch(false);
+  ov.innerHTML = `<div class="panel">${icon ? `<div class="big">${icon}</div>` : ''}<h2>${title}</h2><p>${text}</p>${pathHtml()}<button class="btn">${label}</button>${action !== showMenu ? '<button class="btn alt" style="background:rgba(20,30,56,.9);color:var(--ink);border:1px solid var(--line)">Retour au menu</button>' : ''}<a class="arc" href="./" style="margin:14px 0 0">← Arcade Néon</a></div>`;
+  const alt = ov.querySelector('.btn.alt'); if (alt) alt.onclick = () => { document.querySelectorAll('.confetti').forEach(c => c.remove()); sfx.click(); showMenu(); };
   ov.querySelector('.btn').onclick = () => { document.querySelectorAll('.confetti').forEach(c => c.remove()); sfx.click(); action(); };
 }
 function confetti(){
@@ -363,7 +371,7 @@ function startTournament(){
   stage = 0; results = []; startMatch();
 }
 function startMatch(){
-  ov.className = 'hide'; ov.innerHTML = '';
+  ov.className = 'hide'; ov.innerHTML = ''; inMatch(true);
   m = { p:[], a:[], opp:opps[stage], delay:0 };
   setupKick('p'); camera.position.set(11, 7, 24); view = 'shoot';
   elScore.classList.remove('hide'); updateHud(); hint('');
