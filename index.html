@@ -34,7 +34,7 @@
 .feat p{color:#d8d0f2;font-size:14px;margin-top:4px;max-width:56ch}
 .feat .play{font-size:16px;padding:14px 22px}
 .badge{display:inline-block;font-size:10px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;padding:4px 8px;border-radius:999px;background:var(--gold);color:#1a1200;margin-bottom:6px}
-.badge.new{background:var(--ok);color:#04130b}.badge.old{background:rgba(255,255,255,.14);color:var(--txt)}
+.badge.new{background:var(--ok);color:#04130b}.badge.top{background:var(--acc);color:#fff}.badge.old{background:rgba(255,255,255,.14);color:var(--txt)}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px}
 .card{position:relative;display:flex;flex-direction:column;gap:6px;padding:16px;border-radius:20px;text-decoration:none;color:var(--txt);border:1px solid hsla(var(--h),90%,68%,.32);background:linear-gradient(150deg,hsla(var(--h),90%,60%,.22),rgba(255,255,255,.03) 70%);transition:transform .15s,box-shadow .15s,border-color .15s;min-height:190px}
 .card:hover,.card:focus-visible{transform:translateY(-3px);border-color:hsl(var(--h),90%,70%);box-shadow:0 12px 36px hsla(var(--h),90%,55%,.28)}
@@ -46,7 +46,7 @@
 .foot{margin-top:24px;display:flex;gap:12px;flex-wrap:wrap;justify-content:space-between;font-size:12px;color:var(--mut)}
 #notes ul{list-style:none;display:grid;gap:8px;text-align:left}
 #notes li{padding:9px 12px;border-radius:12px;background:rgba(255,255,255,.05);font-size:14px;line-height:1.35}
-#notes li b{display:block}
+#notes li b{display:block}#notes details{margin-top:10px;text-align:left}#notes summary{cursor:pointer;font-size:13px;font-weight:700;color:var(--mut);padding:6px 2px}#notes details ul{margin-top:6px}
 #inst ol{text-align:left;margin:6px 0 4px 20px;display:grid;gap:5px;font-size:14px;line-height:1.4}
 @media(max-width:640px){.feat{grid-template-columns:auto 1fr;padding:16px;gap:14px}.feat .ic{width:64px;height:64px;font-size:34px;border-radius:18px}.feat .play{grid-column:1/-1;width:100%}.grid{grid-template-columns:1fr 1fr;gap:10px}.card{min-height:0;padding:12px;gap:4px}.card .ic{width:44px;height:44px;font-size:24px;border-radius:12px}.card h3{font-size:14px}.card p{font-size:12px}.card .badge{top:10px;right:10px;font-size:9px;padding:3px 6px}}
 @media(max-width:340px){.grid{grid-template-columns:1fr}}
@@ -56,17 +56,17 @@
 <div class="wrap">
   <header class="hero">
     <h1 class="logo">ARCADE NÉON</h1>
-    <p class="tag">Une seule appli, plein de jeux : blind test en 3D, échecs, mots croisés, sudoku… Choisis ton jeu.</p>
+    <p class="tag">Une seule appli, plein de jeux : un monde 3D en ligne, un blind test, les échecs, les mots croisés, le sudoku… Choisis ton jeu.</p>
     <div class="chips" id="chips"></div>
   </header>
 
   <div id="recentWrap" class="hide"><div class="lbl" style="margin-top:0">Reprendre</div><div class="recent" id="recent"></div></div>
 
-  <div class="lbl">Jeu vedette</div>
-  <a class="feat" href="blindtest.html" data-g="blindtest">
-    <span class="ic" aria-hidden="true">🎵</span>
-    <span><span class="badge">Vedette</span><h2>Guess the Song 3D</h2><p>Le blind test en 3D : choisis la bonne porte, affronte tes amis en ligne, relève le défi du jour.</p><span class="note" id="featStat"></span></span>
-    <span class="btn play">Jouer ▶</span>
+  <div class="lbl">À la une</div>
+  <a class="feat" href="monde.html" data-g="world">
+    <span class="ic" aria-hidden="true">🌐</span>
+    <span><span class="badge">Nouveau · en ligne</span><h2>Monde Néon</h2><p>Un monde 3D partagé : crée ton avatar, croise les autres joueurs en direct, discute, construis avec des blocs, affronte le parcours au-dessus de la lave et passe les portails vers tous les jeux.</p><span class="note" id="featStat"></span></span>
+    <span class="btn play">Entrer ▶</span>
   </a>
 
   <div class="lbl">Tous les jeux</div>
@@ -80,29 +80,31 @@
 
 <script src="arcade.js"></script>
 <script>
-const NOTES_V = '4.0';
+const NOTES_V = '4.1';
 const fmt = n => Number(n || 0).toLocaleString('fr-FR');
 const GAMES = [
   {id: 'chess', href: 'echecs.html', e: '♞', n: 'Échecs', d: 'Contre l\'ordinateur (3 niveaux) ou à deux sur le même écran.', b: 'new', h: 205,
     st: () => { const s = ls.get('arc_chess', {}); return (s.w || s.l || s.d) ? (s.w | 0) + ' victoire' + ((s.w | 0) > 1 ? 's' : '') + ' · ' + (s.d | 0) + ' nul' + ((s.d | 0) > 1 ? 's' : '') + ' · ' + (s.l | 0) + ' défaite' + ((s.l | 0) > 1 ? 's' : '') : (s.g ? s.g + ' partie' + (s.g > 1 ? 's' : '') : 'Pas encore joué'); }},
   {id: 'cw', href: 'motscroises.html', e: '✏️', n: 'Mots croisés', d: 'Une nouvelle grille à chaque partie, avec ses définitions.', b: 'new', h: 150,
     st: () => { const s = ls.get('arc_cw', {}); return s.solved ? s.solved + ' grille' + (s.solved > 1 ? 's' : '') + ' résolue' + (s.solved > 1 ? 's' : '') + (s.best ? ' · record ' + fmtTime(s.best) : '') : 'Pas encore joué'; }},
+  {id: 'mm', href: 'motmystere.html', e: '🔤', n: 'Mot mystère', d: 'Trouve le mot en 6 essais : mot du jour ou parties libres.', b: 'new', h: 95,
+    st: () => { const s = ls.get('arc_mm', {}); const w = ['l5', 'l6', 'l7'].reduce((a, k) => a + ((s[k] || {}).w | 0), 0); return s.g ? w + ' mot' + (w > 1 ? 's' : '') + ' trouvé' + (w > 1 ? 's' : '') + ' sur ' + s.g : 'Pas encore joué'; }},
   {id: 'sudoku', href: 'sudoku.html', e: '🔢', n: 'Sudoku', d: 'Grilles générées à l\'infini, 3 niveaux, notes au crayon.', b: 'new', h: 40,
     st: () => { const s = ls.get('arc_sudoku', {}); return s.solved ? s.solved + ' grille' + (s.solved > 1 ? 's' : '') + ' résolue' + (s.solved > 1 ? 's' : '') : 'Pas encore joué'; }},
   {id: 'c4', href: 'quatre.html', e: '🔴', n: 'Quatre en ligne', d: 'Aligne 4 jetons avant l\'ordinateur ou un ami.', b: 'new', h: 330,
     st: () => { const s = ls.get('arc_c4', {}); return (s.w || s.l || s.d) ? (s.w | 0) + ' V · ' + (s.d | 0) + ' N · ' + (s.l | 0) + ' D contre l\'ordi' : (s.g ? s.g + ' partie' + (s.g > 1 ? 's' : '') : 'Pas encore joué'); }},
-  {id: 'blindtest', href: 'blindtest.html', e: '🎵', n: 'Guess the Song 3D', d: 'Le blind test en 3D, en solo ou en duel en ligne.', h: 268,
+  {id: 'blindtest', href: 'blindtest.html', e: '🎵', n: 'Guess the Song 3D', d: 'Le blind test en 3D, en solo ou en duel en ligne.', b: 'top', h: 268,
     st: () => { const s = ls.get('gs_stats', {}); return s.games ? s.games + ' partie' + (s.games > 1 ? 's' : '') + ' · ' + fmt(s.pts) + ' pts' : 'Pas encore joué'; }},
   {id: 'foot', href: 'foot.html', e: '⚽', n: 'Nations Cup 3D', d: 'Un match de foot complet en 3D, avec compétition.', b: 'old', h: 120, st: () => 'Classique'},
   {id: 'pen', href: 'penalty.html', e: '🥅', n: 'Tirs au but', d: 'La séance de tirs au but en 3D.', b: 'old', h: 20, st: () => 'Classique'}
 ];
-const BADGE = {new: 'Nouveau', old: 'Classique'};
+const BADGE = {new: 'Nouveau', old: 'Classique', top: 'Populaire'};
 function render(){
   $('games').innerHTML = GAMES.map(g => '<a class="card" style="--h:' + g.h + '" href="' + g.href + '" data-g="' + g.id + '">' + (g.b ? '<span class="badge ' + g.b + '">' + BADGE[g.b] + '</span>' : '') + '<span class="ic" aria-hidden="true">' + g.e + '</span><h3>' + esc(g.n) + '</h3><p>' + esc(g.d) + '</p><span class="st">' + esc(g.st()) + '</span></a>').join('');
-  $('featStat').textContent = GAMES.find(g => g.id === 'blindtest').st();
+  { const w = ls.get('arc_world', {}), c = ls.get('arc_coins', 0), b = ls.get('arc_obby_best', 0); $('featStat').textContent = (c || w.obby) ? '🪙 ' + c + ' pièce' + (c > 1 ? 's' : '') + (b ? ' · parcours en ' + b + ' s' : '') : 'Joue avec les autres joueurs connectés, en direct.'; }
   const gs = ls.get('gs_stats', {}), ch = ls.get('arc_chess', {}), cw = ls.get('arc_cw', {}), su = ls.get('arc_sudoku', {}), c4 = ls.get('arc_c4', {});
-  const total = (gs.games | 0) + (ch.g | 0) + (cw.solved | 0) + (su.solved | 0) + (c4.g | 0), name = String(ls.get('gs_name', '') || '');
-  $('chips').innerHTML = (name ? '<span class="chip">👤 ' + esc(name) + '</span>' : '') + '<span class="chip">🎮 ' + GAMES.length + ' jeux</span>' + (total ? '<span class="chip">🏁 ' + fmt(total) + ' partie' + (total > 1 ? 's' : '') + ' terminée' + (total > 1 ? 's' : '') + '</span>' : '');
+  const mm = ls.get('arc_mm', {}), total = (gs.games | 0) + (ch.g | 0) + (cw.solved | 0) + (su.solved | 0) + (c4.g | 0) + (mm.g | 0), name = String(ls.get('gs_name', '') || '');
+  $('chips').innerHTML = (name ? '<span class="chip">👤 ' + esc(name) + '</span>' : '') + '<span class="chip">🎮 ' + (GAMES.length + 1) + ' jeux</span>' + (total ? '<span class="chip">🏁 ' + fmt(total) + ' partie' + (total > 1 ? 's' : '') + ' terminée' + (total > 1 ? 's' : '') + '</span>' : '');
   const rec = ls.get('arc_recent', []).map(id => GAMES.find(g => g.id === id)).filter(Boolean).slice(0, 4);
   $('recentWrap').classList.toggle('hide', !rec.length);
   $('recent').innerHTML = rec.map(g => '<a href="' + g.href + '" data-g="' + g.id + '"><span aria-hidden="true">' + g.e + '</span>' + esc(g.n) + '</a>').join('');
@@ -111,14 +113,17 @@ document.addEventListener('click', e => { const a = e.target.closest('a[data-g]'
 addEventListener('pageshow', render); render();
 
 function showNotes(){
-  modal('Quoi de neuf ? · v4.0', '<div id="notes"><ul>' +
+  modal('Quoi de neuf ? · v4.1', '<div id="notes"><ul>' +
+    '<li><b>🌐 Monde Néon</b>Un monde 3D en ligne : ton avatar personnalisable, les autres joueurs en direct, le chat, un parcours d\'obstacles au-dessus de la lave, une zone où chacun construit avec des blocs, des pièces à ramasser et des portails vers tous les jeux.</li>' +
+    '<li><b>🔤 Mot mystère</b>Trouve le mot en 6 essais : mot du jour (le même pour tous) ou parties libres, de 5 à 7 lettres, avec mode difficile et couleurs contrastées.</li>' +
+    '</ul><details><summary>Version 4.0</summary><ul>' +
     '<li><b>🕹️ Arcade Néon</b>Le site devient une salle d\'arcade : plusieurs jeux dans une seule appli, avec cet écran d\'accueil.</li>' +
     '<li><b>♞ Échecs</b>Contre l\'ordinateur (Facile, Moyen, Difficile) ou à deux, avec annulation, indice et reprise de la partie.</li>' +
     '<li><b>✏️ Mots croisés</b>Une grille différente à chaque fois, avec définitions, vérification et lettres à révéler.</li>' +
     '<li><b>🔢 Sudoku</b>Grilles générées à l\'infini en 3 niveaux, notes au crayon, indices et chrono.</li>' +
     '<li><b>🔴 Quatre en ligne</b>Contre l\'ordinateur ou un ami sur le même écran.</li>' +
-    '<li><b>🎵 Guess the Song</b>Le blind test reste là, avec tout ce que tu connais : il est maintenant le jeu vedette de l\'arcade.</li>' +
-    '</ul></div>', [['C\'est parti ▶', () => ls.set('arc_notes', NOTES_V)]]);
+    '<li><b>🎵 Guess the Song</b>Le blind test reste là, avec tout ce que tu connais.</li>' +
+    '</ul></details></div>', [['C\'est parti ▶', () => ls.set('arc_notes', NOTES_V)]]);
 }
 $('notesLink').onclick = e => { e.preventDefault(); showNotes(); };
 if (ls.get('arc_notes', '') !== NOTES_V) setTimeout(showNotes, 300);
