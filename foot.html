@@ -15,6 +15,7 @@
   .hud { position:fixed; pointer-events:none; z-index:2; }
   #brand { top:12px; left:14px; font-weight:800; font-size:18px; letter-spacing:.5px; text-shadow:0 2px 6px #000; }
   #brand span { color:var(--accent); }
+  @media (max-width:480px) { #brand { display:none; } }
   #topbtn { position:fixed; top:10px; right:12px; z-index:6; display:flex; gap:6px; }
   #topbtn button { background:var(--panel); color:var(--ink); border:1px solid var(--line); border-radius:10px; padding:7px 11px; font-size:13px; cursor:pointer; font-family:inherit; }
   #score, #tutoBox { top:10px; left:50%; transform:translateX(-50%); background:var(--panel); border:1px solid var(--line); border-radius:14px; text-align:center; }
@@ -429,7 +430,7 @@ function showMenu(){
     <div class="lab">Difficulté</div><div class="seg"><button data-d="-1">Facile</button><button data-d="0">Normal</button><button data-d="1">Difficile</button></div>
     <div class="lab">Commandes</div><div class="seg" id="mPre"><button data-p="arrows">Flèches + lettres</button><button data-p="zqsd">ZQSD + JKL</button><button data-p="perso">Personnaliser…</button></div>
     <div class="keys">${fmt('{move} bouger · {pass} passe · {shoot} tir · {lob} passe longue · {sprint} sprint')}</div>
-    <div class="links"><button id="mOpt">⚙ Options (son, caméra)</button><button id="mTuto">🎓 Entraînement</button><button id="mComp">🏆 Compétition directe</button><a href="penalty.html">Mode tirs au but ↗</a></div></div>
+    <div class="links"><button id="mOpt">⚙ Options (son, caméra)</button><button id="mTuto">🎓 Entraînement</button><button id="mComp">🏆 Compétition directe</button><a href="penalty.html">Mode tirs au but ↗</a><a href="./">← Arcade Néon</a></div></div>
     <div class="right"><div class="card"></div></div>`;
   const grid = ov.querySelector('.teams');
   TEAMS.forEach(t => { const b = document.createElement('button'); b.className = 'team'; b.innerHTML = `${t.flag}<span>${t.name}</span>`;
@@ -457,6 +458,7 @@ function resume(){ ov.className = 'hide'; keys.clear(); setState('play'); }
 function showPause(){
   setState('pause'); showPanel('', 'Pause', controlsHtml(), 'Reprendre ▶', resume, false, 'Quitter le match', showMenu);
   const b = document.createElement('button'); b.className = 'btn alt'; b.textContent = '⚙ Options (son, caméra, touches)'; b.onclick = () => showOptions(showPause); ov.querySelector('.panel').appendChild(b);
+  const a = document.createElement('a'); a.className = 'btn alt'; a.href = './'; a.textContent = '← Retour à l’arcade'; a.style.cssText = 'display:block;text-decoration:none;box-sizing:border-box'; ov.querySelector('.panel').appendChild(a);
 }
 // Options : volume, ambiance, caméra, changement de joueur, touches, plein écran
 function showOptions(back){
