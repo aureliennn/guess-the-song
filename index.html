@@ -80,7 +80,7 @@
 
 <script src="arcade.js"></script>
 <script>
-const NOTES_V = '4.3';
+const NOTES_V = '4.4';
 const fmt = n => Number(n || 0).toLocaleString('fr-FR');
 const GAMES = [
   {id: 'chess', href: 'echecs.html', e: '♞', n: 'Échecs', d: 'Contre l\'ordinateur (3 niveaux) ou à deux sur le même écran.', b: 'new', h: 205,
@@ -113,9 +113,13 @@ document.addEventListener('click', e => { const a = e.target.closest('a[data-g]'
 addEventListener('pageshow', render); render();
 
 function showNotes(){
-  modal('Quoi de neuf ? · v4.3', '<div id="notes"><ul>' +
+  modal('Quoi de neuf ? · v4.4', '<div id="notes"><ul>' +
+    '<li><b>🏎️ Course de voitures</b>Un circuit de 330 m au nord du Monde Néon, derrière les portails : prends une voiture au garage (aux couleurs de ton t-shirt), fais 3 tours chronométrés avec des points de passage, des plaques de turbo et le dérapage au frein à main.</li>' +
+    '<li><b>🏁 Classement des meilleurs tours</b>Ton meilleur tour est enregistré en ligne et affiché sur un grand panneau au bord du circuit. Les autres joueurs voient ta voiture rouler en direct.</li>' +
+    '<li><b>📱 Conduite sur téléphone</b>Le joystick sert de volant et d\'accélérateur, et le bouton devient « SORTIR ». Le chrono s\'affiche en haut, sur une seule ligne.</li>' +
+    '</ul><details><summary>Version 4.3</summary><ul>' +
     '<li><b>🛒 Boutique du Monde Néon</b>Dépense tes pièces : 7 chapeaux, 5 compagnons qui volent à côté de toi (jusqu\'au petit dragon), 4 traînées (dont des notes de musique) et 2 tenues. Tout est visible par les autres joueurs, et un cadeau de pièces t\'attend chaque jour.</li>' +
-    '</ul><details><summary>Version 4.2</summary><ul>' +
+    '</ul></details><details><summary>Version 4.2</summary><ul>' +
     '<li><b>🎮 Mini-jeux dans le Monde Néon</b>Au sud de la place : 🐱 Chat perché à plusieurs, 💥 Sol fragile au-dessus de la lave, 🪙 Pluie de pièces en 45 secondes, et des trampolines. Les records sont annoncés à tout le monde dans le chat.</li>' +
     '</ul></details><details><summary>Version 4.1</summary><ul>' +
     '<li><b>🌐 Monde Néon</b>Un monde 3D en ligne : ton avatar personnalisable, les autres joueurs en direct, le chat, un parcours d\'obstacles au-dessus de la lave, une zone où chacun construit avec des blocs, des pièces à ramasser et des portails vers tous les jeux.</li>' +
