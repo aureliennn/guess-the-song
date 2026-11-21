@@ -1,0 +1,442 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Mots croisés — Arcade Néon</title>
+<meta name="description" content="Mots croisés en ligne : une nouvelle grille à chaque partie, avec définitions.">
+<meta name="theme-color" content="#07040f">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;800&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="arcade.css">
+<style>
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:18px;align-items:start}
+@media(max-width:920px){.layout{grid-template-columns:minmax(0,1fr)}}
+.left{display:grid;gap:10px;min-width:0}
+.hud{display:flex;justify-content:space-between;gap:8px;font-weight:700;font-size:14px}
+.clue{display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:center;padding:10px 12px;border-radius:14px;background:linear-gradient(92deg,rgba(184,107,255,.3),rgba(56,225,255,.15));border:1px solid rgba(184,107,255,.5);min-height:52px}
+.clue button{width:36px;height:36px;border-radius:10px;background:rgba(10,6,24,.35);font-size:18px;font-weight:700}
+.clue p{font-size:15px;font-weight:600;line-height:1.3}
+.clue p b{font-family:Unbounded,sans-serif;font-size:13px;margin-right:6px;color:var(--gold)}
+.gw{display:flex;justify-content:center;overflow:auto;padding:4px 0}
+.cw{display:grid;gap:2px;user-select:none;-webkit-user-select:none;touch-action:manipulation}
+.cw .x{width:var(--cs,34px);height:var(--cs,34px)}
+.cw .k{position:relative;width:var(--cs,34px);height:var(--cs,34px);border-radius:5px;background:#efe9ff;color:#160b30;display:flex;align-items:center;justify-content:center;font:800 calc(var(--cs,34px) * .56)/1 Unbounded,Inter,sans-serif;cursor:pointer;padding:0;box-shadow:0 2px 0 rgba(0,0,0,.25)}
+.cw .k i{position:absolute;left:3px;top:2px;font:700 calc(var(--cs,34px) * .26)/1 Inter,sans-serif;font-style:normal;color:#6b4fc4}
+.cw .k.in{background:#cdbdff}
+.cw .k.cur{background:#38e1ff}
+.cw .k.bad{color:#e0203f;background:#ffd3dc}
+.cw .k.cur.bad{background:#7ee9ff}
+.cw .k.rev{color:#6b4fc4}
+.cw .k.done{background:#c9f7df}
+.cw .k.in.done{background:#a9ecc9}
+.lists{display:grid;gap:12px}
+.lists h3{font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--mut);margin-bottom:6px}
+.lists ol{list-style:none;display:grid;gap:2px;max-height:300px;overflow:auto}
+.lists li{padding:6px 8px;border-radius:8px;font-size:14px;line-height:1.3;cursor:pointer}
+.lists li b{display:inline-block;min-width:22px;color:var(--gold)}
+.lists li.on{background:rgba(184,107,255,.3)}
+.lists li.ok{color:var(--mut);text-decoration:line-through}
+.acts{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.acts button{padding:9px 4px;border-radius:12px;background:rgba(255,255,255,.07);border:1px solid var(--line);font-size:12px;font-weight:700;display:flex;flex-direction:column;align-items:center;gap:2px}
+.acts button span{font-size:17px}
+#kb{position:fixed;left:0;bottom:0;width:1px;height:1px;opacity:0;font-size:16px;border:0;padding:0;pointer-events:none}
+@media(max-width:920px){.clue{position:sticky;top:max(6px,env(safe-area-inset-top));z-index:5;background:linear-gradient(92deg,#3a2470,#1d3b57)}.lists{grid-template-columns:1fr 1fr}.lists ol{max-height:220px}}
+@media(max-width:520px){.lists{grid-template-columns:1fr}.clue p{font-size:14px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top"><a class="back" href="./">← Arcade</a><h1>✏️ Mots croisés</h1></div>
+  <div class="layout">
+    <div class="left">
+      <div class="hud"><span id="prog"></span><span id="timeTxt">⏱ 0:00</span></div>
+      <div class="clue"><button type="button" id="prevW" aria-label="Définition précédente">‹</button><p id="clueTxt"></p><button type="button" id="nextW" aria-label="Définition suivante">›</button></div>
+      <div class="gw" id="gw"><div class="cw" id="cw" role="grid" aria-label="Grille de mots croisés"></div></div>
+      <div class="acts">
+        <button type="button" id="checkBtn"><span>✔️</span>Vérifier</button>
+        <button type="button" id="revL"><span>🔤</span>Une lettre</button>
+        <button type="button" id="revW"><span>💡</span>Le mot</button>
+        <button type="button" id="newBtn"><span>🔄</span>Nouvelle</button>
+      </div>
+    </div>
+    <aside class="panel glass">
+      <div class="lists"><div><h3>Horizontalement</h3><ol id="la"></ol></div><div><h3>Verticalement</h3><ol id="ld"></ol></div></div>
+      <div class="note">Touche une case pour choisir un mot, touche-la encore pour changer de sens. Au clavier : lettres, flèches, Tab pour le mot suivant.</div>
+      <div class="note" id="stats"></div>
+    </aside>
+  </div>
+</div>
+<input id="kb" type="text" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false" aria-hidden="true" tabindex="-1">
+<script src="arcade.js"></script>
+<script>
+const BANK = `ARBRE|Il a des racines, un tronc et des branches
+AVION|Il vole grâce à ses ailes et ses moteurs
+BATEAU|Il navigue sur l'eau
+CHAT|Il miaule et ronronne
+CHIEN|Le meilleur ami de l'homme
+CHEVAL|On le monte au galop
+LAPIN|Animal aux longues oreilles qui adore les carottes
+SOURIS|Petit rongeur, ou accessoire de l'ordinateur
+OISEAU|Il a des plumes et un bec
+POISSON|Il vit dans l'eau et respire par des branchies
+TIGRE|Grand félin au pelage rayé
+LION|Le roi des animaux
+ZEBRE|Équidé rayé noir et blanc
+GIRAFE|L'animal au plus long cou
+SINGE|Il grimpe aux arbres et aime les bananes
+OURS|Gros mammifère qui hiberne
+LOUP|Il hurle à la lune
+RENARD|Animal rusé à la queue touffue
+VACHE|Elle nous donne du lait
+MOUTON|Il nous donne de la laine
+POULE|Elle pond des œufs
+ABEILLE|Elle fabrique le miel
+FOURMI|Petit insecte travailleur qui vit en colonie
+ESCARGOT|Il porte sa maison sur son dos
+DAUPHIN|Mammifère marin très intelligent
+BALEINE|Le plus grand animal du monde
+REQUIN|Poisson aux dents redoutables
+PIANO|Instrument à touches noires et blanches
+GUITARE|Instrument à six cordes
+VIOLON|Instrument à cordes joué avec un archet
+TAMBOUR|Instrument sur lequel on frappe
+FLUTE|Instrument à vent… ou baguette de pain
+TROMPETTE|Instrument à vent en cuivre
+BATTERIE|Caisses et cymbales… ou réserve d'énergie du téléphone
+CHANSON|Des paroles sur une musique
+MUSIQUE|L'art des sons
+RYTHME|La cadence d'un morceau
+MELODIE|Suite de notes agréable à l'oreille
+CONCERT|Spectacle musical en direct
+DISQUE|Support rond pour écouter de la musique
+VINYLE|Disque noir qu'on pose sur une platine
+PLATINE|Elle fait tourner les vinyles
+RADIO|On l'écoute souvent en voiture
+CHANTEUR|Il interprète des chansons
+REFRAIN|Partie d'une chanson qui revient
+NOTE|Do, ré ou mi
+GAMME|Do, ré, mi, fa, sol, la, si, do
+MICRO|Il amplifie la voix du chanteur
+SCENE|Les artistes s'y produisent
+ALBUM|Recueil de chansons d'un artiste
+TUBE|Chanson à très grand succès
+RAP|Musique au débit rapide, née aux États-Unis
+ROCK|Musique des guitares électriques
+JAZZ|Musique née à La Nouvelle-Orléans
+OPERA|Spectacle entièrement chanté
+CHORALE|Groupe de personnes qui chantent ensemble
+DUO|Chanson à deux voix
+SOLO|Passage joué par un seul musicien
+CASQUE|Il couvre les oreilles pour écouter de la musique
+ENCEINTE|Haut-parleur… ou future maman
+ACCORD|Plusieurs notes jouées en même temps
+TEMPO|La vitesse d'un morceau
+BASSE|Guitare aux sons graves
+CLAVIER|Celui du piano a 88 touches
+VOIX|On s'en sert pour chanter
+ECHO|Son qui revient en montagne
+DANSE|Mouvements du corps en rythme
+SOLEIL|L'étoile qui nous éclaire
+LUNE|Le satellite de la Terre
+ETOILE|Elle brille dans le ciel la nuit
+PLANETE|Mars ou Jupiter
+NUAGE|Il peut apporter la pluie
+PLUIE|Eau qui tombe du ciel
+NEIGE|Flocons blancs de l'hiver
+ORAGE|Tonnerre et éclairs
+VENT|Air en mouvement
+MER|Grande étendue d'eau salée
+OCEAN|L'Atlantique ou le Pacifique
+PLAGE|On y bronze au bord de la mer
+SABLE|Il recouvre la plage
+MONTAGNE|Les Alpes en sont pleines
+RIVIERE|Cours d'eau
+FORET|Grand ensemble d'arbres
+ILE|Terre entourée d'eau
+DESERT|Le Sahara en est un
+VOLCAN|Il crache de la lave
+HIVER|La saison la plus froide
+ETE|La saison des grandes vacances
+PRINTEMPS|Saison où les fleurs éclosent
+AUTOMNE|Saison où les feuilles tombent
+MATIN|Le début de la journée
+SOIR|La fin de la journée
+NUIT|Quand il fait noir
+SEMAINE|Sept jours
+ANNEE|Douze mois
+HEURE|Soixante minutes
+POMME|Fruit croquant, rouge ou vert
+BANANE|Fruit jaune qu'on épluche
+ORANGE|Agrume… et couleur
+FRAISE|Petit fruit rouge du printemps
+CERISE|Petit fruit rouge à noyau
+CITRON|Agrume jaune et acide
+RAISIN|On en fait du vin
+TOMATE|Fruit rouge qu'on mange en salade
+CAROTTE|Légume orange
+SALADE|La laitue en est une
+FROMAGE|Camembert ou comté
+PAIN|La baguette en est un
+BEURRE|On l'étale sur les tartines
+SUCRE|Il adoucit le café
+SEL|On en met sur les frites
+CHOCOLAT|Douceur à base de cacao
+GATEAU|Dessert d'anniversaire
+CREPE|Spécialité bretonne fine et ronde
+PIZZA|Spécialité italienne ronde
+CAFE|Boisson noire du matin
+EAU|Formule chimique : H2O
+LAIT|Boisson blanche donnée par la vache
+MIEL|Produit des abeilles
+OEUF|La poule le pond
+MAISON|On y habite
+PORTE|On l'ouvre pour entrer
+FENETRE|Ouverture vitrée dans un mur
+TABLE|On y mange
+CHAISE|On s'assoit dessus
+LIT|On y dort
+LAMPE|Elle éclaire
+CLE|Elle ouvre une serrure
+LIVRE|On le lit page après page
+STYLO|Il sert à écrire à l'encre
+CRAYON|On le taille
+CAHIER|On y écrit à l'école
+ECOLE|Lieu où l'on apprend
+CLASSE|Salle d'école
+ELEVE|Il apprend à l'école
+VILLE|Paris ou Lyon
+RUE|Voie bordée de maisons
+VOITURE|Elle a quatre roues et un volant
+VELO|Deux roues et des pédales
+TRAIN|Il roule sur des rails
+METRO|Train souterrain des grandes villes
+ROUTE|Les voitures y circulent
+PONT|Il permet de traverser une rivière
+TETE|Elle porte le visage
+MAIN|Elle a cinq doigts
+PIED|Il a cinq orteils
+OEIL|Organe de la vue
+NEZ|Organe de l'odorat
+BOUCHE|On y met la nourriture
+OREILLE|Organe de l'ouïe
+COEUR|Il bat dans la poitrine
+DENT|On la brosse matin et soir
+SPORT|Football ou tennis
+BALLON|Objet rond pour jouer
+MATCH|Rencontre sportive
+EQUIPE|Groupe de joueurs
+TENNIS|Sport avec raquettes et filet
+JUDO|Art martial japonais
+VICTOIRE|Le contraire de la défaite
+ECHECS|Jeu avec roi, dame et cavaliers
+CARTE|L'as en est une… ou un plan de la région
+ROUGE|Couleur du sang
+BLEU|Couleur du ciel
+VERT|Couleur de l'herbe
+JAUNE|Couleur du citron
+NOIR|Couleur de la nuit
+BLANC|Couleur de la neige
+ROSE|Fleur… et couleur
+FLEUR|La rose ou la tulipe
+JARDIN|On y plante des fleurs et des légumes
+HERBE|Elle pousse dans les prés
+FEUILLE|Elle pousse sur les branches… ou se glisse dans l'imprimante
+AMI|Copain
+FAMILLE|Parents et enfants
+BEBE|Tout petit enfant
+ROI|Il porte une couronne
+REINE|Épouse du roi
+CHATEAU|Demeure des rois
+DRAGON|Créature légendaire qui crache du feu
+FEE|Créature magique à baguette
+ROBOT|Machine qui agit toute seule
+ECRAN|On le touche sur un téléphone
+TELEPHONE|On s'en sert pour appeler
+INTERNET|Le réseau mondial
+CINEMA|Salle où l'on regarde des films
+FILM|On le regarde au cinéma
+PHOTO|Image prise avec un appareil
+FETE|Célébration joyeuse
+CADEAU|On l'offre pour un anniversaire
+NOEL|Fête du 25 décembre
+VACANCES|Période sans école
+VOYAGE|Déplacement vers un pays lointain
+VALISE|On y range ses affaires pour partir
+PARIS|Capitale de la France
+FRANCE|Pays de la tour Eiffel
+EUROPE|Continent de la France
+AFRIQUE|Continent du Sahara
+ITALIE|Pays de la pizza
+ESPAGNE|Pays de la paella
+JAPON|Pays du soleil levant
+AMOUR|Sentiment très fort
+SOURIRE|Signe de joie sur le visage
+REVE|On le fait en dormant
+FEU|Il brûle
+GLACE|Eau gelée… ou dessert
+OR|Métal précieux jaune
+FER|Métal qu'on forge
+PIERRE|Caillou
+OS|Il forme le squelette
+NID|Maison de l'oiseau
+LAINE|On en fait des pulls
+PULL|Vêtement chaud
+CHAPEAU|Il se porte sur la tête
+SAC|On y transporte ses affaires
+MONTRE|Elle donne l'heure au poignet
+HORLOGE|Elle donne l'heure au mur
+BOUGIE|On la souffle sur le gâteau
+CIEL|Il est bleu quand il fait beau
+TERRE|Notre planète
+AIR|On le respire
+NORD|Point cardinal opposé au sud
+SUD|Point cardinal opposé au nord
+EST|Point cardinal où le soleil se lève
+OUEST|Point cardinal où le soleil se couche
+ZERO|Le plus petit chiffre
+DIX|Le nombre de doigts des deux mains
+CENT|Dix fois dix
+MILLE|Dix fois cent
+PIRATE|Il navigue sous le drapeau noir
+TRESOR|Le pirate le cache sur une île
+FUSEE|Elle décolle vers l'espace
+ASTRONAUTE|Il voyage dans l'espace
+JOUET|Objet pour jouer
+PUZZLE|Jeu de pièces à assembler
+ENIGME|Devinette difficile`.split('\n').map(l => { const [w, c] = l.split('|'); return {w: w.trim(), c: c.trim()}; }).filter(x => /^[A-Z]{3,10}$/.test(x.w));
+
+const MAXW = matchMedia('(max-width:520px)').matches ? 11 : 14, TARGET = matchMedia('(max-width:520px)').matches ? 11 : 13;
+const K = (r, c) => r + ',' + c;
+function build(){
+  let best = null;
+  for (let attempt = 0; attempt < 40; attempt++) {
+    const pool = shuffle(BANK.slice()), g = new Map(), placed = []; let r0 = 0, r1 = 0, c0 = 0, c1 = 0;
+    const fits = (w, r, c, dir) => {
+      const dr = dir === 'd' ? 1 : 0, dc = dir === 'a' ? 1 : 0, re = r + dr * (w.length - 1), ce = c + dc * (w.length - 1);
+      if (Math.max(r1, re) - Math.min(r0, r) + 1 > MAXW || Math.max(c1, ce) - Math.min(c0, c) + 1 > MAXW) return 0;
+      if (g.has(K(r - dr, c - dc)) || g.has(K(re + dr, ce + dc))) return 0;
+      let cross = 0;
+      for (let i = 0; i < w.length; i++) {
+        const rr = r + dr * i, cc = c + dc * i, cell = g.get(K(rr, cc));
+        if (cell) { if (cell.ch !== w[i] || cell[dir]) return 0; cross++; }
+        else if (dir === 'a' ? g.has(K(rr - 1, cc)) || g.has(K(rr + 1, cc)) : g.has(K(rr, cc - 1)) || g.has(K(rr, cc + 1))) return 0;
+      }
+      return cross;
+    };
+    const put = (it, r, c, dir) => {
+      const dr = dir === 'd' ? 1 : 0, dc = dir === 'a' ? 1 : 0;
+      for (let i = 0; i < it.w.length; i++) { const k = K(r + dr * i, c + dc * i), cell = g.get(k) || {ch: it.w[i]}; cell[dir] = true; g.set(k, cell); }
+      placed.push({w: it.w, c: it.c, r, col: c, dir}); r0 = Math.min(r0, r); c0 = Math.min(c0, c); r1 = Math.max(r1, r + dr * (it.w.length - 1)); c1 = Math.max(c1, c + dc * (it.w.length - 1));
+    };
+    const first = pool.find(x => x.w.length >= 6 && x.w.length <= 9); put(first, 0, 0, Math.random() < .5 ? 'a' : 'd');
+    for (const it of pool) {
+      if (placed.length >= TARGET) break; if (placed.some(p => p.w === it.w)) continue;
+      let cands = [];
+      for (const p of placed) for (let i = 0; i < it.w.length; i++) for (let j = 0; j < p.w.length; j++) {
+        if (it.w[i] !== p.w[j]) continue;
+        const dir = p.dir === 'a' ? 'd' : 'a', r = p.dir === 'a' ? p.r - i : p.r + j, c = p.dir === 'a' ? p.col + j : p.col - i, x = fits(it.w, r, c, dir);
+        if (x > 0) cands.push({r, c, dir, x});
+      }
+      if (!cands.length) continue;
+      const mx = Math.max(...cands.map(o => o.x)); cands = cands.filter(o => o.x === mx); const o = cands[Math.random() * cands.length | 0]; put(it, o.r, o.c, o.dir);
+    }
+    const W = c1 - c0 + 1, H = r1 - r0 + 1, score = placed.length * 1000 - W * H - Math.abs(W - H) * 8;
+    if (!best || score > best.score) best = {score, W, H, words: placed.map(p => ({w: p.w, c: p.c, r: p.r - r0, col: p.col - c0, dir: p.dir}))};
+  }
+  const starts = new Map(); let n = 0;
+  best.words.sort((a, b) => a.r - b.r || a.col - b.col);
+  for (const w of best.words) { const k = K(w.r, w.col); if (!starts.has(k)) starts.set(k, ++n); w.num = starts.get(k); }
+  return {W: best.W, H: best.H, words: best.words, vals: {}, rev: {}, time: 0, reveals: 0, checks: 0};
+}
+
+let P = null, cur = {r: 0, c: 0, dir: 'a'}, bad = new Set(), done = false;
+const coarse = matchMedia('(pointer:coarse)').matches, kb = $('kb');
+const cellsOf = w => Array.from({length: w.w.length}, (_, i) => [w.r + (w.dir === 'd' ? i : 0), w.col + (w.dir === 'a' ? i : 0)]);
+let SOL = new Map();
+function index(){ SOL = new Map(); P.words.forEach((w, wi) => cellsOf(w).forEach(([r, c], i) => { const k = K(r, c), e = SOL.get(k) || {ch: w.w[i]}; e[w.dir] = wi; SOL.set(k, e); })); }
+const wordAt = (r, c, dir) => { const e = SOL.get(K(r, c)); return e && e[dir] !== undefined ? P.words[e[dir]] : null; };
+const curWord = () => wordAt(cur.r, cur.c, cur.dir) || wordAt(cur.r, cur.c, cur.dir === 'a' ? 'd' : 'a');
+const wordDone = w => cellsOf(w).every(([r, c]) => P.vals[K(r, c)] === SOL.get(K(r, c)).ch);
+
+function newGame(){ P = build(); index(); bad = new Set(); done = false; const w = P.words[0]; cur = {r: w.r, c: w.col, dir: w.dir}; closeModal(); save(); draw(); }
+function save(){ if (P && !done) ls.set('arc_cw_save', P); }
+function draw(){
+  const cw = $('cw'); cw.style.gridTemplateColumns = 'repeat(' + P.W + ',var(--cs,34px))';
+  const avail = $('gw').clientWidth - 4, cs = Math.max(20, Math.min(46, Math.floor((avail - (P.W - 1) * 2) / P.W)));
+  cw.style.setProperty('--cs', cs + 'px');
+  const w = curWord(); if (w) cur.dir = w.dir; const inW = new Set(w ? cellsOf(w).map(([r, c]) => K(r, c)) : []);
+  const nums = new Map(); P.words.forEach(x => nums.set(K(x.r, x.col), x.num));
+  const doneCells = new Set(); P.words.forEach(x => { if (wordDone(x)) cellsOf(x).forEach(([r, c]) => doneCells.add(K(r, c))); });
+  let h = '';
+  for (let r = 0; r < P.H; r++) for (let c = 0; c < P.W; c++) {
+    const k = K(r, c); if (!SOL.has(k)) { h += '<span class="x"></span>'; continue; }
+    const v = P.vals[k] || '';
+    h += '<button type="button" class="k' + (inW.has(k) ? ' in' : '') + (r === cur.r && c === cur.c ? ' cur' : '') + (bad.has(k) ? ' bad' : '') + (P.rev[k] ? ' rev' : '') + (doneCells.has(k) ? ' done' : '') + '" data-k="' + k + '" aria-label="Case ' + (r + 1) + '-' + (c + 1) + (v ? ', ' + v : ', vide') + '">' + (nums.has(k) ? '<i>' + nums.get(k) + '</i>' : '') + v + '</button>';
+  }
+  cw.innerHTML = h;
+  $('clueTxt').innerHTML = w ? '<b>' + w.num + (w.dir === 'a' ? ' →' : ' ↓') + '</b>' + esc(w.c) + ' <span class="note">(' + w.w.length + ' lettres)</span>' : '';
+  const li = d => P.words.map((x, i) => ({x, i})).filter(o => o.x.dir === d).sort((a, b) => a.x.num - b.x.num).map(o => '<li data-w="' + o.i + '" class="' + (o.x === w ? 'on' : '') + (wordDone(o.x) ? ' ok' : '') + '"><b>' + o.x.num + '</b> ' + esc(o.x.c) + '</li>').join('');
+  $('la').innerHTML = li('a'); $('ld').innerHTML = li('d');
+  const on = document.querySelector('.lists li.on'); if (on && !coarse) on.scrollIntoView({block: 'nearest'});
+  const filled = [...SOL.keys()].filter(k => P.vals[k]).length; $('prog').textContent = '✏️ ' + filled + ' / ' + SOL.size + ' lettres · ' + P.words.filter(wordDone).length + ' / ' + P.words.length + ' mots';
+  $('timeTxt').textContent = '⏱ ' + fmtTime(P.time);
+  const s = ls.get('arc_cw', {}); $('stats').innerHTML = s.solved ? '<b>' + s.solved + '</b> grille' + (s.solved > 1 ? 's' : '') + ' résolue' + (s.solved > 1 ? 's' : '') + (s.best ? ' · record ' + fmtTime(s.best) + ' (sans aide)' : '') : 'Résous ta première grille !';
+}
+function select(w){ cur = {r: w.r, c: w.col, dir: w.dir}; const e = cellsOf(w).find(([r, c]) => !P.vals[K(r, c)]); if (e) { cur.r = e[0]; cur.c = e[1]; } draw(); focusKb(); }
+function focusKb(){ if (coarse && !done) { kb.value = ' '; kb.focus({preventScroll: true}); setTimeout(() => { const c = document.querySelector('.cw .k.cur'); if (c) c.scrollIntoView({block: 'center', behavior: 'smooth'}); }, 350); } }
+function step(d){ const w = curWord(); if (!w) return; const cs = cellsOf(w), i = cs.findIndex(([r, c]) => r === cur.r && c === cur.c), j = i + d; if (j >= 0 && j < cs.length) { cur.r = cs[j][0]; cur.c = cs[j][1]; } }
+function type(ch){
+  if (done) return; const k = K(cur.r, cur.c); if (!SOL.has(k)) return;
+  if (!P.rev[k]) { P.vals[k] = ch; bad.delete(k); }
+  tone(600 + (ch.charCodeAt(0) - 65) * 12, 0, .05, 'sine', .05);
+  const w = curWord(); step(1); save(); draw(); if (w && wordDone(w)) sfx.ok(); win();
+}
+function back(){ if (done) return; const k = K(cur.r, cur.c); if (P.vals[k] && !P.rev[k]) { delete P.vals[k]; bad.delete(k); } else { step(-1); const k2 = K(cur.r, cur.c); if (!P.rev[k2]) { delete P.vals[k2]; bad.delete(k2); } } save(); draw(); }
+function cycle(d){ const ws = P.words.slice().sort((a, b) => (a.dir === b.dir ? a.num - b.num : a.dir === 'a' ? -1 : 1)), i = ws.indexOf(curWord()); select(ws[(i + d + ws.length) % ws.length]); sfx.click(); }
+function win(){
+  if (done || [...SOL.entries()].some(([k, e]) => P.vals[k] !== e.ch)) return;
+  done = true; try { localStorage.removeItem('arc_cw_save'); } catch(e) {} kb.blur();
+  let rec = false; stat('arc_cw', s => { s.solved = (s.solved | 0) + 1; if (!P.reveals && (!s.best || P.time < s.best)) { s.best = P.time; rec = true; } });
+  sfx.win(); draw();
+  setTimeout(() => modal('Grille terminée ! 🎉', '<p class="note">' + P.words.length + ' mots en <b>' + fmtTime(P.time) + '</b>' + (P.reveals ? ', avec ' + P.reveals + ' aide' + (P.reveals > 1 ? 's' : '') + ' (pas de record avec aide)' : ', sans aide') + '.' + (rec ? '<br><b style="color:var(--gold)">★ Nouveau record !</b>' : '') + '</p>', [['Nouvelle grille', newGame], ['Fermer', null, true]]), 450);
+}
+$('cw').addEventListener('click', e => {
+  const b = e.target.closest('.k'); if (!b) return; const [r, c] = b.dataset.k.split(',').map(Number);
+  if (r === cur.r && c === cur.c) { const o = cur.dir === 'a' ? 'd' : 'a'; if (wordAt(r, c, o)) cur.dir = o; }
+  else { cur.r = r; cur.c = c; if (!wordAt(r, c, cur.dir)) cur.dir = cur.dir === 'a' ? 'd' : 'a'; }
+  sfx.click(); draw(); focusKb();
+});
+$('la').parentElement.parentElement.addEventListener('click', e => { const li = e.target.closest('li[data-w]'); if (li) select(P.words[+li.dataset.w]); });
+$('prevW').onclick = () => cycle(-1); $('nextW').onclick = () => cycle(1);
+$('checkBtn').onclick = () => { bad = new Set([...SOL.entries()].filter(([k, e]) => P.vals[k] && P.vals[k] !== e.ch).map(([k]) => k)); P.checks++; draw(); if (bad.size) { sfx.bad(); toast(bad.size + ' lettre' + (bad.size > 1 ? 's' : '') + ' fausse' + (bad.size > 1 ? 's' : '') + ', en rouge.'); } else { sfx.ok(); toast('Tout est juste pour l\'instant !'); } };
+$('revL').onclick = () => { const k = K(cur.r, cur.c), e = SOL.get(k); if (!e || done || P.vals[k] === e.ch) return; P.vals[k] = e.ch; P.rev[k] = 1; bad.delete(k); P.reveals++; step(1); sfx.click(); save(); draw(); win(); };
+$('revW').onclick = () => { const w = curWord(); if (!w || done || wordDone(w)) return; cellsOf(w).forEach(([r, c]) => { const k = K(r, c); if (P.vals[k] !== SOL.get(k).ch) { P.vals[k] = SOL.get(k).ch; P.rev[k] = 1; bad.delete(k); } }); P.reveals++; sfx.ok(); save(); draw(); win(); };
+$('newBtn').onclick = () => { if (!done && Object.keys(P.vals).length) modal('Nouvelle grille ?', '<p class="note">La grille en cours sera perdue.</p>', [['Oui', newGame], ['Continuer', null, true]]); else newGame(); };
+const norm1 = ch => ch.normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase();
+kb.addEventListener('input', () => { const v = kb.value; if (v.length < 1) back(); else { const ch = norm1(v.slice(-1)); if (/^[A-Z]$/.test(ch)) type(ch); } kb.value = ' '; });
+addEventListener('keydown', e => {
+  if ($('modal') || e.ctrlKey || e.metaKey || e.altKey) return;
+  if (e.target === kb) { if (e.key === 'Enter') { e.preventDefault(); cycle(1); } return; }
+  const ch = e.key.length === 1 ? norm1(e.key) : '';
+  if (/^[A-Z]$/.test(ch)) { e.preventDefault(); type(ch); }
+  else if (e.key === 'Backspace' || e.key === 'Delete') { e.preventDefault(); back(); }
+  else if (e.key === 'Tab' || e.key === 'Enter') { e.preventDefault(); cycle(e.shiftKey ? -1 : 1); }
+  else if (e.key.startsWith('Arrow')) {
+    e.preventDefault(); const d = {ArrowUp: [-1, 0], ArrowDown: [1, 0], ArrowLeft: [0, -1], ArrowRight: [0, 1]}[e.key], dir = d[0] ? 'd' : 'a';
+    if (cur.dir !== dir && wordAt(cur.r, cur.c, dir)) { cur.dir = dir; draw(); return; }
+    let r = cur.r + d[0], c = cur.c + d[1]; while (r >= 0 && c >= 0 && r < P.H && c < P.W && !SOL.has(K(r, c))) { r += d[0]; c += d[1]; }
+    if (SOL.has(K(r, c))) { cur.r = r; cur.c = c; if (!wordAt(r, c, cur.dir)) cur.dir = cur.dir === 'a' ? 'd' : 'a'; draw(); }
+  }
+});
+addEventListener('resize', () => P && draw());
+setInterval(() => { if (P && !done && !document.hidden && !$('modal')) { P.time++; $('timeTxt').textContent = '⏱ ' + fmtTime(P.time); if (P.time % 5 === 0) save(); } }, 1000);
+const sv = ls.get('arc_cw_save', null);
+if (sv && Array.isArray(sv.words) && sv.words.length) { P = sv; P.rev = P.rev || {}; index(); const w = P.words[0]; cur = {r: w.r, c: w.col, dir: w.dir}; draw(); toast('Grille en cours reprise.'); } else newGame();
+</script>
+</body>
+</html>
