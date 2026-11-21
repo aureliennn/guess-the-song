@@ -49,17 +49,18 @@ canvas#c{position:fixed;inset:0;width:100%;height:100%;display:block;touch-actio
 .av .inp{width:100%;padding:11px 14px;border-radius:12px;border:1px solid var(--line);background:rgba(255,255,255,.06);font-size:16px;outline:0}
 .help{display:grid;gap:8px;text-align:left;font-size:14px;line-height:1.4}
 .help b{color:var(--acc2)}
+.shopTop{display:flex;gap:10px;align-items:center;justify-content:space-between;text-align:left;flex-wrap:wrap}.wallet{font:800 22px/1 Unbounded,sans-serif;color:var(--gold);white-space:nowrap}.shopTop .note{font-size:12px;flex:1;min-width:150px}#shopTabs{margin-top:10px}.shopGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:10px;max-height:48vh;max-height:48dvh;overflow:auto}.it{display:grid;justify-items:center;gap:6px;padding:12px 8px;border-radius:14px;background:rgba(255,255,255,.05);border:1px solid var(--line);font-size:13px;text-align:center}.it.eq{border-color:var(--ok);background:rgba(61,255,162,.1)}.it .ie{font-size:30px;line-height:1}.it .btn{width:100%}
 #load{position:fixed;inset:0;z-index:30;display:grid;place-items:center;background:var(--bg);font-weight:700}
 @media(pointer:coarse){#chatF{top:calc(max(10px,env(safe-area-inset-top)) + 52px);bottom:auto}#pal{top:calc(max(10px,env(safe-area-inset-top)) + 52px);bottom:auto}#prompt{bottom:calc(max(16px,env(safe-area-inset-bottom)) + 150px)}#log{top:auto;bottom:calc(max(16px,env(safe-area-inset-bottom)) + 150px);width:min(300px,calc(100vw - 130px))}}
 @media(pointer:fine){#joy,#jump{display:none}}
 @media(pointer:coarse){#chatF:not(.hide)~#pal{top:calc(max(10px,env(safe-area-inset-top)) + 104px)}#toast{bottom:auto;top:calc(max(10px,env(safe-area-inset-top)) + 112px)}}
-@media(max-width:420px){.pill{padding:7px 10px;font-size:12px}.ib{width:38px;height:38px;font-size:17px;border-radius:12px}#tl{max-width:calc(100% - 190px)}}
+@media(max-width:420px){.lt{display:none}.pill{padding:7px 10px;font-size:12px}.ib{width:38px;height:38px;font-size:17px;border-radius:12px}#tl{max-width:calc(100% - 190px)}}
 </style>
 </head>
 <body>
 <div id="load">Chargement du monde…</div>
 <canvas id="c" tabindex="0" aria-label="Monde 3D"></canvas>
-<div class="hud" id="tl"><a class="pill" href="./">← Arcade</a><span class="pill" id="coinsP">🪙 0</span><span class="pill" id="onlineP">👥 1</span></div>
+<div class="hud" id="tl"><a class="pill" href="./" aria-label="Retour à l'arcade">←<span class="lt"> Arcade</span></a><button class="pill" id="coinsP" type="button" title="Boutique" aria-label="Mes pièces et la boutique">🪙 0 🛒</button><span class="pill" id="onlineP">👥 1</span></div>
 <div class="hud" id="tr"><button class="ib" id="avBtn" title="Mon avatar" aria-label="Mon avatar">👕</button><button class="ib" id="buildBtn" title="Construire (B)" aria-label="Construire">🧱</button><button class="ib" id="chatBtn" title="Discuter (T)" aria-label="Discuter">💬</button><button class="ib" id="helpBtn" title="Aide" aria-label="Aide">❓</button></div>
 <div id="log" aria-live="polite"></div>
 <form id="chatF" class="hide"><input id="chatI" maxlength="120" placeholder="Écris un message…" autocomplete="off" enterkeyhint="send" aria-label="Message"><button class="btn" type="submit">Envoyer</button></form>
@@ -187,7 +188,8 @@ let coinCount = ls.get('arc_coins', 0);
 function faceTex(skin){ return tex(cv(64, 64, (g) => { g.fillStyle = skin; g.fillRect(0, 0, 64, 64); g.fillStyle = '#1a1030'; g.fillRect(17, 22, 8, 10); g.fillRect(39, 22, 8, 10); g.strokeStyle = '#1a1030'; g.lineWidth = 4; g.beginPath(); g.arc(32, 36, 12, .2 * Math.PI, .8 * Math.PI); g.stroke(); })); }
 function makeAvatar(av){
   const root = new THREE.Group(), lam = c => new THREE.MeshLambertMaterial({color: c});
-  const skin = SKIN[av.k] || SKIN[0], shirt = lam(SHIRT[av.s] || SHIRT[0]), pants = lam(PANTS[av.p] || PANTS[0]), sk = lam(skin);
+  const OUT = {gold: [0xffd166, 0xc98a12, 0xffa000], galaxy: [0x3a1f8f, 0x1b0f4a, 0x6a3dff]}[av.o], emi = (c, e) => new THREE.MeshLambertMaterial({color: c, emissive: e, emissiveIntensity: .45});
+  const skin = SKIN[av.k] || SKIN[0], shirt = OUT ? emi(OUT[0], OUT[2]) : lam(SHIRT[av.s] || SHIRT[0]), pants = OUT ? emi(OUT[1], OUT[2]) : lam(PANTS[av.p] || PANTS[0]), sk = lam(skin);
   const limb = (w, h, d, mat, x, y) => { const pv = new THREE.Group(); pv.position.set(x, y, 0); const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat); m.position.y = -h / 2; pv.add(m); root.add(pv); return pv; };
   const legL = limb(.38, .8, .42, pants, -.21, .8), legR = limb(.38, .8, .42, pants, .21, .8);
   const torso = new THREE.Mesh(new THREE.BoxGeometry(.9, .78, .48), shirt); torso.position.y = 1.19; root.add(torso);
@@ -200,6 +202,13 @@ function makeAvatar(av){
   if (av.h === 'crown') { const c = hm('#ffd166'); const t = new THREE.Mesh(new THREE.CylinderGeometry(.33, .33, .2, 8, 1, true), c); t.position.y = 2.25; root.add(t); for (let i = 0; i < 6; i++) { const s = new THREE.Mesh(new THREE.ConeGeometry(.07, .2, 4), c); const a = i / 6 * 6.283; s.position.set(Math.cos(a) * .3, 2.42, Math.sin(a) * .3); root.add(s); } }
   if (av.h === 'phones') { const c = hm('#38e1ff'); const band = new THREE.Mesh(new THREE.TorusGeometry(.34, .05, 8, 20, Math.PI), c); band.position.y = 1.95; root.add(band); [-.32, .32].forEach(x => { const e = new THREE.Mesh(new THREE.BoxGeometry(.12, .26, .26), c); e.position.set(x, 1.86, 0); root.add(e); }); }
   if (av.h === 'halo') { const h = new THREE.Mesh(new THREE.TorusGeometry(.3, .05, 8, 24), new THREE.MeshBasicMaterial({color: 0xffe9a6})); h.rotation.x = Math.PI / 2; h.position.y = 2.45; root.add(h); }
+  if (av.h === 'party') { const c = new THREE.Mesh(new THREE.ConeGeometry(.24, .55, 16), hm('#ff4fa3')); c.position.y = 2.43; root.add(c); const b = new THREE.Mesh(new THREE.SphereGeometry(.08, 10, 8), hm('#ffd166')); b.position.y = 2.73; root.add(b); }
+  if (av.h === 'tophat') { const k = new THREE.MeshLambertMaterial({color: 0x15101f}); const br = new THREE.Mesh(new THREE.CylinderGeometry(.44, .44, .05, 20), k); br.position.y = 2.18; root.add(br); const tp = new THREE.Mesh(new THREE.CylinderGeometry(.27, .27, .46, 20), k); tp.position.y = 2.43; root.add(tp); const bd = new THREE.Mesh(new THREE.CylinderGeometry(.275, .275, .08, 20), hm('#ff4d6d')); bd.position.y = 2.26; root.add(bd); }
+  if (av.h === 'cat') { [-.17, .17].forEach(x => { const e = new THREE.Mesh(new THREE.ConeGeometry(.12, .26, 4), hm('#2b2346')); e.position.set(x, 2.27, 0); e.rotation.z = -x * 1.2; root.add(e); const i = new THREE.Mesh(new THREE.ConeGeometry(.06, .15, 4), hm('#ff9fd0')); i.position.set(x, 2.25, .05); i.rotation.z = -x * 1.2; root.add(i); }); }
+  if (av.h === 'wizard') { const m = hm('#4b2ba8'); const br = new THREE.Mesh(new THREE.CylinderGeometry(.5, .5, .05, 20), m); br.position.y = 2.18; root.add(br); const c = new THREE.Mesh(new THREE.ConeGeometry(.3, .8, 16), m); c.position.set(0, 2.58, -.04); c.rotation.x = -.15; root.add(c); const st = new THREE.Mesh(new THREE.OctahedronGeometry(.07), hm('#ffd166')); st.position.set(.12, 2.5, .2); root.add(st); }
+  if (av.h === 'viking') { const hl = new THREE.Mesh(new THREE.SphereGeometry(.33, 16, 10, 0, 6.283, 0, Math.PI / 2), new THREE.MeshLambertMaterial({color: 0xaab0c0})); hl.position.y = 2.12; root.add(hl); [-1, 1].forEach(sd => { const h = new THREE.Mesh(new THREE.ConeGeometry(.07, .35, 8), new THREE.MeshLambertMaterial({color: 0xf3ead2})); h.position.set(sd * .36, 2.3, 0); h.rotation.z = -sd * .9; root.add(h); }); }
+  if (av.h === 'astro') { const g = new THREE.Mesh(new THREE.SphereGeometry(.47, 20, 14), new THREE.MeshBasicMaterial({color: 0x9ff3ff, transparent: true, opacity: .22, depthWrite: false})); g.position.y = 1.9; root.add(g); const r = new THREE.Mesh(new THREE.TorusGeometry(.4, .05, 8, 24), new THREE.MeshLambertMaterial({color: 0xe8e8f0})); r.rotation.x = Math.PI / 2; r.position.y = 1.55; root.add(r); }
+  if (av.h === 'flame') { for (let i = 0; i < 7; i++) { const a = i / 7 * 6.283, f = new THREE.Mesh(new THREE.ConeGeometry(.08, .32, 6), hm(i % 2 ? '#ffb000' : '#ff4d1a')); f.position.set(Math.cos(a) * .27, 2.3, Math.sin(a) * .27); root.add(f); } }
   const sh = new THREE.Mesh(new THREE.CircleGeometry(.55, 20), new THREE.MeshBasicMaterial({color: 0x000000, transparent: true, opacity: .35, depthWrite: false})); sh.rotation.x = -Math.PI / 2; sh.position.y = .03; root.add(sh);
   return {root, legL, legR, armL, armR, head, phase: 0};
 }
@@ -326,7 +335,7 @@ const SV = {'.sv': 'timestamp'}, W = {players: {}, chat: {}, blocks: {}, tag: nu
 let offset = 0, sentAt = 0, inflight = false, last = {x: 0, y: 0, z: 0, r: 0, a: -1}, joined = false, seenChat = new Set(), firstSnap = true;
 function net(method, path, body, keep){ return fetch(DB + path + '.json', {method, body: body === undefined ? undefined : JSON.stringify(body), keepalive: !!keep}).catch(() => {}); }
 const srvNow = () => Date.now() + offset;
-function myRecord(){ return {n: NAME, x: +me.pos.x.toFixed(2), y: +me.pos.y.toFixed(2), z: +me.pos.z.toFixed(2), r: +me.yaw.toFixed(2), a: me.ground ? (me.speed > .5 ? 1 : 0) : 2, s: AV.s, p: AV.p, k: AV.k, h: AV.h, t: SV}; }
+function myRecord(){ return {n: NAME, x: +me.pos.x.toFixed(2), y: +me.pos.y.toFixed(2), z: +me.pos.z.toFixed(2), r: +me.yaw.toFixed(2), a: me.ground ? (me.speed > .5 ? 1 : 0) : 2, s: AV.s, p: AV.p, k: AV.k, h: AV.h, o: AV.o || null, pet: AV.pet || null, tr: AV.tr || null, t: SV}; }
 function join(){ joined = true; sentAt = Date.now(); net('PUT', '/world/players/' + PID, myRecord()); }
 function sendPos(){
   if (!joined || inflight) return; const now = performance.now(), a = me.ground ? (me.speed > .5 ? 1 : 0) : 2;
@@ -370,13 +379,13 @@ function syncPlayers(){
   for (const id in W.players) {
     if (id === PID) continue; const p = W.players[id]; if (!p || typeof p.x !== 'number' || typeof p.n !== 'string') continue;
     const fresh = typeof p.t === 'number' && now - p.t < 25000; let o = others.get(id);
-    if (!fresh) { if (o) { scene.remove(o.av.root); others.delete(id); } continue; }
+    if (!fresh) { if (o) { scene.remove(o.av.root); petSync(o, null); others.delete(id); } continue; }
     n++;
-    const look = [p.s | 0, p.p | 0, p.k | 0, p.h || 'none', String(p.n).slice(0, 16)].join('|');
-    if (!o || o.look !== look) { if (o) scene.remove(o.av.root); const av = makeAvatar({s: p.s | 0, p: p.p | 0, k: p.k | 0, h: p.h || 'none'}); const tag = label(String(p.n).slice(0, 16), '#38e1ff', 512, .55); tag.position.y = 2.95; av.root.add(tag); av.root.position.set(p.x, p.y, p.z); scene.add(av.root); o = {av, look, pos: new THREE.Vector3(p.x, p.y, p.z), yaw: p.r || 0, bubble: null, name: String(p.n).slice(0, 16)}; others.set(id, o); }
-    o.target = new THREE.Vector3(p.x, p.y, p.z); o.tyaw = p.r || 0; o.a = p.a | 0;
+    const look = [p.s | 0, p.p | 0, p.k | 0, p.h || 'none', p.o || '', String(p.n).slice(0, 16)].join('|');
+    if (!o || o.look !== look) { if (o) scene.remove(o.av.root); const av = makeAvatar({s: p.s | 0, p: p.p | 0, k: p.k | 0, h: p.h || 'none', o: p.o}); const tag = label(String(p.n).slice(0, 16), '#38e1ff', 512, .55); tag.position.y = 2.95; av.root.add(tag); av.root.position.set(p.x, p.y, p.z); scene.add(av.root); o = {av, look, pos: new THREE.Vector3(p.x, p.y, p.z), yaw: p.r || 0, bubble: null, name: String(p.n).slice(0, 16)}; others.set(id, o); }
+    o.target = new THREE.Vector3(p.x, p.y, p.z); o.tyaw = p.r || 0; o.a = p.a | 0; o.tr = typeof p.tr === 'string' ? p.tr : null; petSync(o, typeof p.pet === 'string' && p.pet.length < 12 ? p.pet : null);
   }
-  for (const [id, o] of others) if (!W.players[id]) { scene.remove(o.av.root); others.delete(id); }
+  for (const [id, o] of others) if (!W.players[id]) { scene.remove(o.av.root); petSync(o, null); others.delete(id); }
   $('onlineP').textContent = '👥 ' + n;
 }
 setInterval(syncPlayers, 5000);
@@ -416,7 +425,7 @@ function zones(dt){
   if (st && st.startsWith('cp') && me.obby) { const i = +st.slice(2), p = OB[i]; if (me.cp.x !== p.x) { me.cp.set(p.x, p.y, p.z); sfx.ok(); toast('✅ Point de contrôle !', 1500); } }
   if (st === 'fin' && me.obby) { const s = (performance.now() - me.obby.t0) / 1000; me.obby = null; me.cp.copy(SPAWN); const best = ls.get('arc_obby_best', 0); const rec = !best || s < best; if (rec) ls.set('arc_obby_best', +s.toFixed(1)); sfx.win(); burst(trophy.position); stat('arc_world', v => { v.obby = (v.obby | 0) + 1; }); modal('🏆 Parcours terminé !', '<p class="note">Temps : <b>' + s.toFixed(1) + ' s</b>' + (rec ? '<br><b style="color:var(--gold)">★ Nouveau record !</b>' : '<br>Record : ' + best + ' s') + '</p>', [['Refaire le parcours', () => respawn(new THREE.Vector3(33, 0, 0))], ['Retour à la place', () => respawn(SPAWN), true]]); sysMsg(NAME + ' a terminé le parcours en ' + s.toFixed(1) + ' s 🏆'); }
   if (me.obby) { $('obbyT').classList.remove('hide'); $('obbyT').textContent = '⏱ ' + ((performance.now() - me.obby.t0) / 1000).toFixed(1) + ' s'; } else $('obbyT').classList.add('hide');
-  coins.forEach(c => { if (c.back > 0) { c.back -= dt; if (c.back <= 0) c.m.visible = true; return; } if (me.pos.distanceTo(new THREE.Vector3(c.m.position.x, c.m.position.y - 1, c.m.position.z)) < 1.3) { c.m.visible = false; c.back = 60; coinCount++; ls.set('arc_coins', coinCount); $('coinsP').textContent = '🪙 ' + coinCount; tone(1320, 0, .08, 'square', .05); tone(1760, .07, .12, 'square', .05); } });
+  coins.forEach(c => { if (c.back > 0) { c.back -= dt; if (c.back <= 0) c.m.visible = true; return; } if (me.pos.distanceTo(new THREE.Vector3(c.m.position.x, c.m.position.y - 1, c.m.position.z)) < 1.3) { c.m.visible = false; c.back = 60; coinCount++; ls.set('arc_coins', coinCount); updCoins(); tone(1320, 0, .08, 'square', .05); tone(1760, .07, .12, 'square', .05); } });
 }
 /* particules de victoire */
 const PN = 260, pPos = new Float32Array(PN * 3), pVel = new Float32Array(PN * 3); let pLife = 0;
@@ -453,7 +462,7 @@ function rushUpdate(){
   miniTxt = '🪙 ' + rush.score + ' · ⏱ ' + Math.max(0, Math.ceil(left)) + ' s';
   if (left > 0) return;
   const s = rush.score, rec = s > (mini.rush | 0); rush = null; rushCoins.forEach(c => { c.m.visible = false; });
-  if (rec) { mini.rush = s; saveMini(); } coinCount += s; ls.set('arc_coins', coinCount); $('coinsP').textContent = '🪙 ' + coinCount;
+  if (rec) { mini.rush = s; saveMini(); } coinCount += s; ls.set('arc_coins', coinCount); updCoins();
   sfx.win(); burst(new THREE.Vector3(me.pos.x, me.pos.y - 1, me.pos.z));
   if (rec && s > 0) sysMsg(NAME + ' a ramassé ' + s + ' pièce' + (s > 1 ? 's' : '') + ' à la Pluie de pièces 🪙');
   modal('Temps écoulé !', '<p class="note">Tu as ramassé <b>' + s + '</b> pièce' + (s > 1 ? 's' : '') + ', ajoutées à ta tirelire.' + (rec ? '<br><b style="color:var(--gold)">★ Nouveau record !</b>' : '<br>Record : ' + (mini.rush | 0)) + '</p>', [['Rejouer', startRush], ['Fermer', null, true]]);
@@ -534,15 +543,89 @@ function miniUpdate(dt){
   const el = $('miniT'); el.classList.toggle('hide', !miniTxt); if (miniTxt && el.textContent !== miniTxt) el.textContent = miniTxt;
 }
 function miniPrompt(){
+  if (me.pos.distanceTo(SHOPPOS) < 3.2) { setPrompt('Ouvrir la boutique 🛒' + (COARSE ? '' : ' (E)'), () => openShop()); return true; }
   if (!rush && !fall && me.pos.distanceTo(RUSH.pad) < 2.4) { setPrompt('Lancer : 🪙 Pluie de pièces' + (COARSE ? ' ▶' : ' (E)'), startRush); return true; }
   if (!rush && !fall && me.pos.distanceTo(PIT.pad) < 2.4) { setPrompt('Lancer : 💥 Sol fragile' + (COARSE ? ' ▶' : ' (E)'), startFall); return true; }
   return false;
 }
 
+/* ---------- boutique ---------- */
+const SHOP = {
+  h: [['party', '🥳', 'Chapeau de fête', 15], ['tophat', '🎩', 'Haut-de-forme', 25], ['cat', '🐱', 'Oreilles de chat', 30], ['wizard', '🧙', 'Chapeau de sorcier', 45], ['viking', '⚔️', 'Casque viking', 70], ['astro', '🧑‍🚀', 'Casque d\'astronaute', 140], ['flame', '🔥', 'Couronne de feu', 220]],
+  pet: [['cube', '🟪', 'Cube néon', 40], ['orb', '🔮', 'Orbe lumineuse', 60], ['duck', '🦆', 'Canard', 90], ['ufo', '🛸', 'Mini-OVNI', 160], ['dragon', '🐉', 'Petit dragon', 260]],
+  tr: [['spark', '✨', 'Étincelles', 50], ['rainbow', '🌈', 'Arc-en-ciel', 110], ['notes', '🎵', 'Notes de musique', 130], ['fire', '🔥', 'Traînée de feu', 190]],
+  o: [['galaxy', '🌌', 'Tenue galaxie', 200], ['gold', '👑', 'Tenue dorée', 320]]
+};
+const SHOP_TABS = [['h', '🎩 Chapeaux'], ['pet', '🐾 Compagnons'], ['tr', '✨ Traînées'], ['o', '👕 Tenues']];
+let owned = new Set(ls.get('arc_owned', [])), shopTab = 'h';
+['pet', 'tr', 'o'].forEach(k => { if (AV[k] && !owned.has(k + ':' + AV[k])) AV[k] = null; });
+if (SHOP.h.some(h => h[0] === AV.h) && !owned.has('h:' + AV.h)) AV.h = 'none';
+// stand de la boutique
+const SHOPPOS = new THREE.Vector3(22, 0, 14);
+box(22, 0, 14, 4.2, 1.1, 1.6, 0xff4fa3, {glow: .35}); [-1.9, 1.9].forEach(dx => box(22 + dx, 1.1, 13.4, .2, 2.1, .2, 0xffd166, {}));
+box(22, 3.2, 14, 4.8, .3, 2.8, 0xb86bff, {glow: .45});
+const shopCoin = new THREE.Mesh(new THREE.CylinderGeometry(.6, .6, .15, 24), coinMat); shopCoin.rotation.x = Math.PI / 2; shopCoin.position.set(22, 1.9, 14); scene.add(shopCoin);
+{ const s = label('🛒 Boutique', '#ffd166', 512, 1.15); s.position.set(22, 4.6, 14); scene.add(s); }
+function updCoins(){ $('coinsP').textContent = '🪙 ' + coinCount + ' 🛒'; }
+function applyAV(){ ls.set('arc_avatar', AV); scene.remove(me.av.root); me.av = makeAvatar(AV); scene.add(me.av.root); setTag(); petSync(me, AV.pet); if (joined) net('PUT', '/world/players/' + PID, myRecord()); }
+function openShop(tab){
+  if (tab) shopTab = tab;
+  modal('🛒 Boutique', '<div id="shopBody"></div>', [['Fermer']]);
+  $('shopBody').addEventListener('click', e => {
+    const t = e.target.closest('[data-tab]'); if (t) { shopTab = t.dataset.tab; sfx.click(); renderShop(); return; }
+    if (e.target.closest('#gift')) { const d = new Date().toISOString().slice(0, 10); if (ls.get('arc_gift', '') === d) return; ls.set('arc_gift', d); coinCount += 10; ls.set('arc_coins', coinCount); updCoins(); sfx.win(); toast('🎁 +10 pièces ! Reviens demain pour un nouveau cadeau.'); renderShop(); return; }
+    const b = e.target.closest('[data-act]'); if (!b) return; const id = b.dataset.id, it = SHOP[shopTab].find(x => x[0] === id); if (!it) return;
+    if (b.dataset.act === 'buy') { if (coinCount < it[3]) return; coinCount -= it[3]; ls.set('arc_coins', coinCount); owned.add(shopTab + ':' + id); ls.set('arc_owned', [...owned]); AV[shopTab] = id; applyAV(); updCoins(); sfx.win(); toast(it[1] + ' ' + it[2] + ' acheté et équipé !'); }
+    else if (b.dataset.act === 'on') { AV[shopTab] = id; applyAV(); sfx.ok(); }
+    else { AV[shopTab] = shopTab === 'h' ? 'none' : null; applyAV(); sfx.click(); }
+    renderShop();
+  });
+  renderShop();
+}
+function renderShop(){
+  const el = $('shopBody'); if (!el) return; const d = new Date().toISOString().slice(0, 10), gift = ls.get('arc_gift', '') !== d;
+  el.innerHTML = '<div class="shopTop"><span class="wallet">🪙 ' + coinCount + '</span>' + (gift ? '<button class="btn sm" id="gift" type="button">🎁 Cadeau du jour</button>' : '<span class="note">Ramasse des pièces dans le monde et à la Pluie de pièces.</span>') + '</div>' +
+    '<div class="seg" id="shopTabs">' + SHOP_TABS.map(t => '<button type="button" data-tab="' + t[0] + '" class="' + (t[0] === shopTab ? 'on' : '') + '">' + t[1] + '</button>').join('') + '</div>' +
+    '<div class="shopGrid">' + SHOP[shopTab].map(([id, e, n, price]) => { const own = owned.has(shopTab + ':' + id), eq = AV[shopTab] === id;
+      return '<div class="it' + (eq ? ' eq' : '') + '"><span class="ie" aria-hidden="true">' + e + '</span><b>' + esc(n) + '</b>' + (own ? '<button type="button" class="btn sm' + (eq ? ' ghost' : '') + '" data-act="' + (eq ? 'off' : 'on') + '" data-id="' + id + '">' + (eq ? 'Retirer' : 'Équiper') + '</button>' : '<button type="button" class="btn sm" data-act="buy" data-id="' + id + '"' + (coinCount < price ? ' disabled' : '') + '>🪙 ' + price + '</button>') + '</div>'; }).join('') + '</div>';
+}
+/* compagnons */
+const dotT = tex(cv(64, 64, (g) => { const r = g.createRadialGradient(32, 32, 0, 32, 32, 32); r.addColorStop(0, 'rgba(255,255,255,1)'); r.addColorStop(.4, 'rgba(255,255,255,.5)'); r.addColorStop(1, 'rgba(255,255,255,0)'); g.fillStyle = r; g.fillRect(0, 0, 64, 64); }));
+const noteT = tex(cv(64, 64, (g) => { g.font = '52px Arial'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillStyle = '#fff'; g.fillText('♪', 32, 36); }));
+function makePet(kind){
+  const g = new THREE.Group(), em = (c, i) => new THREE.MeshLambertMaterial({color: c, emissive: c, emissiveIntensity: i === undefined ? .4 : i});
+  if (kind === 'cube') { const m = new THREE.Mesh(new THREE.BoxGeometry(.45, .45, .45), em(0xb86bff, .6)); g.add(m); g.userData.spin = m; }
+  if (kind === 'orb') { g.add(new THREE.Mesh(new THREE.SphereGeometry(.24, 16, 12), new THREE.MeshBasicMaterial({color: 0xb9f7ff}))); const s = new THREE.Sprite(new THREE.SpriteMaterial({map: dotT, color: 0x38e1ff, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false})); s.scale.setScalar(1.5); g.add(s); }
+  if (kind === 'duck') { const y = em(0xffd84d, .15), b = new THREE.Mesh(new THREE.SphereGeometry(.26, 14, 10), y); b.scale.set(1, .85, 1.2); g.add(b); const h = new THREE.Mesh(new THREE.SphereGeometry(.17, 12, 10), y); h.position.set(0, .25, .2); g.add(h); const k = new THREE.Mesh(new THREE.ConeGeometry(.07, .18, 8), em(0xff8a1f, .2)); k.rotation.x = Math.PI / 2; k.position.set(0, .23, .4); g.add(k); }
+  if (kind === 'ufo') { const d = new THREE.Mesh(new THREE.CylinderGeometry(.42, .42, .1, 24), em(0x9aa0b5, .2)); g.add(d); const dome = new THREE.Mesh(new THREE.SphereGeometry(.2, 14, 10, 0, 6.283, 0, Math.PI / 2), new THREE.MeshBasicMaterial({color: 0x7ef9ff, transparent: true, opacity: .85})); dome.position.y = .05; g.add(dome); const r = new THREE.Mesh(new THREE.TorusGeometry(.42, .03, 6, 24), new THREE.MeshBasicMaterial({color: 0x3dffa2})); r.rotation.x = Math.PI / 2; g.add(r); g.userData.spin = d; }
+  if (kind === 'dragon') { const gr = em(0x2fe08c, .3), b = new THREE.Mesh(new THREE.BoxGeometry(.3, .28, .55), gr); g.add(b); const h = new THREE.Mesh(new THREE.BoxGeometry(.26, .24, .26), gr); h.position.set(0, .16, .36); g.add(h); const wl = new THREE.Mesh(new THREE.BoxGeometry(.5, .04, .3), em(0xb86bff, .4)); wl.position.set(-.38, .1, 0); const wr = wl.clone(); wr.position.x = .38; g.add(wl, wr); g.userData.wings = [wl, wr]; const t = new THREE.Mesh(new THREE.ConeGeometry(.08, .4, 6), gr); t.rotation.x = -Math.PI / 2; t.position.set(0, 0, -.45); g.add(t); }
+  return g;
+}
+function petSync(h, kind){ kind = kind || null; if (h.petKind === kind) return; if (h.petObj) scene.remove(h.petObj); h.petKind = kind; h.petObj = kind ? makePet(kind) : null; h.ph = Math.random() * 6; if (h.petObj) { scene.add(h.petObj); h.petInit = false; } }
+function petFollow(h, pos, yaw, dt){
+  const p = h.petObj; if (!p) return; const s = Math.sin(yaw), c = Math.cos(yaw);
+  const tx = pos.x - s * .8 + c * .9, tz = pos.z - c * .8 - s * .9, ty = pos.y + 2.35 + Math.sin(T * 2.5 + h.ph) * .15;
+  if (!h.petInit) { p.position.set(tx, ty, tz); h.petInit = true; } else { const k = Math.min(1, dt * 6); p.position.x += (tx - p.position.x) * k; p.position.y += (ty - p.position.y) * k; p.position.z += (tz - p.position.z) * k; }
+  p.rotation.y = yaw; if (p.userData.spin) p.userData.spin.rotation.y += dt * 3; if (p.userData.wings) { const a = Math.sin(T * 12) * .5; p.userData.wings[0].rotation.z = a; p.userData.wings[1].rotation.z = -a; }
+}
+/* traînées */
+const smat = (map, color, add) => new THREE.SpriteMaterial({map, color, transparent: true, depthWrite: false, blending: add ? THREE.AdditiveBlending : THREE.NormalBlending});
+const TRAIL = {spark: [smat(dotT, 0xfff3a6, 1), smat(dotT, 0xffffff, 1)], fire: [smat(dotT, 0xff6a1a, 1), smat(dotT, 0xffc23d, 1)], rainbow: [0, 40, 60, 140, 200, 280].map(h => smat(dotT, new THREE.Color('hsl(' + h + ',100%,60%)'), 1)), notes: [smat(noteT, 0x38e1ff), smat(noteT, 0xff4fa3), smat(noteT, 0xb86bff)]};
+const tPool = []; let tNext = 0;
+for (let i = 0; i < 240; i++) { const s = new THREE.Sprite(TRAIL.spark[0]); s.visible = false; scene.add(s); tPool.push({s, life: 0, max: 1, vy: 0, size: .3}); }
+function emitTrail(h, kind, pos, dt){
+  if (!kind || !TRAIL[kind]) return; h.trAcc = (h.trAcc || 0) + dt * (kind === 'notes' ? 9 : 26);
+  while (h.trAcc > 1) { h.trAcc--; const p = tPool[tNext = (tNext + 1) % tPool.length], mats = TRAIL[kind];
+    p.s.material = mats[Math.random() * mats.length | 0]; p.s.position.set(pos.x + rnd(-.3, .3), pos.y + (kind === 'notes' ? 1.3 : .25) + rnd(0, .35), pos.z + rnd(-.3, .3));
+    p.max = p.life = kind === 'notes' ? 1.4 : .75; p.vy = kind === 'fire' ? 1.8 : kind === 'notes' ? 1 : .35; p.size = kind === 'notes' ? .5 : .34; p.s.visible = true; }
+}
+function trailUpdate(dt){ for (const p of tPool) { if (p.life <= 0) continue; p.life -= dt; p.s.position.y += p.vy * dt; const k = Math.max(0, p.life / p.max); p.s.scale.setScalar(p.size * (.25 + .75 * k)); if (p.life <= 0) p.s.visible = false; } }
+
+scene.remove(me.av.root); me.av = makeAvatar(AV); scene.add(me.av.root); setTag(); petSync(me, AV.pet);
 /* ---------- avatar : personnalisation ---------- */
 function editAvatar(first){
   const sw = (arr, key) => '<div class="sw" data-k="' + key + '">' + arr.map((c, i) => '<button type="button" data-i="' + i + '" class="' + (AV[key] === i ? 'on' : '') + '" style="background:' + c + '" aria-label="Couleur ' + (i + 1) + '"></button>').join('') + '</div>';
-  modal(first ? 'Bienvenue dans le Monde Néon !' : 'Mon avatar', '<div class="av"><label class="lbl" style="margin:0">Pseudo</label><input class="inp" id="avName" maxlength="16" value="' + esc(NAME) + '" autocomplete="off"><div class="lbl" style="margin:0">T-shirt</div>' + sw(SHIRT, 's') + '<div class="lbl" style="margin:0">Pantalon</div>' + sw(PANTS, 'p') + '<div class="lbl" style="margin:0">Peau</div>' + sw(SKIN, 'k') + '<div class="lbl" style="margin:0">Chapeau</div><div class="seg" id="avHat">' + HATS.map(h => '<button type="button" data-h="' + h[0] + '" class="' + (AV.h === h[0] ? 'on' : '') + '">' + h[1] + '</button>').join('') + '</div></div>',
+  modal(first ? 'Bienvenue dans le Monde Néon !' : 'Mon avatar', '<div class="av"><label class="lbl" style="margin:0">Pseudo</label><input class="inp" id="avName" maxlength="16" value="' + esc(NAME) + '" autocomplete="off"><div class="lbl" style="margin:0">T-shirt</div>' + sw(SHIRT, 's') + '<div class="lbl" style="margin:0">Pantalon</div>' + sw(PANTS, 'p') + '<div class="lbl" style="margin:0">Peau</div>' + sw(SKIN, 'k') + '<div class="lbl" style="margin:0">Chapeau</div><div class="seg" id="avHat">' + HATS.concat(SHOP.h.filter(x => owned.has('h:' + x[0])).map(x => [x[0], x[2]])).map(h => '<button type="button" data-h="' + h[0] + '" class="' + (AV.h === h[0] ? 'on' : '') + '">' + h[1] + '</button>').join('') + '</div></div>',
     [[first ? 'Entrer dans le monde ▶' : 'Enregistrer', () => {
       const n = $('avName').value.replace(/\s+/g, ' ').trim().slice(0, 16); if (n.length >= 2 && n !== NAME) { NAME = n; ls.set('gs_name', n); }
       ls.set('arc_avatar', AV); scene.remove(me.av.root); me.av = makeAvatar(AV); scene.add(me.av.root); setTag(); if (joined) net('PUT', '/world/players/' + PID, myRecord()); sfx.ok(); if (first) setTimeout(showHelp, 60);
@@ -552,9 +635,9 @@ function editAvatar(first){
 }
 function showHelp(){
   modal('Comment jouer', '<div class="help">' + (COARSE ? '<p>🕹️ <b>Joystick</b> en bas à gauche pour marcher, <b>SAUTER</b> à droite.</p><p>👆 Fais glisser un doigt sur l\'écran pour tourner la caméra, pince pour zoomer.</p>' : '<p>⌨️ <b>ZQSD</b>, <b>WASD</b> ou les <b>flèches</b> pour marcher, <b>Espace</b> pour sauter.</p><p>🖱️ Clique-glisse pour tourner la caméra, molette pour zoomer.</p><p><b>T</b> pour discuter, <b>B</b> pour construire, <b>E</b> pour entrer dans un portail.</p>') +
-    '<p>🚪 <b>Portails</b> : marche dans un portail pour lancer le jeu.</p><p>🏆 <b>Parcours</b> à droite de la place : saute de plateforme en plateforme au-dessus de la lave.</p><p>🧱 <b>Construction</b> à gauche : active 🧱 et touche le sol pour poser des blocs, visibles par tous les joueurs.</p><p>🎮 <b>Mini-jeux</b> au sud de la place : 🐱 Chat perché (à plusieurs), 💥 Sol fragile, 🪙 Pluie de pièces, et des trampolines.</p><p>🪙 Ramasse les pièces cachées dans le monde.</p><p>💬 Les autres joueurs connectés apparaissent en direct : dis bonjour !</p></div>', [['C\'est parti ▶', () => ls.set('arc_world_help', 1)]]);
+    '<p>🚪 <b>Portails</b> : marche dans un portail pour lancer le jeu.</p><p>🏆 <b>Parcours</b> à droite de la place : saute de plateforme en plateforme au-dessus de la lave.</p><p>🧱 <b>Construction</b> à gauche : active 🧱 et touche le sol pour poser des blocs, visibles par tous les joueurs.</p><p>🎮 <b>Mini-jeux</b> au sud de la place : 🐱 Chat perché (à plusieurs), 💥 Sol fragile, 🪙 Pluie de pièces, et des trampolines.</p><p>🪙 Ramasse les pièces cachées dans le monde, puis dépense-les à la <b>boutique</b> (stand sur la place ou bouton 🪙) : chapeaux, compagnons, traînées et tenues, visibles par tous.</p><p>💬 Les autres joueurs connectés apparaissent en direct : dis bonjour !</p></div>', [['C\'est parti ▶', () => ls.set('arc_world_help', 1)]]);
 }
-$('avBtn').onclick = () => editAvatar(false); $('helpBtn').onclick = showHelp;
+$('avBtn').onclick = () => editAvatar(false); $('coinsP').onclick = () => { sfx.click(); openShop(); }; $('helpBtn').onclick = showHelp;
 
 /* ---------- boucle ---------- */
 let lastT = performance.now(), T = 0;
@@ -562,21 +645,21 @@ function frame(now){
   requestAnimationFrame(frame); if (document.hidden) { lastT = now; return; }
   const dt = Math.max(0, Math.min(.05, (now - lastT) / 1000)); lastT = now; T += dt;
   physics(dt); zones(dt);
-  me.av.root.position.copy(me.pos); me.av.root.rotation.y = me.yaw; animate(me.av, me.speed, !me.ground, dt);
+  me.av.root.position.copy(me.pos); me.av.root.rotation.y = me.yaw; animate(me.av, me.speed, !me.ground, dt); petFollow(me, me.pos, me.yaw, dt); if (me.speed > 1.5 || !me.ground) emitTrail(me, AV.tr, me.pos, dt);
   for (const o of others.values()) {
     if (o.target) { o.pos.lerp(o.target, Math.min(1, dt * 10)); let dy = ((o.tyaw - o.yaw + Math.PI) % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI) - Math.PI; o.yaw += dy * Math.min(1, dt * 10); }
-    o.av.root.position.copy(o.pos); o.av.root.rotation.y = o.yaw; animate(o.av, o.a === 1 ? 6 : 0, o.a === 2, dt);
+    o.av.root.position.copy(o.pos); o.av.root.rotation.y = o.yaw; animate(o.av, o.a === 1 ? 6 : 0, o.a === 2, dt); petFollow(o, o.pos, o.yaw, dt); if (o.a === 1 || o.a === 2) emitTrail(o, o.tr, o.pos, dt);
     if (o.bubble && (o.bubbleT -= dt) <= 0) { o.av.root.remove(o.bubble); o.bubble = null; }
   }
   if (me.bubble && (me.bubbleT -= dt) <= 0) { me.av.root.remove(me.bubble); me.bubble = null; }
   if (blocksDirty) rebuildBlocks();
-  vinyl.rotation.y += dt * .5; trophy.rotation.y += dt * 1.2; coins.forEach(c => { c.m.rotation.z += dt * 2.5; });
+  vinyl.rotation.y += dt * .5; trailUpdate(dt); shopCoin.rotation.z += dt * 2; trophy.rotation.y += dt * 1.2; coins.forEach(c => { c.m.rotation.z += dt * 2.5; });
   portals.forEach((p, i) => { p.veil.material.opacity = .32 + Math.sin(T * 2 + i) * .14; });
   window.LAVA2.material.opacity = .18 + Math.sin(T * 1.7) * .08;
   if (pLife > 0) { pLife -= dt; for (let i = 0; i < PN; i++) { pVel[i*3+1] -= 9 * dt; pPos[i*3] += pVel[i*3] * dt; pPos[i*3+1] += pVel[i*3+1] * dt; pPos[i*3+2] += pVel[i*3+2] * dt; } pGeo.attributes.position.needsUpdate = true; if (pLife <= 0) parts.visible = false; }
   updateCam(); renderer.render(scene, cam); sendPos();
 }
-$('coinsP').textContent = '🪙 ' + coinCount;
+updCoins();
 $('load').remove(); requestAnimationFrame(frame); connect();
 if (firstTime) editAvatar(true); else if (!ls.get('arc_world_help', 0)) showHelp();
 canvas.focus({preventScroll: true});
