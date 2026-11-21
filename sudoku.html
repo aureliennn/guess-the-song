@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Sudoku — Arcade Néon</title>
+<meta name="description" content="Sudoku en ligne : grilles générées à l'infini, 3 niveaux, notes et indices.">
+<meta name="theme-color" content="#07040f">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;800&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="arcade.css">
+<style>
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:18px;align-items:start}
+.left{width:min(100%,560px,calc(100vh - 280px));width:min(100%,560px,calc(100dvh - 280px));min-width:min(100%,280px);justify-self:center;display:grid;gap:10px}
+@media(max-width:900px){.layout{grid-template-columns:minmax(0,1fr)}.left{width:min(100%,560px,calc(100dvh - 330px))}}
+.hud{display:flex;justify-content:space-between;align-items:center;gap:8px;font-weight:700;font-size:14px}
+.grid9{display:grid;grid-template-columns:repeat(9,1fr);aspect-ratio:1/1;border:3px solid #c9b6ff;border-radius:12px;overflow:hidden;background:#140c2b;user-select:none;-webkit-user-select:none;touch-action:manipulation}
+.c{position:relative;display:flex;align-items:center;justify-content:center;aspect-ratio:1/1;border-right:1px solid rgba(201,182,255,.2);border-bottom:1px solid rgba(201,182,255,.2);font-size:var(--fs,28px);font-weight:600;color:#9ee8ff;cursor:pointer;padding:0;background:transparent}
+.c:nth-child(9n){border-right:0}.c:nth-child(n+73){border-bottom:0}
+.c:nth-child(9n+3),.c:nth-child(9n+6){border-right:2px solid #c9b6ff}
+.c:nth-child(n+19):nth-child(-n+27),.c:nth-child(n+46):nth-child(-n+54){border-bottom:2px solid #c9b6ff}
+.c.g{color:#fff;font-weight:800}
+.c.peer{background:rgba(184,107,255,.1)}
+.c.same{background:rgba(56,225,255,.2)}
+.c.sel{background:rgba(184,107,255,.45)}
+.c.err{color:var(--bad)}
+.c.flash{animation:fl .5s}
+@keyframes fl{50%{background:rgba(61,255,162,.4)}}
+.nt{position:absolute;inset:6%;display:grid;grid-template-columns:repeat(3,1fr);font-size:calc(var(--fs,28px) * .36);font-weight:600;color:#c4b8ec;line-height:1}
+.nt span{display:flex;align-items:center;justify-content:center}
+.pad{display:grid;grid-template-columns:repeat(9,1fr);gap:6px}
+.pad button{aspect-ratio:1/1.15;border-radius:12px;background:rgba(255,255,255,.07);border:1px solid var(--line);font:700 clamp(18px,4.6vw,24px)/1 Unbounded,Inter,sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+.pad button small{font:600 10px/1 Inter,sans-serif;color:var(--mut)}
+.pad button:disabled{opacity:.2;cursor:default}
+.pad button:not(:disabled):hover{border-color:var(--acc)}
+.tools{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.tools button{padding:9px 4px;border-radius:12px;background:rgba(255,255,255,.07);border:1px solid var(--line);font-size:13px;font-weight:700;display:flex;flex-direction:column;align-items:center;gap:2px}
+.tools button span{font-size:18px}
+.tools button.on{background:linear-gradient(92deg,var(--acc),#7a5cff);border-color:transparent}
+@media(max-width:420px){.pad{gap:4px}.pad button{border-radius:9px}.tools button{font-size:11px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top"><a class="back" href="./">← Arcade</a><h1>🔢 Sudoku</h1></div>
+  <div class="layout">
+    <div class="left">
+      <div class="hud"><span id="lvlTxt"></span><span id="errTxt"></span><span id="timeTxt">0:00</span></div>
+      <div class="grid9" id="grid" role="grid" aria-label="Grille de sudoku"></div>
+      <div class="tools">
+        <button type="button" id="undoBtn"><span>↶</span>Annuler</button>
+        <button type="button" id="eraseBtn"><span>⌫</span>Effacer</button>
+        <button type="button" id="noteBtn"><span>✏️</span>Notes</button>
+        <button type="button" id="hintBtn"><span>💡</span>Indice</button>
+      </div>
+      <div class="pad" id="pad"></div>
+    </div>
+    <aside class="panel glass">
+      <div><div class="lbl" style="margin-top:4px">Nouvelle grille</div><div class="seg" id="lvlSeg"></div></div>
+      <button class="btn" id="newBtn">Nouvelle grille</button>
+      <div class="note">Remplis chaque ligne, chaque colonne et chaque carré de 3×3 avec les chiffres de 1 à 9, sans répétition.<br><br>Au clavier : chiffres pour écrire, flèches pour te déplacer, N pour les notes, Retour arrière pour effacer.</div>
+      <label class="note" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="showErr" style="accent-color:var(--acc);width:17px;height:17px"> Signaler les erreurs tout de suite</label>
+      <div class="note" id="stats"></div>
+    </aside>
+  </div>
+</div>
+<script src="arcade.js"></script>
+<script>
+const LV = {easy: {n: 'Facile', g: 38}, med: {n: 'Moyen', g: 31}, hard: {n: 'Difficile', g: 25}};
+let G = null, sel = -1, noteMode = false, undoStack = [], timer = 0, lastTick = 0, level = ls.get('arc_sd_lvl', 'easy'), showErr = ls.get('arc_sd_err', true), done = false;
+
+/* ---------- générateur (solution unique garantie) ---------- */
+const ROW = i => i / 9 | 0, COL = i => i % 9, BOX = i => (ROW(i) / 3 | 0) * 3 + (COL(i) / 3 | 0);
+const PEERS = Array.from({length: 81}, (_, i) => { const s = new Set(); for (let j = 0; j < 81; j++) if (j !== i && (ROW(j) === ROW(i) || COL(j) === COL(i) || BOX(j) === BOX(i))) s.add(j); return [...s]; });
+function count(g, limit){
+  const rm = new Array(9).fill(0), cm = new Array(9).fill(0), bm = new Array(9).fill(0);
+  for (let i = 0; i < 81; i++) if (g[i]) { const b = 1 << g[i]; rm[ROW(i)] |= b; cm[COL(i)] |= b; bm[BOX(i)] |= b; }
+  let n = 0;
+  (function rec(){
+    if (n >= limit) return;
+    let best = -1, bestMask = 0, bestCnt = 10;
+    for (let i = 0; i < 81; i++) if (!g[i]) { const used = rm[ROW(i)] | cm[COL(i)] | bm[BOX(i)]; let cnt = 0; for (let v = 1; v <= 9; v++) if (!(used & (1 << v))) cnt++; if (cnt < bestCnt) { bestCnt = cnt; best = i; bestMask = used; if (!cnt) return; } }
+    if (best < 0) { n++; return; }
+    for (let v = 1; v <= 9 && n < limit; v++) if (!(bestMask & (1 << v))) { const b = 1 << v; g[best] = v; rm[ROW(best)] |= b; cm[COL(best)] |= b; bm[BOX(best)] |= b; rec(); g[best] = 0; rm[ROW(best)] &= ~b; cm[COL(best)] &= ~b; bm[BOX(best)] &= ~b; }
+  })();
+  return n;
+}
+function full(){
+  const g = new Array(81).fill(0);
+  (function rec(i){ if (i === 81) return true; for (const v of shuffle([1, 2, 3, 4, 5, 6, 7, 8, 9])) { if (PEERS[i].every(j => g[j] !== v)) { g[i] = v; if (rec(i + 1)) return true; g[i] = 0; } } return false; })(0);
+  return g;
+}
+function makePuzzle(lv){
+  const sol = full(), puz = sol.slice(); let givens = 81;
+  for (const i of shuffle([...Array(81).keys()])) { if (givens <= LV[lv].g) break; const v = puz[i]; puz[i] = 0; if (count(puz.slice(), 2) !== 1) puz[i] = v; else givens--; }
+  return {puz, sol};
+}
+
+/* ---------- partie ---------- */
+function newGame(lv){
+  level = lv || level; ls.set('arc_sd_lvl', level);
+  const {puz, sol} = makePuzzle(level);
+  G = {level, puz, sol, cur: puz.slice(), notes: new Array(81).fill(0), errs: 0, hints: 0, time: 0};
+  sel = puz.indexOf(0); undoStack = []; done = false; timer = 0; closeModal(); save(); render();
+}
+function save(){ if (G && !done) ls.set('arc_sd_save', G); }
+const cellsEl = [];
+for (let i = 0; i < 81; i++) { const b = document.createElement('button'); b.type = 'button'; b.className = 'c'; b.dataset.i = i; $('grid').appendChild(b); cellsEl.push(b); }
+new ResizeObserver(() => $('grid').style.setProperty('--fs', ($('grid').clientWidth / 9 * .58).toFixed(1) + 'px')).observe($('grid'));
+$('grid').addEventListener('click', e => { const b = e.target.closest('.c'); if (b) { sel = +b.dataset.i; sfx.click(); render(); } });
+$('pad').innerHTML = [1, 2, 3, 4, 5, 6, 7, 8, 9].map(v => '<button type="button" data-v="' + v + '">' + v + '<small></small></button>').join('');
+$('pad').addEventListener('click', e => { const b = e.target.closest('button'); if (b) input(+b.dataset.v); });
+
+function render(){
+  const v = sel >= 0 ? G.cur[sel] : 0;
+  for (let i = 0; i < 81; i++) {
+    const c = cellsEl[i], val = G.cur[i], given = !!G.puz[i], wrong = val && !given && val !== G.sol[i] && showErr, conflict = val && PEERS[i].some(j => G.cur[j] === val);
+    c.className = 'c' + (given ? ' g' : '') + (i === sel ? ' sel' : sel >= 0 && PEERS[sel].includes(i) ? ' peer' : '') + (v && val === v && i !== sel ? ' same' : '') + ((wrong || conflict) && !given ? ' err' : '');
+    c.innerHTML = val ? String(val) : G.notes[i] ? '<span class="nt">' + [1, 2, 3, 4, 5, 6, 7, 8, 9].map(n => '<span>' + (G.notes[i] & (1 << n) ? n : '') + '</span>').join('') + '</span>' : '';
+    c.setAttribute('aria-label', 'Ligne ' + (ROW(i) + 1) + ', colonne ' + (COL(i) + 1) + (val ? ', ' + val : ', vide'));
+  }
+  const left = n => 9 - G.cur.filter((x, i) => x === n && x === G.sol[i]).length;
+  $('pad').querySelectorAll('button').forEach(b => { const n = +b.dataset.v, l = left(n); b.disabled = l <= 0; b.querySelector('small').textContent = l > 0 ? l : ''; });
+  $('noteBtn').classList.toggle('on', noteMode);
+  $('lvlTxt').textContent = LV[G.level].n; $('errTxt').textContent = (G.errs ? '❌ ' + G.errs + ' erreur' + (G.errs > 1 ? 's' : '') : '') + (G.hints ? '  💡 ' + G.hints : '');
+  $('timeTxt').textContent = '⏱ ' + fmtTime(G.time);
+  $('lvlSeg').innerHTML = Object.entries(LV).map(([k, o]) => '<button type="button" data-v="' + k + '" class="' + (k === level ? 'on' : '') + '">' + o.n + '</button>').join('');
+  $('showErr').checked = showErr;
+  const s = ls.get('arc_sudoku', {}), b = s.best || {};
+  $('stats').innerHTML = (s.solved ? '<b>' + s.solved + '</b> grille' + (s.solved > 1 ? 's' : '') + ' résolue' + (s.solved > 1 ? 's' : '') + '.<br>' : '') + Object.entries(LV).map(([k, o]) => o.n + ' : ' + (b[k] ? 'record ' + fmtTime(b[k]) : '—')).join(' · ');
+}
+function push(){ undoStack.push({cur: G.cur.slice(), notes: G.notes.slice()}); if (undoStack.length > 200) undoStack.shift(); }
+function input(v){
+  if (done || sel < 0 || G.puz[sel]) return;
+  if (noteMode && !G.cur[sel]) { push(); G.notes[sel] ^= 1 << v; sfx.click(); save(); render(); return; }
+  if (G.cur[sel] === v) return;
+  push(); G.cur[sel] = v; G.notes[sel] = 0;
+  if (v === G.sol[sel]) { PEERS[sel].forEach(j => { G.notes[j] &= ~(1 << v); }); sfx.move(); }
+  else { G.errs++; if (showErr) sfx.bad(); else sfx.move(); }
+  save(); render(); check();
+}
+function erase(){ if (done || sel < 0 || G.puz[sel] || (!G.cur[sel] && !G.notes[sel])) return; push(); G.cur[sel] = 0; G.notes[sel] = 0; sfx.click(); save(); render(); }
+function undo(){ const u = undoStack.pop(); if (!u || done) return; G.cur = u.cur; G.notes = u.notes; sfx.click(); save(); render(); }
+function hint(){
+  if (done) return; let i = sel >= 0 && G.cur[sel] !== G.sol[sel] ? sel : -1;
+  if (i < 0) { const e = [...Array(81).keys()].filter(j => G.cur[j] !== G.sol[j]); if (!e.length) return; i = e[Math.random() * e.length | 0]; }
+  push(); G.cur[i] = G.sol[i]; G.notes[i] = 0; G.puz[i] = G.sol[i]; PEERS[i].forEach(j => { G.notes[j] &= ~(1 << G.sol[i]); }); G.hints++; sel = i;
+  sfx.ok(); save(); render(); cellsEl[i].classList.add('flash'); check();
+}
+function check(){
+  if (G.cur.some((v, i) => v !== G.sol[i])) return;
+  done = true; try { localStorage.removeItem('arc_sd_save'); } catch(e) {}
+  let rec = false; stat('arc_sudoku', s => { s.solved = (s.solved | 0) + 1; s.best = s.best || {}; if (!G.hints && (!s.best[G.level] || G.time < s.best[G.level])) { s.best[G.level] = G.time; rec = true; } });
+  sfx.win(); render();
+  setTimeout(() => modal('Grille résolue ! 🎉', '<p class="note">' + LV[G.level].n + ' en <b>' + fmtTime(G.time) + '</b>' + (G.errs ? ', ' + G.errs + ' erreur' + (G.errs > 1 ? 's' : '') : ', sans erreur') + (G.hints ? ', ' + G.hints + ' indice' + (G.hints > 1 ? 's' : '') + ' (pas de record avec indice)' : '') + '.' + (rec ? '<br><b style="color:var(--gold)">★ Nouveau record !</b>' : '') + '</p>', [['Nouvelle grille', () => newGame()], ['Fermer', null, true]]), 500);
+}
+function move(dr, dc){ if (sel < 0) sel = 0; else { const r = (ROW(sel) + dr + 9) % 9, c = (COL(sel) + dc + 9) % 9; sel = r * 9 + c; } render(); }
+$('eraseBtn').onclick = erase; $('undoBtn').onclick = undo; $('hintBtn').onclick = hint;
+$('noteBtn').onclick = () => { noteMode = !noteMode; sfx.click(); render(); };
+$('newBtn').onclick = () => { if (!done && G.cur.some((v, i) => v && !G.puz[i])) modal('Nouvelle grille ?', '<p class="note">La grille en cours sera perdue.</p>', [['Oui', () => newGame()], ['Continuer', null, true]]); else newGame(); };
+$('lvlSeg').onclick = e => { const v = e.target.dataset.v; if (!v) return; level = v; ls.set('arc_sd_lvl', v); sfx.click(); render(); toast('Niveau ' + LV[v].n + ' : clique sur « Nouvelle grille ».'); };
+$('showErr').onchange = e => { showErr = e.target.checked; ls.set('arc_sd_err', showErr); render(); };
+addEventListener('keydown', e => {
+  if ($('modal')) return;
+  if (/^[1-9]$/.test(e.key)) input(+e.key);
+  else if (e.key === 'Backspace' || e.key === 'Delete' || e.key === '0') erase();
+  else if (e.key === 'ArrowUp') { e.preventDefault(); move(-1, 0); } else if (e.key === 'ArrowDown') { e.preventDefault(); move(1, 0); }
+  else if (e.key === 'ArrowLeft') { e.preventDefault(); move(0, -1); } else if (e.key === 'ArrowRight') { e.preventDefault(); move(0, 1); }
+  else if (e.key === 'n' || e.key === 'N') { noteMode = !noteMode; render(); }
+  else if ((e.ctrlKey || e.metaKey) && e.key === 'z') { e.preventDefault(); undo(); }
+});
+setInterval(() => { if (G && !done && !document.hidden && !$('modal')) { G.time++; $('timeTxt').textContent = '⏱ ' + fmtTime(G.time); if (G.time % 5 === 0) save(); } }, 1000);
+const sv = ls.get('arc_sd_save', null);
+if (sv && Array.isArray(sv.cur) && sv.cur.length === 81 && sv.cur.some((v, i) => v !== sv.sol[i])) { G = sv; level = sv.level; sel = sv.cur.indexOf(0); render(); toast('Grille en cours reprise.'); } else newGame();
+</script>
+</body>
+</html>
