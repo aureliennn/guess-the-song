@@ -889,5 +889,159 @@ const MJ = (() => {
       x.loop(() => x.hud('🚦 ' + greens + ' / 15 · ' + '❤️'.repeat(Math.max(0, lives))));
       x.after(300, next);
     }});
+  /* ================= v6.1 : 9 nouveaux jeux ================= */
+  def({id: 'tuiles', n: 'Tuiles néon', e: '🎹', cat: 'ref', d: 'Touche les tuiles qui descendent, sans en rater une.', how: 'Touche la colonne de la tuile la plus basse (en surbrillance) avant qu\'elle sorte de l\'écran. Une erreur ou une tuile ratée coûte une vie. 3 vies.',
+    axes: [{k: 'd', o: D4}, {k: 'm', o: [['Sans fin', 's'], ['Course de 50 tuiles', 'q']]}, {k: 't', o: TH3}],
+    play(x){
+      const {P, T} = x, cv = x.canvas(360, 540), g = cv.g, CW = 90, TH = 130; let tiles = [], hits = 0, lives = 3, t = 0, flash = 0, fc = 0, started = false, spawned = 0;
+      const spawn = y => { tiles.push({c: x.ri(0, 3), y, hit: false}); spawned++; };
+      for (let i = 0; i < 5; i++) spawn(280 - i * TH);
+      const low = () => tiles.find(k => !k.hit);
+      const finish = () => { const done = P.m === 'q' && hits >= 50; x.end(hits * 10 + (done ? Math.max(0, 900 - Math.round(t) * 12) : 0), P.m === 'q' ? (done ? st3(lives, 1, 2, 3) : 0) : st3(hits, 25, 60, 100), pl(hits, 'tuile{s}') + (done ? ' en ' + t.toFixed(1) + ' s' : '')); };
+      const lose = c => { lives--; flash = .35; fc = c; x.beep(120, .3); if (lives <= 0) finish(); };
+      const tap = c => { if (x.dead) return; const L = low(); if (!L) return; started = true; if (c === L.c) { L.hit = true; hits++; x.beep(300 + L.c * 120 + (hits % 8) * 30, .07); if (P.m === 'q' && hits >= 50) finish(); } else lose(c); };
+      x.on(cv.c, 'pointerdown', e => tap(Math.max(0, Math.min(3, cv.pos(e).x / CW | 0))));
+      x.key(e => { const c = {KeyD: 0, KeyF: 1, KeyJ: 2, KeyK: 3, Digit1: 0, Digit2: 1, Digit3: 2, Digit4: 3}[e.code]; if (c !== undefined) { e.preventDefault(); tap(c); } });
+      x.loop(dt => { if (started) t += dt; const v = started ? (200 + P.d * 55) * (1 + hits / 90) : 0;
+        for (const k of tiles) k.y += v * dt;
+        const L0 = low(); if (L0 && L0.y > 540) { L0.hit = true; lose(L0.c); if (x.dead) return; }
+        tiles = tiles.filter(k => k.y < 560);
+        let top = tiles.length ? Math.min(...tiles.map(k => k.y)) : 0; while (top > -TH && (P.m !== 'q' || spawned < 50)) { top -= TH; spawn(top); }
+        if (P.m === 'q' && !low() && hits < 50) return finish();
+        const L = low(); bg(cv, T); g.shadowBlur = 0; g.strokeStyle = 'rgba(255,255,255,.1)'; g.lineWidth = 1; for (let i = 1; i < 4; i++) { g.beginPath(); g.moveTo(i * CW, 0); g.lineTo(i * CW, 540); g.stroke(); }
+        if (flash > 0) { flash -= dt; g.fillStyle = 'rgba(255,77,109,.35)'; g.fillRect(fc * CW, 0, CW, 540); }
+        for (const k of tiles) { if (k.y + TH < 0) continue; if (k.hit) { g.shadowBlur = 0; g.fillStyle = 'rgba(255,255,255,.07)'; g.fillRect(k.c * CW + 3, k.y + 3, CW - 6, TH - 6); continue; } const isL = k === L; glow(g, isL ? T.b : T.a, isL ? 18 : 6); g.fillStyle = isL ? T.b : T.a; g.fillRect(k.c * CW + 3, k.y + 3, CW - 6, TH - 6); }
+        if (!started && L) txt(g, 'Touche !', L.c * CW + CW / 2, L.y + TH / 2, 14, '#0a0618');
+        x.hud('🎹 ' + hits + (P.m === 'q' ? ' / 50' : '') + ' · ' + '❤️'.repeat(Math.max(0, lives)) + (P.m === 'q' ? ' · ⏱ ' + t.toFixed(1) : '')); });
+    }});
+
+  def({id: 'chrono', n: 'Chrono parfait', e: '⏱️', cat: 'ref', d: 'Arrête le chrono pile au bon moment.', how: 'Appuie pour lancer le chrono, puis encore pour l\'arrêter pile sur le temps demandé. Selon la variante, le chrono disparaît en route : compte dans ta tête ! 5 essais.',
+    axes: [{k: 'g', o: [['3 secondes', 3], ['5 secondes', 5], ['10 secondes', 10]]}, {k: 'h', o: [['Chrono visible', 0], ['Caché après 1 s', 1], ['Caché dès le départ', 2]]}, {k: 't', o: TH3}],
+    play(x){
+      const {P} = x, G = P.g.toFixed(2).replace('.', ','), goal = x.el('div', 'mj-q', 'Objectif : <b>' + G + ' s</b>'), disp = x.el('div', 'mj-card big', '0,00 s'), btn = x.el('button', 'btn mj-go', '▶ Lancer'); btn.type = 'button'; x.stage.append(goal, disp, btn);
+      let state = 'ready', t0 = 0, tries = 0, errs = [], sc = 0;
+      const show = s => { disp.textContent = s.toFixed(2).replace('.', ',') + ' s'; };
+      x.on(btn, 'pointerdown', e => { e.preventDefault(); if (x.dead) return;
+        if (state === 'ready') { state = 'run'; t0 = performance.now(); btn.textContent = '⏹ Stop'; disp.className = 'mj-card big'; x.beep(500, .05); }
+        else if (state === 'run') { const s = (performance.now() - t0) / 1000, err = Math.abs(s - P.g); errs.push(err); tries++; sc += Math.max(0, Math.round(1000 - err * 1000)); state = 'wait'; show(s);
+          disp.className = 'mj-card big' + (err < .1 ? ' okc' : err > .5 ? ' bad' : ''); goal.innerHTML = (s < P.g ? 'Trop tôt de ' : 'Trop tard de ') + '<b>' + Math.round(err * 1000) + ' ms</b>' + (err < .05 ? ' 🎯 Parfait !' : ''); x.beep(err < .1 ? 900 : 300, .1);
+          btn.textContent = tries >= 5 ? 'Voir le score' : '↻ Essai suivant'; }
+        else { if (tries >= 5) { const avg = errs.reduce((a, b) => a + b, 0) / errs.length; return x.end(sc, st3(-avg * 1000 / P.g, -120, -60, -25), 'Écart moyen : ' + Math.round(avg * 1000) + ' ms'); }
+          state = 'ready'; btn.textContent = '▶ Lancer'; show(0); goal.innerHTML = 'Objectif : <b>' + G + ' s</b>'; } });
+      x.loop(() => { if (state === 'run') { const s = (performance.now() - t0) / 1000; if (P.h === 0 || (P.h === 1 && s < 1)) show(s); else disp.textContent = '?,?? s'; } x.hud('⏱️ Essai ' + Math.min(5, tries + (state === 'wait' ? 0 : 1)) + ' / 5 · ' + sc + ' pts'); });
+    }});
+
+  def({id: 'ordre', n: 'Dans l\'ordre', e: '🔟', cat: 'ref', d: 'Touche les nombres dans l\'ordre, le plus vite possible.', how: 'Touche 1, puis 2, puis 3… jusqu\'au dernier (ou les lettres de A à Y, ou à rebours selon la variante). Une erreur ajoute 1 seconde.',
+    axes: [{k: 'n', o: [['Grille 3×3', 3], ['Grille 4×4', 4], ['Grille 5×5', 5]]}, {k: 'v', o: [['Chiffres', 'n'], ['Lettres', 'l'], ['À rebours', 'r']]}, {k: 't', o: TH3}],
+    play(x){
+      const {P} = x, N = P.n, M = N * N, G = x.grid(N, N, 'memo'), AL = 'ABCDEFGHIJKLMNOPQRSTUVWXY';
+      const lab = k => P.v === 'l' ? AL[k] : String(P.v === 'r' ? M - k : k + 1);
+      const order = x.shuf([...Array(M).keys()]); G.cells.forEach((c, i) => { c.textContent = lab(order[i]); c.dataset.k = order[i]; });
+      let next = 0, t = 0, pen = 0, started = false;
+      x.on(G.el, 'click', e => { const b = e.target.closest('.mj-cell'); if (!b || x.dead || b.classList.contains('ok')) return; started = true;
+        if (+b.dataset.k === next) { b.classList.add('ok'); next++; x.beep(400 + next * 20, .04); if (next >= M) { const tt = t + pen; x.end(Math.max(10, Math.round(3000 - tt * 2000 / M)), st3(-tt / M, -2, -1.3, -.85), M + ' cases en ' + tt.toFixed(1) + ' s'); } }
+        else { pen += 1; b.classList.add('ko'); x.beep(130, .2); x.after(250, () => b.classList.remove('ko')); } });
+      x.loop(dt => { if (started) t += dt; x.hud('🔟 Prochain : ' + (next < M ? lab(next) : '✓') + ' · ⏱ ' + (t + pen).toFixed(1) + ' s'); });
+    }});
+
+  def({id: 'couleur', n: 'Couleur fantôme', e: '🎨', cat: 'mem', d: 'Retiens une couleur et retrouve-la parmi des nuances très proches.', how: 'Une couleur s\'affiche un court instant. Ensuite, touche la même parmi 4 nuances. 10 manches.',
+    axes: [{k: 'd', o: [['Nuances éloignées', 1], ['Nuances proches', 2], ['Nuances très proches', 3]]}, {k: 'v', o: [['Affichage long', 2000], ['Affichage court', 900]]}, {k: 't', o: TH3}],
+    play(x){
+      const {P} = x, info = x.el('div', 'mj-q'), sw = x.el('div', 'mj-swatch'); x.stage.append(info, sw); let round = 0, ok = 0, box = null, sc = 0;
+      const D = [38, 22, 12][P.d - 1], col = (h, l) => 'hsl(' + (((h % 360) + 360) % 360) + ',80%,' + l + '%)';
+      const next = () => { if (box) { box.remove(); box = null; } round++; const h = x.ri(0, 359), l = x.ri(45, 62); sw.style.background = col(h, l); sw.style.visibility = 'visible'; info.textContent = 'Manche ' + round + ' / 10 : retiens cette couleur…';
+        x.after(P.v, () => { sw.style.visibility = 'hidden'; info.textContent = 'Laquelle était-ce ?'; const offs = x.shuf([0, ...x.shuf([-2, -1, 1, 2]).slice(0, 3)]); let done = false;
+          box = x.choices(offs.map(() => '&nbsp;'), i => { if (done) return; done = true; if (offs[i] === 0) { ok++; sc += 100; x.beep(850); } else x.beep(140, .2);
+              box.querySelectorAll('.mj-ch').forEach((b, j) => { if (offs[j] === 0) b.classList.add('ok'); else if (j === i) b.classList.add('ko'); }); sw.style.visibility = 'visible'; info.textContent = offs[i] === 0 ? '✅ Bien vu !' : '❌ C\'était celle entourée en vert';
+              x.after(1000, () => { if (round >= 10) x.end(sc, st3(ok, 5, 7, 9), ok + ' couleur' + (ok > 1 ? 's' : '') + ' retrouvée' + (ok > 1 ? 's' : '') + ' sur 10'); else next(); }); }, 'swatches');
+          box.querySelectorAll('.mj-ch').forEach((b, j) => { b.style.background = col(h + offs[j] * D, l); b.setAttribute('aria-label', 'Nuance ' + (j + 1)); }); x.stage.append(box); }); };
+      x.loop(() => x.hud('🎨 Manche ' + Math.max(1, round) + ' / 10 · ✅ ' + ok)); next();
+    }});
+
+  def({id: 'allumettes', n: 'Dernière allumette', e: '🪵', cat: 'log', d: 'Un duel de stratégie : prends des allumettes à tour de rôle.', how: 'À ton tour, prends 1 à 3 allumettes (1 à 4 selon la variante). Selon la règle, celui qui prend la dernière perd ou gagne. 5 manches contre l\'ordinateur, chacun commence à son tour.',
+    axes: [{k: 'n', o: [['15 allumettes', 15], ['21 allumettes', 21], ['31 allumettes', 31]]}, {k: 'r', o: [['La dernière perd', 'p'], ['La dernière gagne', 'g']]}, {k: 'm', o: [['Prendre 1 à 3', 3], ['Prendre 1 à 4', 4]]}, {k: 'ia', o: [['Ordi tranquille', 0], ['Ordi rusé', 1]]}],
+    play(x){
+      const {P} = x, info = x.el('div', 'mj-q'), sticks = x.el('div', 'mj-sticks'); x.stage.append(info, sticks); let n = 0, round = 0, wins = 0, me = true, box = null, busy = true, lastAi = 0;
+      const best = k => { const m = P.m + 1, r = P.r === 'g' ? k % m : (k - 1) % m; return r; };
+      const draw = () => { sticks.innerHTML = [...Array(P.n)].map((_, i) => '<i' + (i >= n ? ' class="gone"' : '') + '></i>').join(''); };
+      const btns = () => box.querySelectorAll('.mj-ch');
+      const over = mine => { const iWin = P.r === 'g' ? mine : !mine; if (iWin) { wins++; x.beep(900, .15); } else x.beep(140, .3); info.innerHTML = (iWin ? '🏆 Manche gagnée !' : '💀 Manche perdue…') + (mine ? '' : ' (l\'ordinateur a pris la dernière)'); busy = true; btns().forEach(b => { b.disabled = true; }); x.after(1500, newRound); };
+      const take = (k, mine) => { n -= k; draw(); x.beep(mine ? 500 : 350, .05); if (n <= 0) return over(mine); me = !mine; turn(); };
+      const ai = () => { let k = best(n); if (!k || Math.random() < (P.ia ? .12 : .55)) k = x.ri(1, Math.min(P.m, n)); k = Math.min(k, n); lastAi = k; take(k, false); };
+      const turn = () => { if (me) { busy = false; info.innerHTML = (lastAi ? 'L\'ordinateur a pris <b>' + lastAi + '</b>. ' : '') + 'À toi ! Il en reste <b>' + n + '</b>.'; lastAi = 0; btns().forEach((b, i) => { b.disabled = i + 1 > n; }); }
+        else { busy = true; info.innerHTML = 'L\'ordinateur réfléchit… (il en reste <b>' + n + '</b>)'; btns().forEach(b => { b.disabled = true; }); x.after(900, ai); } };
+      const newRound = () => { round++; if (round > 5) return x.end(wins * 200, st3(wins, 1, 3, 4), pl(wins, 'manche{s} gagnée{s}') + ' sur 5'); n = P.n; lastAi = 0; me = round % 2 === 1; draw(); turn(); };
+      box = x.choices([...Array(P.m)].map((_, i) => 'Prendre ' + (i + 1)), i => { if (busy || !me || x.dead) return; take(i + 1, true); }, P.m === 3 ? 'pad' : ''); x.stage.append(box);
+      x.loop(() => x.hud('🪵 Manche ' + Math.min(5, Math.max(1, round)) + ' / 5 · 🏆 ' + wins));
+      newRound();
+    }});
+
+  def({id: 'bulle', n: 'Bulle flottante', e: '🫧', cat: 'arc', d: 'Guide la bulle à travers les passages sans éclater.', how: 'Glisse le doigt (ou flèches) pour déplacer la bulle et passer par les trous des barrières.',
+    axes: [{k: 'd', o: D4}, {k: 'm', o: [['Passages fixes', 'f'], ['Passages mobiles', 'm']]}, {k: 't', o: TH3}],
+    play(x){
+      const {P, T} = x, cv = x.canvas(360, 540), g = cv.g, R = 14, BY = 440; let bx = 180, bars = [], dist = 0, sp = 0, passed = 0;
+      const steer = x.steer(cv, () => bx, v => { bx = Math.max(R, Math.min(360 - R, v)); }, 420);
+      x.loop(dt => { const v = (110 + P.d * 30) * (1 + dist / 6000); dist += v * dt; sp -= v * dt; steer(dt);
+        if (sp <= 0) { sp = Math.max(150, 230 - P.d * 18); const gw = Math.max(62, 118 - P.d * 12 - dist / 400); bars.push({y: -20, gx: x.rnd(10 + gw / 2, 350 - gw / 2), gw, vx: P.m === 'm' ? x.rnd(40, 70 + P.d * 12) * (Math.random() < .5 ? -1 : 1) : 0, done: false}); }
+        bg(cv, T);
+        for (let i = bars.length - 1; i >= 0; i--) { const b = bars[i]; b.y += v * dt; if (b.vx) { b.gx += b.vx * dt; if (b.gx < 10 + b.gw / 2 || b.gx > 350 - b.gw / 2) { b.vx *= -1; b.gx = Math.max(10 + b.gw / 2, Math.min(350 - b.gw / 2, b.gx)); } } if (b.y > 580) { bars.splice(i, 1); continue; }
+          glow(g, T.c, 10); g.fillStyle = T.c; g.fillRect(0, b.y - 7, b.gx - b.gw / 2, 14); g.fillRect(b.gx + b.gw / 2, b.y - 7, 360 - b.gx - b.gw / 2, 14);
+          if (Math.abs(b.y - BY) < 7 + R && (bx - R < b.gx - b.gw / 2 || bx + R > b.gx + b.gw / 2)) { x.beep(110, .4); return x.end(dist / 10, st3(passed, 8, 20, 35), pl(passed, 'barrière{s} passée{s}')); }
+          if (!b.done && b.y > BY + R + 7) { b.done = true; passed++; x.beep(700, .04); } }
+        glow(g, T.b, 18); g.strokeStyle = T.b; g.lineWidth = 3; g.fillStyle = 'rgba(56,225,255,.18)'; g.beginPath(); g.arc(bx, BY, R, 0, 7); g.fill(); g.stroke(); g.shadowBlur = 0; g.fillStyle = 'rgba(255,255,255,.75)'; g.beginPath(); g.arc(bx - 5, BY - 5, 3.5, 0, 7); g.fill();
+        if (dist < 260) txt(g, 'Glisse pour guider la bulle', 180, 300, 15, '#fff');
+        x.hud('🫧 ' + passed + ' · ' + Math.round(dist / 10) + ' m'); });
+    }});
+
+  def({id: 'funambule', n: 'Funambule', e: '🤸', cat: 'arc', d: 'Garde l\'équilibre sur le fil le plus longtemps possible.', how: 'Le funambule penche : touche le côté opposé (moitié gauche ou droite de l\'écran, ou flèches) pour le redresser. S\'il penche trop, il tombe !',
+    axes: [{k: 'd', o: D4}, {k: 'w', o: [['Sans vent', 0], ['Rafales de vent', 1]]}, {k: 't', o: TH3}],
+    play(x){
+      const {P, T} = x, cv = x.canvas(360, 540), g = cv.g, FX = 180, FY = 400; let th = Math.random() < .5 ? -.04 : .04, om = 0, t = 0, wind = 0, wt = 1.5;
+      const kick = s => { if (x.dead) return; om += s * (1.05 + P.d * .08); x.beep(s > 0 ? 520 : 440, .03); };
+      x.on(cv.c, 'pointerdown', e => kick(cv.pos(e).x < 180 ? -1 : 1));
+      x.key(e => { if (/ArrowLeft|KeyA|KeyQ/.test(e.code)) { e.preventDefault(); kick(-1); } if (/ArrowRight|KeyD/.test(e.code)) { e.preventDefault(); kick(1); } });
+      x.loop(dt => { t += dt; const k = 1.5 + P.d * .45 + t / 40; if (P.w) { wt -= dt; if (wt <= 0) { wt = x.rnd(1.5, 3); wind = x.rnd(-1, 1) * (.35 + P.d * .12); } }
+        om += (Math.sin(th) * k + wind) * dt; om *= 1 - .25 * dt; th += om * dt;
+        if (Math.abs(th) > .8) { x.beep(110, .5); return x.end(t * 20, st3(t, 15, 35, 60), 'Tenu ' + t.toFixed(1) + ' s sur le fil'); }
+        bg(cv, T); g.shadowBlur = 0; g.strokeStyle = 'rgba(255,255,255,.5)'; g.lineWidth = 3; g.beginPath(); g.moveTo(0, FY + 4); g.lineTo(360, FY + 4); g.stroke();
+        g.strokeStyle = Math.abs(th) > .55 ? '#ff4d6d' : 'rgba(255,255,255,.15)'; g.lineWidth = 4; g.beginPath(); g.arc(FX, FY, 150, -Math.PI / 2 - .8, -Math.PI / 2 + .8); g.stroke();
+        const s = Math.sin(th), c = Math.cos(th), hx = FX + s * 110, hy = FY - c * 110, px = FX + s * 80, py = FY - c * 80;
+        glow(g, T.a, 14); g.strokeStyle = T.a; g.lineWidth = 8; g.lineCap = 'round'; g.beginPath(); g.moveTo(FX, FY); g.lineTo(hx, hy); g.stroke();
+        g.strokeStyle = T.b; g.lineWidth = 4; g.beginPath(); g.moveTo(px - c * 90, py - s * 90); g.lineTo(px + c * 90, py + s * 90); g.stroke();
+        g.fillStyle = T.c; g.beginPath(); g.arc(hx + s * 14, hy - c * 14, 14, 0, 7); g.fill(); g.lineCap = 'butt';
+        if (P.w && Math.abs(wind) > .1) txt(g, 'Vent ' + (wind > 0 ? '→' : '←'), 180, 470, 15, '#a79fc4');
+        if (t < 3) txt(g, 'Touche à gauche ou à droite', 180, 90, 15, '#fff');
+        x.hud('🤸 ' + t.toFixed(1) + ' s'); });
+    }});
+
+  def({id: 'vraifaux', n: 'Vrai ou faux ?', e: '✅', cat: 'mot', d: 'Dis le plus vite possible si c\'est vrai ou faux.', how: 'Une affirmation s\'affiche : réponds Vrai ou Faux (ou flèches gauche/droite). Les bonnes réponses d\'affilée rapportent un bonus, une erreur coûte 3 secondes. 60 secondes.',
+    axes: [{k: 'k', o: [['Calculs', 'c'], ['Plus grand ou plus petit', 'g'], ['Pair ou impair', 'p'], ['Mélange', 'm']]}, {k: 'd', o: D3}, {k: 't', o: TH3}],
+    play(x){
+      const {P} = x, q = x.el('div', 'mj-card big'); x.stage.append(q); let ok = 0, n = 0, time = 60, streak = 0, sc = 0, truth = true, box = null;
+      const M = [12, 30, 99][P.d - 1], MX = [6, 9, 12][P.d - 1];
+      const mk = () => { const k = P.k === 'm' ? x.pick(['c', 'g', 'p']) : P.k; truth = Math.random() < .5;
+        if (k === 'c') { const op = x.pick(P.d === 1 ? ['+', '-'] : ['+', '-', '×']); let a = x.ri(2, op === '×' ? MX : M), b = x.ri(2, op === '×' ? MX : M); if (op === '-' && b > a) [a, b] = [b, a]; const r = op === '+' ? a + b : op === '-' ? a - b : a * b; q.textContent = a + ' ' + op + ' ' + b + ' = ' + (truth ? r : r + x.pick([1, 2, 10, -1, -2, -10].filter(d => r + d >= 0))); }
+        else if (k === 'g') { const a = x.ri(1, M * 3); let b = x.ri(1, M * 3); if (a === b) b++; const sign = x.pick(['>', '<']); truth = sign === '>' ? a > b : a < b; q.textContent = a + ' ' + sign + ' ' + b; }
+        else { const a = x.ri(1, M * 9), even = Math.random() < .5; truth = (a % 2 === 0) === even; q.textContent = a + ' est ' + (even ? 'pair' : 'impair'); }
+        q.classList.remove('pop'); void q.offsetWidth; q.classList.add('pop'); };
+      const finish = () => x.end(sc, st3(ok, 14, 24, 34), pl(ok, 'bonne{s} réponse{s}') + ' sur ' + n);
+      box = x.choices(['✅ Vrai', '❌ Faux'], i => { if (x.dead) return; n++; if ((i === 0) === truth) { ok++; streak++; sc += 10 + Math.min(10, streak); x.beep(800, .05); } else { streak = 0; time -= 3; x.beep(140, .2); q.classList.add('bad'); x.after(250, () => q.classList.remove('bad')); } mk(); }); x.stage.append(box);
+      x.key(e => { const b = box.querySelectorAll('.mj-ch'); if (/ArrowLeft|KeyV/.test(e.code)) { e.preventDefault(); b[0].click(); } if (/ArrowRight|KeyF/.test(e.code)) { e.preventDefault(); b[1].click(); } });
+      mk(); x.loop(dt => { time -= dt; if (time <= 0) return finish(); x.hud('⏱ ' + Math.ceil(time) + ' s · ✅ ' + ok + (streak > 2 ? ' · 🔥 ' + streak : '')); });
+    }});
+
+  def({id: 'manquante', n: 'Lettre manquante', e: '🔡', cat: 'mot', d: 'Trouve la lettre qui manque dans le mot.', how: 'Une lettre a disparu du mot : choisis la bonne parmi 4 (une seule forme un vrai mot). Une erreur coûte du temps.',
+    axes: [{k: 'L', o: [['5 lettres', 5], ['6 lettres', 6], ['7 lettres', 7]]}, {k: 'm', o: [['60 secondes', 't'], ['15 mots', 'q']]}, {k: 't', o: TH3}],
+    play(x){
+      const {P} = x, q = x.el('div', 'mj-card big', '…'), sol = x.el('div', 'mj-q', 'Chargement des mots…'); x.stage.append(q, sol); let ok = 0, n = 0, time = 60, t = 0, box = null, W = null, pool = null;
+      const COMMON = 'EAISNRTOLUCDMPGBVHF';
+      const finish = () => x.end(ok * 60 + (P.m === 'q' ? Math.max(0, 600 - t * 5) : 0), P.m === 't' ? st3(ok, 5, 9, 13) : st3(ok - (t > 120 ? 3 : 0), 9, 12, 14), pl(ok, 'mot{s} trouvé{s}') + (P.m === 'q' ? ' en ' + Math.round(t) + ' s' : ''));
+      const mk = last => { let w = '', pos = 0, opts = null;
+        for (let k = 0; k < 60 && !opts; k++) { w = x.pick(pool); pos = x.ri(0, P.L - 1); const alt = COMMON.split('').filter(c => c !== w[pos] && !W.set.has(w.slice(0, pos) + c + w.slice(pos + 1))); if (alt.length >= 3) opts = x.shuf([w[pos], ...x.shuf(alt).slice(0, 3)]); }
+        q.textContent = w.slice(0, pos) + '_' + w.slice(pos + 1); sol.innerHTML = last || 'Quelle lettre manque ?';
+        if (box) box.remove(); box = x.choices(opts, i => { n++; const good = opts[i] === w[pos]; if (good) { ok++; x.beep(800); } else { time -= 4; x.beep(140, .2); } if (P.m === 'q' && n >= 15) return finish(); mk((good ? '✅ ' : '❌ C\'était ') + w); }, 'letters'); x.stage.append(box); };
+      words().then(w => { if (x.dead) return; W = w; pool = w.by(P.L).filter(s => /^[A-Z]+$/.test(s)); mk(); }, () => { sol.textContent = 'Impossible de charger les mots.'; });
+      x.loop(dt => { if (!pool) return; t += dt; if (P.m === 't') { time -= dt; if (time <= 0) return finish(); } x.hud((P.m === 't' ? '⏱ ' + Math.ceil(time) + ' s' : '🔡 ' + n + ' / 15') + ' · ✅ ' + ok); });
+    }});
   return {ENG, CATS, PAL, run, variants};
 })();
