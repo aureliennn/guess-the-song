@@ -57,7 +57,7 @@
   }
   /* ---------- paiement réel du Pass via Revolut Business (désactivé tant que le serveur n'est pas en ligne) ---------- */
   // version simple : lien de paiement (PayPal, Revolut ou Stripe) + activation par l'admin (admin.html). Mets le lien et passe enabled à true.
-  const PAY = {enabled: false, link: '', name: 'PayPal', price: '2,99 €', season: 's1'};
+  const PAY = {enabled: false, link: 'https://paypal.me/Aurelienrcxo/2.99EUR', name: 'PayPal', price: '2,99 €', season: 's1'};
   async function checkPaid(){ // le serveur écrit premium/<code> après un paiement confirmé par Stripe
     if (!S.code) return false;
     try { const d = await (await fetch(DB + '/premium/' + S.code + '.json')).json(); if (d && d.season === PAY.season) { if (!S.prem) { S.prem = true; emit(); } return true; } } catch(e) {}
