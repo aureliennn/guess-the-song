@@ -496,6 +496,11 @@ function bubble(o, text){
 }
 function openChat(){ $('chatF').classList.remove('hide'); $('chatI').focus(); }
 $('chatBtn').onclick = () => { if ($('chatF').classList.contains('hide')) openChat(); else { $('chatF').classList.add('hide'); $('chatI').blur(); } };
+// iPhone : quand le clavier se ferme, Safari laisse parfois la page décalée vers le haut (boutons et toucher décalés) → on la remet en place
+const fixIOS = () => { if (document.activeElement && /INPUT|TEXTAREA/.test(document.activeElement.tagName)) return; if (scrollX || scrollY || document.documentElement.scrollTop || document.body.scrollTop) { scrollTo(0, 0); document.documentElement.scrollTop = document.body.scrollTop = 0; } };
+$('chatI').addEventListener('blur', () => { setTimeout(fixIOS, 60); setTimeout(fixIOS, 350); });
+if (window.visualViewport) visualViewport.addEventListener('resize', () => setTimeout(fixIOS, 100));
+addEventListener('scroll', () => setTimeout(fixIOS, 100), {passive: true});
 $('chatI').addEventListener('keydown', e => { if (e.key === 'Escape') { $('chatF').classList.add('hide'); $('chatI').blur(); } e.stopPropagation(); });
 // envoi d'un message : écrit en même temps le compteur anti-spam (world/rl), refusé par la base si < 1,5 s
 let lastSay = 0;

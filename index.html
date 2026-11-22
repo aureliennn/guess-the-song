@@ -84,7 +84,7 @@
 <script src="arcade.js"></script>
 <script src="fbauth.js"></script>
 <script>
-const NOTES_V = '5.7';
+const NOTES_V = '5.8';
 const fmt = n => Number(n || 0).toLocaleString('fr-FR');
 const GAMES = [
   {id: 'collection', href: 'collection.html', e: '🃏', n: 'Collection & Pass', d: '67 cartes de personnages à collectionner, Pass de saison, récompense chaque jour et jetons à gagner en jouant.', b: 'new', h: 45,
@@ -123,10 +123,12 @@ addEventListener('pageshow', render); render();
 FBA.isAdmin().then(a => { if (a) { const c = document.createElement('a'); c.className = 'chip'; c.href = 'admin.html'; c.style.cssText = 'text-decoration:none;color:var(--gold)'; c.textContent = '🛡️ Console admin'; $('chips').appendChild(c); } });
 
 function showNotes(){
-  modal('Quoi de neuf ? · v5.7', '<div id="notes"><ul>' +
+  modal('Quoi de neuf ? · v5.8', '<div id="notes"><ul>' +
+    '<li><b>📱 Chat sur iPhone</b>Quand le clavier se fermait après un message, Safari pouvait laisser l\'écran du Monde Néon décalé (boutons et doigts qui ne tombent plus au bon endroit). L\'écran se remet maintenant en place tout seul.</li>' +
+    '</ul><details><summary>Version 5.7</summary><ul>' +
     '<li><b>🎁 Tout récupérer</b>Un bouton dans l\'onglet Pass prend d\'un coup toutes les récompenses débloquées (voie gratuite et premium) et affiche le total gagné.</li>' +
     '<li><b>🛡️ Admin</b>Les récompenses du Pass n\'étaient pas cliquables au-dessus du niveau de l\'admin : tout est maintenant prenable. Dans la boutique du Monde Néon, le porte-monnaie affiche ∞ et les prix « Gratuit ».</li>' +
-    '</ul><details><summary>Version 5.6</summary><ul>' +
+    '</ul></details><details><summary>Version 5.6</summary><ul>' +
     '<li><b>💳 Packs de paliers</b>En plus des jetons, les paliers du Pass pourront s\'acheter : +5 paliers pour 1,99 € ou +10 paliers pour 3,49 €, sans dépasser le niveau 30. Même système que le Pass : tu paies avec ton code, l\'admin vérifie, et les paliers s\'ajoutent tout seuls, sur tous tes appareils.</li>' +
     '<li><b>🧾 Console admin</b>Chaque demande indique ce qui a été acheté (Pass, +5 ou +10 paliers) ; la fiche d\'un joueur affiche ses paliers achetés, avec un bouton pour les retirer en cas de remboursement.</li>' +
     '</ul></details><details><summary>Version 5.5</summary><ul>' +
