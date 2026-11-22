@@ -55,6 +55,13 @@
   async function pull(){ // récupère la version en ligne si elle est plus récente (autre appareil)
     if (!S.code) return; try { const d = await (await fetch(DB + '/save/' + S.code + '.json')).json(); if (d && typeof d.t === 'number' && d.t > S.t + 2000) { const code = S.code; S = fromRemote(d); S.code = code; ls.set(KEY, S); subs.forEach(f => f(S)); } status = 'ok'; } catch(e) {}
   }
+  /* ---------- paiement réel du Pass (désactivé tant que le serveur Stripe n'est pas en ligne) ---------- */
+  const PAY = {enabled: false, url: 'https://europe-west1-guess-the-song-27134.cloudfunctions.net/creerPaiement', price: '2,99 €', season: 's1'};
+  async function checkPaid(){ // le serveur écrit premium/<code> après un paiement confirmé par Stripe
+    if (!S.code) return false;
+    try { const d = await (await fetch(DB + '/premium/' + S.code + '.json')).json(); if (d && d.season === PAY.season) { if (!S.prem) { S.prem = true; emit(); } return true; } } catch(e) {}
+    return false;
+  }
   window.PROG = {
     FAM, RAR, CARDS, BYID, SEASON, DAILY, PRICES, passFree, passPrem, rewardText,
     get: () => S, level, status: () => status,
@@ -78,7 +85,11 @@
     code: () => { if (!S.code) { S.code = newCode(); ls.set(KEY, S); schedule(); } return S.code; },
     async restore(code){ code = String(code || '').toUpperCase().replace(/[^A-Z0-9]/g, ''); if (!/^[A-Z2-9]{12}$/.test(code)) return 'format';
       try { const d = await (await fetch(DB + '/save/' + code + '.json')).json(); if (!d || typeof d.t !== 'number') return 'absent'; S = fromRemote(d); S.code = code; S.t = Date.now(); ls.set(KEY, S); subs.forEach(f => f(S)); schedule(); return 'ok'; } catch(e) { return 'reseau'; } },
-    syncNow: push, pull
+    syncNow: push, pull,
+    PAY, checkPaid,
+    async startPayment(accords){ if (!PAY.enabled) return 'off'; if (!accords || !accords.majeur || !accords.retractation) return 'accords';
+      try { const tok = await FBA.token(), r = await fetch(PAY.url, {method: 'POST', headers: {'Content-Type': 'application/json', Authorization: 'Bearer ' + tok}, body: JSON.stringify({code: this.code(), accords})}); const d = await r.json().catch(() => ({}));
+        if (r.ok && d.url && /^https:\/\/checkout\.stripe\.com\//.test(d.url)) { location.href = d.url; return 'ok'; } return d.err || 'erreur'; } catch(e) { return 'reseau'; } }
   };
-  if (S.code) pull(); else if (window.FBA) schedule(3000);
+  if (S.code) { pull(); checkPaid(); } else if (window.FBA) schedule(3000);
 })();
