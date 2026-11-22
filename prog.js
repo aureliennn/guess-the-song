@@ -74,15 +74,21 @@
     canDaily: () => S.d.last !== today(),
     claimDaily(){ if (S.d.last === today()) return null; const day = S.d.n % 7, r = DAILY[day]; give(r); S.xp += 60; S.d = {n: day + 1 >= 7 ? 0 : day + 1, last: today()}; emit(); return {day, r}; },
     dayIndex: () => S.d.n % 7,
-    buy(what, fam){ const p = what === 'family' ? PRICES.family : PRICES.booster; if (S.j < p) return false; S.j -= p; const cards = this.open(fam); return cards; },
+    buy(what, fam){ const p = what === 'family' ? PRICES.family : PRICES.booster; if (!ADMIN) { if (S.j < p) return false; S.j -= p; } const cards = this.open(fam); return cards; },
     open(fam, free){ if (free) { if (S.b < 1) return null; S.b--; } const out = []; for (let i = 0; i < 5; i++) out.push(roll(fam)); if (!out.some(c => c.r >= 1)) { const rp = DROP.filter(c => c.r === 1 && (!fam || c.f === fam)); if (rp.length) out[4] = rp[Math.random() * rp.length | 0]; } // au moins une Rare par booster
       const res = out.map(c => { const had = S.cards[c.id] | 0; S.cards[c.id] = had + 1; return {c, nw: !had}; }); emit(); return res; },
     recycle(id){ const n = S.cards[id] | 0; if (n < 2) return 0; const g = (n - 1) * RAR[BYID[id].r].sh; S.cards[id] = 1; S.sh += g; emit(); return g; },
     recycleAll(){ let g = 0; Object.keys(S.cards).forEach(id => { const n = S.cards[id] | 0; if (n > 1 && BYID[id]) { g += (n - 1) * RAR[BYID[id].r].sh; S.cards[id] = 1; } }); if (g) { S.sh += g; emit(); } return g; },
-    craft(id){ const c = BYID[id]; if (!c || c.f === 'ps') return false; const p = RAR[c.r].cr; if (S.sh < p) return false; S.sh -= p; S.cards[id] = (S.cards[id] | 0) + 1; emit(); return true; },
+    craft(id){ const c = BYID[id]; if (!c || c.f === 'ps') return false; const p = RAR[c.r].cr; if (!ADMIN) { if (S.sh < p) return false; S.sh -= p; } S.cards[id] = (S.cards[id] | 0) + 1; emit(); return true; },
     passClaimed: (l, prem) => (prem ? S.pp : S.pc)[l - 1] === '1',
-    claimPass(l, prem){ if (l > level() || (prem && !S.prem)) return null; const k = prem ? 'pp' : 'pc'; const arr = S[k].padEnd(SEASON.levels, '0').split(''); if (arr[l - 1] === '1') return null; arr[l - 1] = '1'; S[k] = arr.join(''); const r = prem ? passPrem(l) : passFree(l); give(r); emit(); return r; },
-    buyPremium(){ if (S.prem || S.j < PRICES.premium) return false; S.j -= PRICES.premium; S.prem = true; emit(); return true; },
+    claimPass(l, prem){ if ((l > level() && !ADMIN) || (prem && !S.prem)) return null; const k = prem ? 'pp' : 'pc'; const arr = S[k].padEnd(SEASON.levels, '0').split(''); if (arr[l - 1] === '1') return null; arr[l - 1] = '1'; S[k] = arr.join(''); const r = prem ? passPrem(l) : passFree(l); give(r); emit(); return r; },
+    buyPremium(){ if (S.prem || (!ADMIN && S.j < PRICES.premium)) return false; if (!ADMIN) S.j -= PRICES.premium; S.prem = true; emit(); return true; },
+    // mode admin : achats gratuits et illimités (vérifié par la base via FBA.isAdmin)
+    isAdmin: () => ADMIN,
+    unlockAll(){ if (!ADMIN) return 0; let n = 0; CARDS.forEach(c => { if (!S.cards[c.id]) { S.cards[c.id] = 1; n++; } }); S.prem = true; emit(); return n; },
+    // demande de vérification de paiement envoyée à la console admin (payreq/<code>)
+    async requestPay(){ const u = await FBA.ready(), code = this.code(), body = {['payreq/' + code]: {n: String(ls.get('gs_name', '') || '').slice(0, 16), a: 299, u, t: {'.sv': 'timestamp'}}, ['rl/' + u + '/p']: {'.sv': 'timestamp'}};
+      try { const r = await fetch(await FBA.url(DB, '/'), {method: 'PATCH', body: JSON.stringify(body)}); return r.ok ? 'ok' : 'attente'; } catch(e) { return 'reseau'; } },
     code: () => { if (!S.code) { S.code = newCode(); ls.set(KEY, S); schedule(); } return S.code; },
     async restore(code){ code = String(code || '').toUpperCase().replace(/[^A-Z0-9]/g, ''); if (!/^[A-Z2-9]{12}$/.test(code)) return 'format';
       try { const d = await (await fetch(DB + '/save/' + code + '.json')).json(); if (!d || typeof d.t !== 'number') return 'absent'; S = fromRemote(d); S.code = code; S.t = Date.now(); ls.set(KEY, S); subs.forEach(f => f(S)); schedule(); return 'ok'; } catch(e) { return 'reseau'; } },
@@ -92,5 +98,7 @@
       try { const tok = await FBA.token(), r = await fetch(PAY.url, {method: 'POST', headers: {'Content-Type': 'application/json', Authorization: 'Bearer ' + tok}, body: JSON.stringify({code: this.code(), accords})}); const d = await r.json().catch(() => ({}));
         if (r.ok && d.url && /^https:\/\/([a-z0-9-]+\.)*revolut\.com\//.test(d.url)) { location.href = d.url; return 'ok'; } return d.err || 'erreur'; } catch(e) { return 'reseau'; } }
   };
+  let ADMIN = false;
+  if (window.FBA) FBA.isAdmin().then(a => { ADMIN = !!a; if (ADMIN && !S.prem) { S.prem = true; emit(); } else if (ADMIN) subs.forEach(f => { try { f(S); } catch(e) {} }); });
   if (S.code) { pull(); checkPaid(); } else if (window.FBA) schedule(3000);
 })();

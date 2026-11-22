@@ -401,7 +401,7 @@ function tap(x, y){
   v2.set(x / innerWidth * 2 - 1, -(y / innerHeight) * 2 + 1); ray.setFromCamera(v2, cam);
   const h = ray.intersectObjects([bmesh, window.BUILD_GROUND])[0]; if (!h || h.distance > 40) return;
   if (performance.now() - lastPlace < 120) return; lastPlace = performance.now();
-  if (h.object === bmesh && erase) { const k = bIndex[h.instanceId], bk = k && BLOCKS.get(k); if (bk && bk.u && bk.u !== FBA.uid()) { toast('Tu ne peux effacer que tes propres blocs.', 1800); return; } if (k) { BLOCKS.delete(k); blocksDirty = true; net('DELETE', '/world/blocks/' + k); tone(300, 0, .08, 'square', .05); } return; }
+  if (h.object === bmesh && erase) { const k = bIndex[h.instanceId], bk = k && BLOCKS.get(k); if (bk && bk.u && bk.u !== FBA.uid() && !ISADM) { toast('Tu ne peux effacer que tes propres blocs.', 1800); return; } if (k) { BLOCKS.delete(k); blocksDirty = true; net('DELETE', '/world/blocks/' + k); tone(300, 0, .08, 'square', .05); } return; }
   if (erase) return;
   const p = h.point.clone().add(h.face.normal.clone().transformDirection(h.object.matrixWorld).multiplyScalar(.5));
   const bx = Math.floor(p.x), by = Math.max(0, Math.floor(p.y)), bz = Math.floor(p.z);
@@ -678,7 +678,7 @@ box(22, 0, 14, 4.2, 1.1, 1.6, 0xff4fa3, {glow: .35}); [-1.9, 1.9].forEach(dx => 
 box(22, 3.2, 14, 4.8, .3, 2.8, 0xb86bff, {glow: .45});
 const shopCoin = new THREE.Mesh(new THREE.CylinderGeometry(.6, .6, .15, 24), coinMat); shopCoin.rotation.x = Math.PI / 2; shopCoin.position.set(22, 1.9, 14); scene.add(shopCoin);
 { const s = label('🛒 Boutique', '#ffd166', 512, 1.15); s.position.set(22, 4.6, 14); scene.add(s); }
-function updCoins(){ $('coinsP').textContent = '🪙 ' + coinCount + ' 🛒'; }
+function updCoins(){ $('coinsP').textContent = '🪙 ' + (ISADM ? '∞' : coinCount) + ' 🛒'; }
 function applyAV(){ ls.set('arc_avatar', AV); scene.remove(me.av.root); me.av = makeAvatar(AV); scene.add(me.av.root); setTag(); petSync(me, AV.pet); if (joined) net('PUT', '/world/players/' + PID, myRecord()); }
 function openShop(tab){
   if (tab) shopTab = tab;
@@ -687,7 +687,7 @@ function openShop(tab){
     const t = e.target.closest('[data-tab]'); if (t) { shopTab = t.dataset.tab; sfx.click(); renderShop(); return; }
     if (e.target.closest('#gift')) { const d = new Date().toISOString().slice(0, 10); if (ls.get('arc_gift', '') === d) return; ls.set('arc_gift', d); coinCount += 10; ls.set('arc_coins', coinCount); updCoins(); sfx.win(); toast('🎁 +10 pièces ! Reviens demain pour un nouveau cadeau.'); renderShop(); return; }
     const b = e.target.closest('[data-act]'); if (!b) return; const id = b.dataset.id, it = SHOP[shopTab].find(x => x[0] === id); if (!it) return;
-    if (b.dataset.act === 'buy') { if (coinCount < it[3]) return; coinCount -= it[3]; ls.set('arc_coins', coinCount); owned.add(shopTab + ':' + id); ls.set('arc_owned', [...owned]); AV[shopTab] = id; applyAV(); updCoins(); sfx.win(); toast(it[1] + ' ' + it[2] + ' acheté et équipé !'); }
+    if (b.dataset.act === 'buy') { if (!ISADM) { if (coinCount < it[3]) return; coinCount -= it[3]; } ls.set('arc_coins', coinCount); owned.add(shopTab + ':' + id); ls.set('arc_owned', [...owned]); AV[shopTab] = id; applyAV(); updCoins(); sfx.win(); toast(it[1] + ' ' + it[2] + ' acheté et équipé !'); }
     else if (b.dataset.act === 'on') { AV[shopTab] = id; applyAV(); sfx.ok(); }
     else { AV[shopTab] = shopTab === 'h' ? 'none' : null; applyAV(); sfx.click(); }
     renderShop();
@@ -699,7 +699,7 @@ function renderShop(){
   el.innerHTML = '<div class="shopTop"><span class="wallet">🪙 ' + coinCount + '</span>' + (gift ? '<button class="btn sm" id="gift" type="button">🎁 Cadeau du jour</button>' : '<span class="note">Ramasse des pièces dans le monde et à la Pluie de pièces.</span>') + '</div>' +
     '<div class="seg" id="shopTabs">' + SHOP_TABS.map(t => '<button type="button" data-tab="' + t[0] + '" class="' + (t[0] === shopTab ? 'on' : '') + '">' + t[1] + '</button>').join('') + '</div>' +
     '<div class="shopGrid">' + SHOP[shopTab].map(([id, e, n, price]) => { const own = owned.has(shopTab + ':' + id), eq = AV[shopTab] === id;
-      return '<div class="it' + (eq ? ' eq' : '') + '"><span class="ie" aria-hidden="true">' + e + '</span><b>' + esc(n) + '</b>' + (own ? '<button type="button" class="btn sm' + (eq ? ' ghost' : '') + '" data-act="' + (eq ? 'off' : 'on') + '" data-id="' + id + '">' + (eq ? 'Retirer' : 'Équiper') + '</button>' : '<button type="button" class="btn sm" data-act="buy" data-id="' + id + '"' + (coinCount < price ? ' disabled' : '') + '>🪙 ' + price + '</button>') + '</div>'; }).join('') + '</div>';
+      return '<div class="it' + (eq ? ' eq' : '') + '"><span class="ie" aria-hidden="true">' + e + '</span><b>' + esc(n) + '</b>' + (own ? '<button type="button" class="btn sm' + (eq ? ' ghost' : '') + '" data-act="' + (eq ? 'off' : 'on') + '" data-id="' + id + '">' + (eq ? 'Retirer' : 'Équiper') + '</button>' : '<button type="button" class="btn sm" data-act="buy" data-id="' + id + '"' + (coinCount < price && !ISADM ? ' disabled' : '') + '>🪙 ' + price + '</button>') + '</div>'; }).join('') + '</div>';
 }
 /* compagnons */
 const dotT = tex(cv(64, 64, (g) => { const r = g.createRadialGradient(32, 32, 0, 32, 32, 32); r.addColorStop(0, 'rgba(255,255,255,1)'); r.addColorStop(.4, 'rgba(255,255,255,.5)'); r.addColorStop(1, 'rgba(255,255,255,0)'); g.fillStyle = r; g.fillRect(0, 0, 64, 64); }));
@@ -909,7 +909,7 @@ function frame(now){
   updateCam(); renderer.render(scene, cam); sendPos();
 }
 updCoins(); shadowize(scene);
-FBA.isAdmin().then(a => { if (!a) return; ISADM = true; $('admBtn').classList.remove('hide'); document.body.classList.add('isadm'); setTag(); if (joined) net('PUT', '/world/players/' + PID, myRecord()); });
+FBA.isAdmin().then(a => { if (!a) return; ISADM = true; updCoins(); $('admBtn').classList.remove('hide'); document.body.classList.add('isadm'); setTag(); if (joined) net('PUT', '/world/players/' + PID, myRecord()); });
 $('load').remove(); requestAnimationFrame(frame); connect();
 if (firstTime) editAvatar(true); else if (!ls.get('arc_world_help', 0)) showHelp();
 canvas.focus({preventScroll: true});

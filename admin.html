@@ -49,13 +49,35 @@ async function init(){
     return;
   }
   $('app').innerHTML = '<div class="box glass"><p class="note">🛡️ Connecté en admin' + (FBA.email() ? ' : <b style="color:var(--txt)">' + esc(FBA.email()) + '</b>' : '') + '. Ton badge ADMIN est visible par tous dans le Monde Néon.</p><div class="row"><a class="btn ghost sm" href="monde.html">🌐 Aller dans le monde</a>' + (FBA.email() ? '<button class="btn ghost sm" id="out" type="button">Se déconnecter</button>' : '') + '</div></div>' +
+    '<div class="box glass"><h3>💳 Paiements à vérifier</h3><p class="note">Les joueurs qui ont appuyé sur « J\'ai payé ». Vérifie dans PayPal que tu as bien reçu 2,99 € avec ce code dans le message, puis active.</p><div id="reqs" class="note">Chargement…</div></div>' +
     '<div class="box glass"><h3>✅ Activer un Pass premium</h3><p class="note">Quand tu reçois un paiement (PayPal), copie le code de 12 caractères écrit dans le message, puis colle-le ici.</p>' +
     '<input class="inp" id="code" maxlength="16" placeholder="XXXX-XXXX-XXXX" autocomplete="off"><div class="row"><button class="btn" id="chk" type="button">Vérifier</button><button class="btn" id="act" type="button">⭐ Activer le pass</button></div><div class="res" id="res"></div></div>' +
     '<div class="box glass"><h3>Passes activés</h3><div id="list" class="note">Chargement…</div></div>' +
+    '<div class="box glass"><h3>🛡️ Modération du Monde Néon</h3><div class="row"><button class="btn ghost sm" id="clrChat" type="button">🧹 Vider le chat</button></div><div id="plist" class="note" style="margin-top:8px">Chargement…</div></div>' +
     '<div class="box glass"><p class="note">Remboursement : vérifie le code puis appuie sur « Retirer le pass ». N\'active un pass qu\'après avoir vu le paiement arriver sur ton compte PayPal.</p></div>';
-  $('chk').onclick = check; $('act').onclick = activate; list();
+  $('chk').onclick = check; $('act').onclick = activate; list(); reqs(); players(); $('clrChat').onclick = clearChat; clearInterval(window.__iv); window.__iv = setInterval(() => { reqs(); players(); }, 15000);
   if ($('out')) $('out').onclick = async () => { await FBA.signOut(); toast('Déconnecté'); init(); };
 }
+async function reqs(){
+  try { const d = await get('/payreq') || {}; const e = Object.entries(d).sort((a, b) => (a[1].t || 0) - (b[1].t || 0));
+    $('reqs').innerHTML = e.length ? e.map(([k, v]) => '<div class="li" style="flex-wrap:wrap;align-items:center"><span><b>' + k.replace(/(.{4})(?=.)/g, '$1-') + '</b><br>' + esc(v.n || 'sans pseudo') + ' · ' + ((v.a | 0) / 100).toFixed(2).replace('.', ',') + ' € · ' + new Date(v.t || 0).toLocaleString('fr-FR') + '</span><span class="row"><button class="btn sm" data-ok="' + k + '" type="button">⭐ Activer</button><button class="btn ghost sm" data-no="' + k + '" type="button">Refuser</button></span></div>').join('') : 'Aucune demande en attente. 🎉';
+    document.title = (e.length ? '(' + e.length + ') ' : '') + 'Admin — Arcade Néon';
+  } catch(x) { $('reqs').textContent = 'Liste indisponible.'; }
+}
+async function players(){
+  try { const d = (await (await fetch(DB + '/world/players.json')).json()) || {}; const now = Date.now(), e = Object.entries(d).filter(([k, v]) => v && now - (v.t || 0) < 120000);
+    $('plist').innerHTML = e.length ? '<b>Joueurs en ligne :</b>' + e.map(([k, v]) => '<div class="li"><span>' + (v.adm ? '🛡️ ' : '') + esc(String(v.n || '?').slice(0, 16)) + '</span><button class="btn ghost sm" data-kick="' + k + '" type="button">Retirer</button></div>').join('') : 'Personne dans le monde en ce moment.';
+  } catch(x) { $('plist').textContent = 'Liste indisponible.'; }
+}
+const adminWrite = async (path, method, body) => { const t = await FBA.token(); return fetch(DB + path + '.json?auth=' + encodeURIComponent(t), {method, body: body === undefined ? undefined : JSON.stringify(body)}); };
+async function clearChat(){ if (!confirm('Effacer tous les messages du chat ?')) return; const r = await adminWrite('/world/chat', 'DELETE'); toast(r.ok ? '🧹 Chat vidé' : 'Refusé'); }
+document.addEventListener('click', async e => {
+  const ok = e.target.closest('[data-ok]'), no = e.target.closest('[data-no]'), kick = e.target.closest('[data-kick]');
+  if (ok) { const code = ok.dataset.ok; if (!confirm('As-tu bien reçu le paiement PayPal avec le code ' + code + ' ?')) return;
+    const r = await adminWrite('/', 'PATCH', {['premium/' + code]: {season: 's1', t: {'.sv': 'timestamp'}, by: UID}, ['payreq/' + code]: null}); toast(r.ok ? '⭐ Pass activé !' : 'Refusé par la base'); if (r.ok) sfx.win(); reqs(); list(); }
+  if (no) { if (!confirm('Refuser cette demande (paiement non reçu) ?')) return; const r = await adminWrite('/payreq/' + no.dataset.no, 'DELETE'); toast(r.ok ? 'Demande refusée' : 'Refusé'); reqs(); }
+  if (kick) { if (!confirm('Retirer ce joueur du monde ?')) return; const r = await adminWrite('/world/players/' + kick.dataset.kick, 'DELETE'); toast(r.ok ? 'Joueur retiré' : 'Refusé'); players(); }
+});
 async function check(){
   const code = norm($('code').value); if (!/^[A-Z2-9]{12}$/.test(code)) { $('res').textContent = 'Code invalide : il faut 12 caractères.'; return null; }
   const [save, prem] = await Promise.all([fetch(DB + '/save/' + code + '.json').then(r => r.json()).catch(() => null), get('/premium/' + code).catch(() => null)]);
