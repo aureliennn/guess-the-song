@@ -700,7 +700,7 @@ function answer(k){
   if (ok) { m = MULT[Math.min(S.streak, 4)]; pts = Math.round((100 + 900 * left + (quick ? 200 : 0)) * m / 10) * 10; if (quick) S.fast = (S.fast | 0) + 1; if (S.typed) pts = Math.round(pts * 1.5 / 10) * 10; S.score += pts; S.streak++; S.best = Math.max(S.best, S.streak); S.good++; S.fails = 0; } else { S.streak = 0; if (S.kind === 'survie') { S.lives--; hudRound(); } }
   trackMiss(r.t, ok); r.ok = ok; r.pts = pts; S.phase = 'reveal'; if (xp) { clearTimeout(S.snipTO); moreLabel(); const pp = au.play(); if (pp && pp.catch) pp.catch(() => {}); } $('panel').classList.add('rev'); if (S.typed) { $('typeIn').blur(); $('typeForm').classList.add('hide'); $('typeSug').innerHTML = ''; } roomPush();
   document.querySelectorAll('.ans').forEach((b, j) => { b.disabled = true; if (j === r.correct) b.classList.add('ok'); else if (j === k) b.classList.add('bad'); else b.classList.add('out'); });
-  $('status').innerHTML = '<div class="rv"><img src="' + esc(r.t.cover) + '" alt=""><div><div class="t">' + esc(r.t.title) + '</div><div class="a">' + esc(r.t.artist) + ' · <a href="' + esc(r.t.link) + '" target="_blank" rel="noopener">Écouter sur Deezer ↗</a></div></div><div class="p" style="color:' + (ok ? 'var(--ok)' : 'var(--bad)') + '">' + (ok ? '+' + pts : k === -1 ? 'Trop tard' : 'Raté') + (ok && (m > 1 || quick || S.typed) ? '<small>' + (S.typed ? '✍️ ×1,5 ' : '') + (quick ? '⚡ éclair ' : '') + (m > 1 ? 'combo ×' + String(m).replace('.', ',') : '') + '</small>' : '') + '</div></div>';
+  $('status').innerHTML = '<div class="rv"><img src="' + esc(safeUrl(r.t.cover)) + '" alt=""><div><div class="t">' + esc(r.t.title) + '</div><div class="a">' + esc(r.t.artist) + ' · <a href="' + esc(safeUrl(r.t.link, 'https://www.deezer.com')) + '" target="_blank" rel="noopener">Écouter sur Deezer ↗</a></div></div><div class="p" style="color:' + (ok ? 'var(--ok)' : 'var(--bad)') + '">' + (ok ? '+' + pts : k === -1 ? 'Trop tard' : 'Raté') + (ok && (m > 1 || quick || S.typed) ? '<small>' + (S.typed ? '✍️ ×1,5 ' : '') + (quick ? '⚡ éclair ' : '') + (m > 1 ? 'combo ×' + String(m).replace('.', ',') : '') + '</small>' : '') + '</div></div>';
   setLabel(r.t.cover); addOrb(r, S.i); comboHud(ok); jokerBtn(); doorsReveal(r, k); setHov(-1);
   const fl = $('flash'); fl.style.transition = 'none'; fl.style.background = ok ? 'radial-gradient(circle at 50% 40%,rgba(61,255,162,.28),transparent 65%)' : 'radial-gradient(circle at 50% 40%,rgba(255,77,109,.32),transparent 65%)'; fl.style.opacity = 1; requestAnimationFrame(() => { fl.style.transition = 'opacity .7s'; fl.style.opacity = 0; });
   if (ok) { sfx.ok(S.streak - 1); burst(90 + S.streak * 40, S.streak >= 3 ? '#ffd166' : '#3dffa2', 5 + S.streak); floatText('+' + pts, S.streak >= 3 ? '#ffd166' : '#3dffa2', 2); if (quick) floatText('⚡ ÉCLAIR', '#38e1ff', 5); if (S.streak >= 2) floatText('COMBO ×' + String(MULT[Math.min(S.streak, 4)]).replace('.', ','), '#ff9f43', 3.6); setScore3D(S.score); spin = 7; }
@@ -735,7 +735,7 @@ function end(){
   const rank = sv ? (g >= 30 ? '👑 Increvable' : g >= 20 ? '🎧 Marathonien du son' : g >= 10 ? '🎶 Bonne endurance' : g >= 5 ? '📻 Ça chauffe' : '🙉 Trop court !') : g === n ? '👑 Oreille absolue' : g >= n * .8 ? '🎧 DJ résident' : g >= n * .6 ? '🎶 Mélomane' : g >= n * .4 ? '📻 Auditeur du dimanche' : '🙉 Il va falloir réviser';
   $('endBox').innerHTML = '<div class="lbl" style="margin-top:0">' + esc(S.cat.e + ' ' + S.cat.n) + ' · ' + DIFFS.find(d => d.id === diff).n + (artMode() ? ' · Artiste' : '') + (sv ? ' · Survie' : S.kind === 'express' ? ' · Express' : '') + (S.typed ? ' · Saisie' : '') + '</div><div class="big">' + S.score.toLocaleString('fr-FR') + '</div><div class="rank">' + rank + '</div>' + (rec ? '<div style="color:var(--gold);font-weight:700">★ Nouveau record !</div>' : best[key] ? '<div style="color:var(--mut);font-size:13px">Record : ' + best[key].toLocaleString('fr-FR') + '</div>' : '') +
     '<div class="stats"><div><b>' + g + '/' + n + '</b>bonnes réponses</div><div><b>' + S.best + '</b>meilleure série</div></div>' + '<div class="row" style="justify-content:center;margin-bottom:12px"><button class="btn ghost" id="share" type="button">📤 Partager mon résultat</button></div>' +
-    (S.score > 0 ? '<form class="row" id="pubForm" style="justify-content:center"><input class="inp" id="pseudo" maxlength="16" placeholder="Ton pseudo" style="max-width:200px;flex:none" value="' + esc(ls.get('gs_name', '')) + '"><button class="btn" type="submit">Publier mon score 🌍</button></form><div class="note" id="pubMsg">' + (S.daily ? 'Ton pseudo et ton score seront visibles dans le classement du jour.' : 'Ton pseudo et ton score seront visibles dans le classement mondial.') + '</div>' : '') + '<div class="note" style="margin-bottom:-6px">Réécoute les titres de la partie :</div><div class="recap">' + S.rounds.slice(0, n).map((r, ri) => '<div><img src="' + esc(r.t.cover) + '" alt=""><div>' + esc(r.t.title) + '<br><span class="a">' + esc(r.t.artist) + '</span></div><span style="color:' + (r.ok ? 'var(--ok)' : 'var(--bad)') + '">' + (r.ok ? '+' + r.pts : '✗') + '</span><button class="fav" data-fr="' + ri + '" aria-label="Favori">' + (isFav(r.t) ? '♥' : '♡') + '</button><button class="pl" data-r="' + ri + '" aria-label="Réécouter">▶</button></div>').join('') + '</div>' +
+    (S.score > 0 ? '<form class="row" id="pubForm" style="justify-content:center"><input class="inp" id="pseudo" maxlength="16" placeholder="Ton pseudo" style="max-width:200px;flex:none" value="' + esc(ls.get('gs_name', '')) + '"><button class="btn" type="submit">Publier mon score 🌍</button></form><div class="note" id="pubMsg">' + (S.daily ? 'Ton pseudo et ton score seront visibles dans le classement du jour.' : 'Ton pseudo et ton score seront visibles dans le classement mondial.') + '</div>' : '') + '<div class="note" style="margin-bottom:-6px">Réécoute les titres de la partie :</div><div class="recap">' + S.rounds.slice(0, n).map((r, ri) => '<div><img src="' + esc(safeUrl(r.t.cover)) + '" alt=""><div>' + esc(r.t.title) + '<br><span class="a">' + esc(r.t.artist) + '</span></div><span style="color:' + (r.ok ? 'var(--ok)' : 'var(--bad)') + '">' + (r.ok ? '+' + r.pts : '✗') + '</span><button class="fav" data-fr="' + ri + '" aria-label="Favori">' + (isFav(r.t) ? '♥' : '♡') + '</button><button class="pl" data-r="' + ri + '" aria-label="Réécouter">▶</button></div>').join('') + '</div>' +
     (R ? '<div class="lbl">Classement du salon ' + R.code + '</div><div class="list" id="roomRank" style="max-height:26dvh;margin-bottom:14px">' + rankHtml() + '</div><div class="row" style="justify-content:center"><button class="btn" id="again">Retour au salon</button><button class="btn ghost" id="menu">Quitter le salon</button></div>' : S.daily ? '<div class="row" style="justify-content:center"><button class="btn" id="again">Classement du jour</button><button class="btn ghost" id="menu">Accueil</button></div>' : '<div class="row" style="justify-content:center"><button class="btn" id="again">Rejouer ▶</button><button class="btn ghost" id="menu">Changer de catégorie</button></div>') + '';
   { const act = $('again').parentElement, sh = $('share').parentElement; sh.parentElement.insertBefore(act, sh); act.style.marginBottom = '12px'; } $('share').onclick = shareResult; if ($('pubForm')) $('pubForm').onsubmit = publish; $('again').onclick = () => { if (R) toLobby(); else if (S.daily) { goHome(); lbMode = 'day'; setTab('lb'); } else startGame(S.cat); }; $('menu').onclick = goHome; show('end');
 }
@@ -812,6 +812,9 @@ addEventListener('keydown', e => {
 let R = null; const emoSeen = new Set();
 const PID = (() => { let p = null; try { p = sessionStorage.getItem('gs_pid'); } catch(e) {} if (!p) { p = Math.random().toString(36).slice(2, 10); try { sessionStorage.setItem('gs_pid', p); } catch(e) {} } return p; })();
 // écritures signées par l'identifiant anonyme (fbauth.js) ; body peut être une fonction uid => données
+// n'accepte que des liens https (évite les liens javascript: piégés venant de la base)
+const safeUrl = (u, d) => typeof u === 'string' && /^https:\/\/[^\s"'<>]+$/.test(u) ? u : (d || '');
+const newKey = () => 'k' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
 const db = (path, method, body) => (method ? FBA.url(DB_URL + '/', path).then(u => fetch(u, {method, body: JSON.stringify(typeof body === 'function' ? body(FBA.uid()) : body)})) : fetch(DB_URL + '/' + path + '.json')).then(r => { if (!r.ok) throw new Error('db'); return r.json(); });
 const SV = {'.sv': 'timestamp'}, EMOS = ['👏', '😂', '🔥', '😱', '😭', '🫡'];
 const rnow = () => Date.now() + (R ? R.off : 0);
@@ -825,7 +828,7 @@ async function roomCreate(){
     for (let k = 0; k < 6; k++) {
       const code = Array.from({length: 4}, () => 'ABCDEFGHJKLMNPQRSTUVWXYZ'[Math.random() * 24 | 0]).join('');
       if (await db('rooms/' + code + '/live/meta')) continue;
-      await db('rooms/' + code + '/live', 'PUT', u => ({meta: {host: PID, hu: u, hn: n, state: 'lobby', game: 0, won: 0, pub, catId: 'top', diff, mode: gmode, t: SV, ht: SV}, players: spec ? null : {[PID]: newPlayer(n, u)}}));
+      await db('', 'PATCH', u => ({['rl/' + u + '/r']: SV, ['rooms/' + code + '/live']: {meta: {host: PID, hu: u, hn: n, state: 'lobby', game: 0, won: 0, pub, catId: 'top', diff, mode: gmode, t: SV, ht: SV}, players: spec ? null : {[PID]: newPlayer(n, u)}}}));
       roomEnter(code, n, spec); return;
     }
     toast('Impossible de créer un salon pour le moment. Réessaie.');
@@ -1014,7 +1017,7 @@ async function lbFetch(path){
 }
 async function lbPost(e, path){
   if (!DB_URL) { const a = ls.get('gs_lb', []); a.push(e); a.sort((x, y) => y.s - x.s); ls.set('gs_lb', a.slice(0, 50)); return; }
-  await db(path || 'scores', 'POST', u => Object.assign({}, e, {u}));
+  await db('', 'PATCH', u => ({[(path || 'scores') + '/' + newKey()]: Object.assign({}, e, {u}), ['rl/' + u + '/s']: SV}));
 }
 let published = false;
 async function publish(ev){
@@ -1088,9 +1091,9 @@ $('revForm').onsubmit = async ev => {
   ev.preventDefault(); const n = $('revName').value.replace(/\s+/g, ' ').trim().slice(0, 16), m = $('revMsg').value.replace(/\s+/g, ' ').trim().slice(0, 240);
   if (n.length < 2 || m.length < 3) { $('revInfo').textContent = 'Indique un pseudo et un avis de quelques mots.'; return; }
   ls.set('gs_name', n); const e = {n, m, s: revStars, t: Date.now()};
-  try { if (!DB_URL) { const a = ls.get('gs_rev', []); a.unshift(e); ls.set('gs_rev', a.slice(0, 40)); } else { await db('reviews', 'POST', u => Object.assign({}, e, {u})); }
+  try { if (!DB_URL) { const a = ls.get('gs_rev', []); a.unshift(e); ls.set('gs_rev', a.slice(0, 40)); } else { await db('reviews/' + await FBA.ready(), 'PUT', u => Object.assign({}, e, {u})); }
     $('revMsg').value = ''; sfx.ok(0); renderRev('✓ Merci pour ton avis !'); }
-  catch(x) { $('revInfo').textContent = 'Envoi impossible pour le moment. Réessaie.'; }
+  catch(x) { $('revInfo').textContent = 'Envoi impossible : tu as peut-être déjà laissé un avis (un seul par joueur).'; }
 };
 /* ---------------- Succès, favoris, partage, profil ---------------- */
 const ACH = [
