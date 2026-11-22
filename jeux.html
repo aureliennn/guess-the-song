@@ -110,6 +110,7 @@
 <script src="arcade.js"></script>
 <script src="minis.js"></script>
 <script src="fbauth.js"></script>
+<script src="prog.js"></script>
 <script>
 const V = MJ.variants(), BYID = new Map(V.map(v => [v.id, v])), fmt = n => Number(n).toLocaleString('fr-FR');
 let best = ls.get('mj_best', {}), fav = new Set(ls.get('mj_fav', [])), filt = 'all', fam = null, cur = null, game = null;
@@ -165,8 +166,9 @@ function start(){
 function finish(v, r){
   game = null; const old = best[v.id] || {s: 0, st: 0}, rec = r.score > old.s; best[v.id] = {s: Math.max(old.s, r.score), st: Math.max(old.st, r.stars), n: (old.n | 0) + 1}; ls.set('mj_best', best);
   stat('arc_mille', s => { s.g = (s.g | 0) + 1; }); r.stars >= 2 ? sfx.win() : r.stars ? sfx.ok() : sfx.lose();
+  const gain = window.PROG ? PROG.gameReward(r.stars) : null;
   const idx = V.indexOf(v), nxt = V[idx + 1] && V[idx + 1].eng === v.eng ? V[idx + 1] : V.find(x => x.eng === v.eng);
-  modal(r.stars ? 'Bien joué !' : 'Partie terminée', '<div class="stars" aria-label="' + r.stars + ' étoiles">' + STR(r.stars) + '</div><p class="note">' + esc(r.msg) + '<br><b style="color:var(--txt)">' + fmt(r.score) + ' points</b>' + (rec && old.s ? '<br><b style="color:var(--gold)">★ Nouveau record !</b>' : old.s ? '<br>Record : ' + fmt(old.s) : '') + '</p><div id="vlb"></div>',
+  modal(r.stars ? 'Bien joué !' : 'Partie terminée', '<div class="stars" aria-label="' + r.stars + ' étoiles">' + STR(r.stars) + '</div><p class="note">' + esc(r.msg) + '<br><b style="color:var(--txt)">' + fmt(r.score) + ' points</b>' + (rec && old.s ? '<br><b style="color:var(--gold)">★ Nouveau record !</b>' : old.s ? '<br>Record : ' + fmt(old.s) : '') + '</p>' + (gain ? '<p class="note"><a href="collection.html" style="text-decoration:none"><b style="color:var(--acc2)">+' + gain.j + ' 💠 · +' + gain.xp + ' XP' + (gain.up ? ' · 🎫 niveau ' + PROG.level() + ' !' : '') + '</b></a></p>' : '') + '<div id="vlb"></div>',
     [['Rejouer', () => { open(v); start(); }], ['Variante suivante ▶', () => { open(nxt); }], ['Catalogue', quit, true]]);
   varBoard(v, true);
 }

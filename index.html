@@ -83,9 +83,11 @@
 
 <script src="arcade.js"></script>
 <script>
-const NOTES_V = '5.2';
+const NOTES_V = '5.3';
 const fmt = n => Number(n || 0).toLocaleString('fr-FR');
 const GAMES = [
+  {id: 'collection', href: 'collection.html', e: '🃏', n: 'Collection & Pass', d: '67 cartes de personnages à collectionner, Pass de saison, récompense chaque jour et jetons à gagner en jouant.', b: 'new', h: 45,
+    st: () => { const p = ls.get('arc_prog', null); if (!p) return '🎁 Récompense du jour à récupérer'; const n = Object.keys(p.cards || {}).length; return '💠 ' + (p.j | 0) + ' · 🃏 ' + n + ' / 67 · niv. ' + Math.min(30, Math.floor((p.xp | 0) / 100)); }},
   {id: 'mille', href: 'jeux.html', e: '🎲', n: 'Mille Jeux', d: '42 jeux et plus de 1 900 variantes : réflexes, mémoire, réflexion, arcade, mots et calcul.', b: 'new', h: 290,
     st: () => { const b = ls.get('mj_best', {}), k = Object.keys(b).length, s = Object.values(b).reduce((a, x) => a + (x.st | 0), 0); return k ? k + ' joué' + (k > 1 ? 's' : '') + ' · ⭐ ' + s : 'Plus de 1 900 jeux à découvrir'; }},
   {id: 'chess', href: 'echecs.html', e: '♞', n: 'Échecs', d: 'Contre l\'ordinateur (3 niveaux) ou à deux sur le même écran.', b: 'new', h: 205,
@@ -118,11 +120,17 @@ document.addEventListener('click', e => { const a = e.target.closest('a[data-g]'
 addEventListener('pageshow', render); render();
 
 function showNotes(){
-  modal('Quoi de neuf ? · v5.2', '<div id="notes"><ul>' +
+  modal('Quoi de neuf ? · v5.3', '<div id="notes"><ul>' +
+    '<li><b>🃏 Cartes à collectionner</b>67 personnages inventés répartis en 8 familles (Néon, Braise, Abysse, Sylve, Cosmos, Ombre, Mythes et Pass), de Commune à Mythique, avec effet holographique. Ouvre des boosters, recycle tes doublons en éclats ✨ et fabrique les cartes qui te manquent.</li>' +
+    '<li><b>🎁 Connexion de la semaine</b>Une récompense chaque jour pendant 7 jours, avec un gros cadeau le 7ᵉ jour.</li>' +
+    '<li><b>🎫 Pass de saison</b>30 niveaux à gagner en jouant, une voie gratuite et une voie premium (cartes exclusives) qui se débloque avec des jetons, jamais avec de l\'argent réel.</li>' +
+    '<li><b>💠 Jetons</b>Chaque partie de Mille Jeux rapporte des jetons et de l\'XP, encore plus avec des étoiles.</li>' +
+    '<li><b>💾 Sauvegarde en ligne</b>Ta collection est sauvegardée sous un code secret : note-le pour tout retrouver sur un autre appareil.</li>' +
+    '</ul><details><summary>Version 5.2</summary><ul>' +
     '<li><b>🌞 Nouveau Monde Néon en 3D</b>Le monde a été entièrement redessiné : ciel bleu et nuages, vraie lumière du soleil avec ombres, herbe, place pavée, arbres ronds, fleurs, buissons et rochers, lave qui ondule et plaque de construction façon jouet.</li>' +
     '<li><b>🧍 Avatars tout neufs</b>Formes arrondies, vrai visage (yeux brillants, sourire, joues), cheveux, chaussures, et des animations plus vivantes : balancement, respiration, regard.</li>' +
     '<li><b>🎲 12 nouveaux jeux · 1 924 au total</b>Inondation, Code secret, Tours de Hanoï, Pixel mystère, Grappes, Mots mêlés, Le pendu, Rythme néon, Réaction en chaîne, Traversée, Autoroute et Canonnier, chacun en plusieurs variantes.</li>' +
-    '</ul><details><summary>Version 5.1</summary><ul>' +
+    '</ul></details><details><summary>Version 5.1</summary><ul>' +
     '<li><b>🏆 Classement en ligne des Mille Jeux</b>Un classement mondial des étoiles sur les 1 396 mini-jeux (bouton 🏆 Classement), et à la fin de chaque partie, le top de la variante avec ta place.</li>' +
     '<li><b>🛡️ Anti-triche</b>Chacun ne peut écrire que ses propres scores, les étoiles ne peuvent que monter (4 188 au maximum), les scores sont plafonnés et un envoi toutes les 2,5 s au plus. 14 attaques testées, toutes bloquées.</li>' +
     '<li><b>☁️ Étoiles retrouvées</b>Tes étoiles en ligne sont récupérées même si tu changes de navigateur. Ton pseudo est le même que dans le blind test.</li>' +

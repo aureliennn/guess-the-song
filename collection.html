@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://api.deezer.com; connect-src 'self' https://*.firebasedatabase.app wss://*.firebasedatabase.app https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://cdn.jsdelivr.net https://api.deezer.com; img-src 'self' data: blob: https:; media-src 'self' blob: https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<script>/* garde-fou : jamais de page blanche */(function(){/* anti-clickjacking : le site refuse d'être affiché dans le cadre d'un autre site */if(window.top!==window.self){var same=false;try{same=window.top.location.origin===location.origin}catch(e){}if(!same){document.documentElement.style.visibility='hidden';try{window.top.location.replace(location.href)}catch(e){}}}var t0=Date.now(),shown=0;function fix(){var p=[];try{if(navigator.serviceWorker)p.push(navigator.serviceWorker.getRegistrations().then(function(r){return Promise.all(r.map(function(x){return x.unregister()}))}));if(window.caches)p.push(caches.keys().then(function(k){return Promise.all(k.map(function(x){return caches.delete(x)}))}))}catch(e){}Promise.all(p).then(function(){location.reload()},function(){location.reload()})}window.__arcFix=fix;function show(msg){if(shown||Date.now()-t0>15000)return;shown=1;var d=document.createElement('div');d.setAttribute('role','alert');d.style.cssText='position:fixed;left:10px;right:10px;bottom:max(10px,env(safe-area-inset-bottom));z-index:99999;background:#1b1035;color:#f4f0ff;border:1px solid #b86bff;border-radius:14px;padding:12px 14px;font:14px system-ui,sans-serif;box-shadow:0 10px 30px rgba(0,0,0,.6);text-align:center';d.innerHTML='<b>Oups, la page n’a pas fini de charger.</b><div style="color:#a79fc4;font-size:12px;margin:4px 0 8px;overflow-wrap:anywhere"></div><button type="button" style="margin:3px;padding:9px 14px;border:0;border-radius:10px;background:#b86bff;color:#fff;font-weight:700">Recharger</button><button type="button" style="margin:3px;padding:9px 14px;border:1px solid #b86bff;border-radius:10px;background:none;color:#f4f0ff;font-weight:700">Réparer</button>';d.querySelector('div').textContent=String(msg).slice(0,140);var b=d.querySelectorAll('button');b[0].onclick=function(){location.reload()};b[1].onclick=fix;(document.body||document.documentElement).appendChild(d)}addEventListener('error',function(e){var g=e.target;if(g&&g!==window&&(g.tagName==='SCRIPT'||(g.tagName==='LINK'&&(g.href||'').indexOf(location.origin)===0)))show('Fichier introuvable : '+(g.src||g.href||'').split('/').pop());else if(e.message&&!/: 3d$/.test(e.message))show(e.message)},true)})();</script>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Collection — Arcade Néon</title>
+<meta name="description" content="Cartes à collectionner, Pass de saison et récompenses quotidiennes de l'Arcade Néon.">
+<meta name="theme-color" content="#07040f">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;800&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="arcade.css">
+<style>
+.bal{display:flex;gap:8px;flex-wrap:wrap;margin:-4px 0 12px}
+.bal .chip{font-size:13px;padding:7px 12px}
+.lvl{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;padding:12px 14px;border-radius:16px;margin-bottom:12px}
+.lvl b{font-family:Unbounded,Inter,sans-serif;font-size:15px}
+.bar{height:10px;border-radius:9px;background:rgba(255,255,255,.08);overflow:hidden}.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--acc),var(--acc2));border-radius:9px}
+.tabs{position:sticky;top:0;z-index:5;padding:6px 0;background:linear-gradient(var(--bg) 70%,transparent);margin-bottom:8px}
+.sec{display:grid;gap:12px}
+.days{display:grid;grid-template-columns:repeat(7,1fr);gap:8px}
+.day{display:grid;gap:4px;justify-items:center;align-content:center;padding:12px 4px;border-radius:14px;border:1px solid var(--line);background:rgba(255,255,255,.04);text-align:center;font-size:12px;min-height:96px}
+.day b{font-family:Unbounded,Inter,sans-serif;font-size:12px}.day .ic{font-size:24px}
+.day.done{opacity:.45}.day.today{border-color:var(--gold);box-shadow:0 0 18px rgba(255,209,102,.35);background:rgba(255,209,102,.1)}
+.box{padding:16px;border-radius:18px}
+.box h3{font-size:17px;margin-bottom:4px}
+.pass{display:grid;grid-auto-flow:column;grid-auto-columns:86px;gap:8px;overflow-x:auto;padding:4px 2px 10px;scroll-snap-type:x mandatory}
+.pl{display:grid;grid-template-rows:auto 1fr 1fr;gap:6px;scroll-snap-align:start}
+.pl .n{text-align:center;font-weight:800;font-family:Unbounded,Inter,sans-serif;font-size:12px;padding:4px;border-radius:8px;background:rgba(255,255,255,.06)}
+.pl .n.on{background:linear-gradient(92deg,var(--acc),var(--acc2));color:#0a0618}
+.rw{display:grid;gap:4px;justify-items:center;align-content:center;text-align:center;padding:8px 4px;border-radius:12px;border:1px solid var(--line);background:rgba(255,255,255,.04);font-size:11px;min-height:92px}
+.rw .ic{font-size:22px}.rw.prem{background:linear-gradient(160deg,rgba(255,179,0,.18),rgba(255,255,255,.03));border-color:rgba(255,209,102,.4)}
+.rw.lock{opacity:.4}.rw.got{opacity:.5}.rw.got::after{content:'✓';color:var(--ok);font-weight:800}
+.rw button{font-size:11px;padding:5px 8px;border-radius:9px}
+.passlab{display:grid;grid-template-columns:repeat(2,auto);gap:8px;font-size:12px;color:var(--mut);margin-top:4px}
+.shop{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px}
+.album{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px}
+/* cartes */
+.tc{--a:#b86bff;--b:#38e1ff;--rc:#c9c9d9;position:relative;aspect-ratio:5/7;border-radius:14px;padding:8px;display:grid;grid-template-rows:auto 1fr auto auto;gap:4px;color:#fff;overflow:hidden;text-align:center;
+  background:radial-gradient(120% 80% at 50% 20%,color-mix(in srgb,var(--b) 70%,transparent),transparent 60%),linear-gradient(160deg,var(--a),color-mix(in srgb,var(--a) 40%,#0a0618));border:3px solid var(--rc);box-shadow:0 6px 20px rgba(0,0,0,.4),inset 0 0 0 1px rgba(255,255,255,.2);transform-style:preserve-3d;transition:transform .15s}
+.tc .hd{display:flex;justify-content:space-between;align-items:center;font-size:10px;font-weight:800;letter-spacing:.02em}
+.tc .gem{width:12px;height:12px;border-radius:3px;background:var(--rc);transform:rotate(45deg);box-shadow:0 0 8px var(--rc)}
+.tc .art{display:grid;place-items:center;font-size:clamp(34px,11vw,58px);filter:drop-shadow(0 6px 10px rgba(0,0,0,.45));border-radius:10px;background:rgba(255,255,255,.08)}
+.tc .nm{font-family:Unbounded,Inter,sans-serif;font-size:11px;line-height:1.15;font-weight:800;text-shadow:0 1px 4px rgba(0,0,0,.6)}
+.tc .ft{font-size:9.5px;opacity:.85;display:flex;justify-content:space-between}
+.tc .cnt{position:absolute;top:6px;right:6px;background:rgba(0,0,0,.55);border-radius:999px;padding:1px 7px;font-size:11px;font-weight:800}
+.tc.r2::after,.tc.r3::after,.tc.r4::after{content:'';position:absolute;inset:0;pointer-events:none;mix-blend-mode:overlay;opacity:.75;background:linear-gradient(115deg,transparent 20%,rgba(255,255,255,.55) 38%,rgba(255,120,220,.35) 46%,rgba(120,220,255,.4) 54%,transparent 70%);background-size:250% 250%;animation:holo 3.2s linear infinite}
+.tc.r4{box-shadow:0 0 26px var(--rc),0 6px 20px rgba(0,0,0,.4)}
+@keyframes holo{from{background-position:120% 0}to{background-position:-120% 0}}
+.tc.miss{border-color:rgba(255,255,255,.14);filter:grayscale(.75) brightness(.5)}.tc.miss .art{opacity:.35}.tc.miss::after{display:none}
+.tc.big{width:min(300px,78vw);margin:0 auto}.tc.big .art{font-size:110px}.tc.big .nm{font-size:18px}.tc.big .ft{font-size:12px}.tc.big .hd{font-size:12px}
+.q{font-style:italic;color:#d8d0f2;font-size:14px;max-width:32ch;margin:0 auto}
+/* ouverture de booster */
+#pack{position:fixed;inset:0;z-index:45;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:16px;background:radial-gradient(circle at 50% 40%,#3a1f6e,#07040f 72%)}
+.packrow{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;width:min(760px,100%)}
+.flip{perspective:900px;cursor:pointer}.flip .in{position:relative;transition:transform .55s cubic-bezier(.2,.8,.2,1.2);transform-style:preserve-3d}.flip.on .in{transform:rotateY(180deg)}
+.flip .back,.flip .tc{backface-visibility:hidden;-webkit-backface-visibility:hidden}.flip .tc{transform:rotateY(180deg)}
+.flip .back{position:absolute;inset:0;border-radius:14px;display:grid;place-items:center;font-size:38px;background:linear-gradient(150deg,#2b1a5e,#0d0820);border:3px solid rgba(255,255,255,.25);box-shadow:0 0 18px rgba(184,107,255,.5)}
+.flip.on.r3 .in,.flip.on.r4 .in{animation:boom .5s}@keyframes boom{50%{filter:brightness(1.8)}}
+.nw{position:absolute;left:50%;bottom:-10px;transform:translateX(-50%);background:var(--ok);color:#04130b;font-size:10px;font-weight:800;padding:2px 7px;border-radius:999px;z-index:2}
+.codebox{font-family:Unbounded,Inter,sans-serif;font-size:clamp(18px,5vw,26px);letter-spacing:.12em;padding:12px;border-radius:12px;background:rgba(255,255,255,.07);text-align:center;user-select:all;-webkit-user-select:all}
+.inp{width:100%;padding:12px 14px;border-radius:12px;border:1px solid var(--line);background:rgba(255,255,255,.06);font-size:16px;outline:0;text-transform:uppercase;letter-spacing:.1em;text-align:center}
+@media(max-width:640px){.days{grid-template-columns:repeat(4,1fr)}.packrow{grid-template-columns:repeat(3,minmax(0,1fr))}.album{grid-template-columns:repeat(3,1fr);gap:7px}.tc{padding:6px;border-width:2px}.tc .nm{font-size:9.5px}.tc .ft{font-size:8.5px}}
+@media(max-width:360px){.album{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top"><a class="back" href="./">← Arcade</a><h1>🃏 Collection</h1></div>
+  <div class="bal" id="bal"></div>
+  <div class="lvl glass" id="lvl"></div>
+  <div class="tabs"><div class="seg" id="tabs"></div></div>
+  <div id="view"></div>
+</div>
+<div id="pack" class="hide" role="dialog" aria-modal="true" aria-label="Ouverture de booster"></div>
+<script src="arcade.js"></script>
+<script src="fbauth.js"></script>
+<script src="prog.js"></script>
+<script>
+const P = PROG, fmt = n => Number(n).toLocaleString('fr-FR');
+let tab = ls.get('col_tab', 'rec'), famF = 'all';
+const TABS = [['rec', '🎁 Récompenses'], ['pass', '🎫 Pass'], ['shop', '📦 Boosters'], ['album', '🃏 Album'], ['save', '💾 Sauvegarde']];
+const card = (c, n, big) => { const F = P.FAM[c.f], R = P.RAR[c.r], miss = !n;
+  return '<div class="tc r' + c.r + (miss ? ' miss' : '') + (big ? ' big' : '') + '" style="--a:' + F.a + ';--b:' + F.b + ';--rc:' + R.c + '" data-c="' + c.id + '"><div class="hd"><span>' + F.e + ' ' + esc(F.n) + '</span><span class="gem" title="' + R.n + '"></span></div><div class="art">' + (miss ? '❔' : c.e) + '</div><div class="nm">' + (miss ? '???' : esc(c.n)) + '</div><div class="ft"><span>' + R.n + '</span><span>⚔️ ' + (miss ? '?' : c.pw) + '</span></div>' + (n > 1 ? '<span class="cnt">×' + n + '</span>' : '') + '</div>'; };
+const rwIcon = r => r.c ? P.BYID[r.c].e : r.b ? '📦' : r.sh ? '✨' : '💠';
+const rwTxt = r => r.c ? esc(P.BYID[r.c].n) : r.b ? r.b + ' booster' + (r.b > 1 ? 's' : '') : r.sh ? r.sh + ' éclats' : r.j + ' jetons';
+function header(){
+  const S = P.get(), lv = P.level(), owned = P.CARDS.filter(c => S.cards[c.id]).length;
+  $('bal').innerHTML = '<span class="chip">💠 ' + fmt(S.j) + ' jetons</span><span class="chip">✨ ' + fmt(S.sh) + ' éclats</span><span class="chip">📦 ' + S.b + ' booster' + (S.b > 1 ? 's' : '') + ' à ouvrir</span><span class="chip">🃏 ' + owned + ' / ' + P.CARDS.length + '</span>';
+  $('lvl').innerHTML = '<b>Niv. ' + lv + '</b><div><div class="note" style="margin-bottom:4px">' + esc(P.SEASON.n) + ' · encore ' + P.daysLeft() + ' jours</div><div class="bar"><i style="width:' + (lv >= P.SEASON.levels ? 100 : P.xpIn()) + '%"></i></div></div><span class="note">' + (lv >= P.SEASON.levels ? 'MAX' : P.xpIn() + ' / ' + P.SEASON.xp + ' XP') + '</span>';
+  $('tabs').innerHTML = TABS.map(([k, n]) => '<button type="button" data-t="' + k + '" class="' + (k === tab ? 'on' : '') + '">' + n + (k === 'rec' && P.canDaily() ? ' 🔴' : '') + '</button>').join('');
+}
+function render(){
+  header(); const S = P.get(), V = $('view');
+  if (tab === 'rec') {
+    const di = P.dayIndex(), can = P.canDaily();
+    V.innerHTML = '<div class="sec"><div class="box glass"><h3>🗓️ Connexion de la semaine</h3><p class="note">Reviens chaque jour pour récupérer ta récompense. Le 7ᵉ jour, gros cadeau, puis la semaine recommence !</p></div><div class="days">' +
+      P.DAILY.map((r, i) => '<div class="day ' + (i < di ? 'done' : i === di && can ? 'today' : '') + '"><b>Jour ' + (i + 1) + '</b><span class="ic">' + (i === 6 ? '🎁' : r.b ? '📦' : '💠') + '</span><span>' + esc(P.rewardText(r)) + '</span>' + (i < di ? '<span>✓</span>' : '') + '</div>').join('') + '</div>' +
+      '<div class="row" style="justify-content:center">' + (can ? '<button class="btn" id="claim" type="button">🎁 Récupérer le jour ' + (di + 1) + '</button>' : '<span class="chip">✓ Déjà récupéré aujourd\'hui · reviens demain</span>') + '</div>' +
+      '<div class="box glass"><h3>💠 Gagner des jetons</h3><p class="note">Chaque partie de Mille Jeux rapporte des jetons et de l\'XP (plus avec des étoiles). Les jetons servent à ouvrir des boosters et à débloquer le Pass premium.</p><div class="row" style="margin-top:8px"><a class="btn sm" href="jeux.html">🎲 Jouer à Mille Jeux</a>' + (S.b ? '<button class="btn ghost sm" id="openFree" type="button">📦 Ouvrir un booster (' + S.b + ')</button>' : '') + '</div></div></div>';
+  } else if (tab === 'pass') {
+    const lv = P.level();
+    let h = '<div class="sec"><div class="box glass"><h3>🎫 ' + esc(P.SEASON.n) + '</h3><p class="note">Gagne de l\'XP en jouant pour monter de niveau. La voie gratuite est pour tout le monde ; la voie premium (cartes exclusives, plus de boosters) se débloque avec ' + P.PRICES.premium + ' 💠 gagnés en jouant, jamais avec de l\'argent réel.</p>' +
+      (S.prem ? '<span class="chip" style="margin-top:8px">⭐ Pass premium actif</span>' : '<button class="btn sm" id="prem" type="button" style="margin-top:8px"' + (S.j < P.PRICES.premium ? ' disabled' : '') + '>⭐ Débloquer le premium · ' + P.PRICES.premium + ' 💠</button>') + '</div><div class="passlab"><span>Ligne du haut : gratuit</span><span>Ligne du bas : ⭐ premium</span></div><div class="pass" id="passRow">';
+    for (let l = 1; l <= P.SEASON.levels; l++) { const fr = P.passFree(l), pr = P.passPrem(l), gf = P.passClaimed(l, false), gp = P.passClaimed(l, true), ok = l <= lv;
+      h += '<div class="pl"><div class="n' + (ok ? ' on' : '') + '">' + l + '</div>' +
+        '<div class="rw' + (gf ? ' got' : !ok ? ' lock' : '') + '"><span class="ic">' + rwIcon(fr) + '</span><span>' + rwTxt(fr) + '</span>' + (ok && !gf ? '<button class="btn sm" data-pl="' + l + '" type="button">Prendre</button>' : '') + '</div>' +
+        '<div class="rw prem' + (gp ? ' got' : !ok || !S.prem ? ' lock' : '') + '"><span class="ic">' + rwIcon(pr) + '</span><span>' + rwTxt(pr) + '</span>' + (ok && S.prem && !gp ? '<button class="btn sm" data-pp="' + l + '" type="button">Prendre</button>' : !S.prem ? '<span>🔒</span>' : '') + '</div></div>'; }
+    V.innerHTML = h + '</div></div>';
+    const row = $('passRow'); row.scrollLeft = Math.max(0, (lv - 2) * 94);
+  } else if (tab === 'shop') {
+    V.innerHTML = '<div class="sec"><div class="shop">' +
+      '<div class="box glass"><h3>📦 Booster classique</h3><p class="note">5 cartes de toutes les familles, dont au moins une Rare.</p><button class="btn" data-buy="booster" type="button" style="margin-top:10px"' + (S.j < P.PRICES.booster ? ' disabled' : '') + '>Ouvrir · ' + P.PRICES.booster + ' 💠</button></div>' +
+      Object.entries(P.FAM).filter(([k]) => k !== 'my' && k !== 'ps').map(([k, F]) => '<div class="box glass" style="background:linear-gradient(150deg,' + F.a + '55,rgba(255,255,255,.03))"><h3>' + F.e + ' Booster ' + esc(F.n) + '</h3><p class="note">5 cartes de la famille ' + esc(F.n) + '.</p><button class="btn" data-buy="family" data-f="' + k + '" type="button" style="margin-top:10px"' + (S.j < P.PRICES.family ? ' disabled' : '') + '>Ouvrir · ' + P.PRICES.family + ' 💠</button></div>').join('') +
+      '</div><div class="box glass"><h3>🎲 Chances par carte</h3><p class="note">Commune 62 % · Rare 26 % · Épique 9 % · Légendaire 2,6 % · Mythique 0,4 %. Les doublons se recyclent en éclats ✨, qui permettent de fabriquer la carte de ton choix dans l\'album.</p></div></div>';
+  } else if (tab === 'album') {
+    const owned = P.CARDS.filter(c => S.cards[c.id]).length, dup = P.CARDS.reduce((a, c) => a + Math.max(0, (S.cards[c.id] | 0) - 1), 0);
+    const fams = [['all', 'Toutes']].concat(Object.entries(P.FAM).map(([k, F]) => [k, F.e + ' ' + F.n]));
+    const list = P.CARDS.filter(c => famF === 'all' || c.f === famF);
+    V.innerHTML = '<div class="sec"><div class="row"><div class="seg" id="famF">' + fams.map(([k, n]) => '<button type="button" data-f="' + k + '" class="' + (k === famF ? 'on' : '') + '">' + n + '</button>').join('') + '</div></div>' +
+      '<div class="row"><span class="chip">🃏 ' + owned + ' / ' + P.CARDS.length + ' cartes</span>' + (dup ? '<button class="btn ghost sm" id="recAll" type="button">♻️ Recycler ' + dup + ' doublon' + (dup > 1 ? 's' : '') + '</button>' : '') + '</div>' +
+      '<div class="album">' + list.map(c => card(c, S.cards[c.id] | 0)).join('') + '</div><p class="note">Touche une carte pour la voir en grand, la recycler ou la fabriquer.</p></div>';
+  } else {
+    const code = P.code(), st = P.status();
+    V.innerHTML = '<div class="sec"><div class="box glass"><h3>💾 Ton code de sauvegarde</h3><p class="note">Ta collection, tes jetons et ton Pass sont sauvegardés en ligne sous ce code secret. Note-le : il te permet de tout retrouver sur un autre téléphone ou ordinateur, ou si ton navigateur est vidé. Ne le donne à personne.</p>' +
+      '<div class="codebox" style="margin-top:10px">' + code.replace(/(.{4})(?=.)/g, '$1-') + '</div><div class="row" style="margin-top:10px"><button class="btn sm" id="copy" type="button">📋 Copier</button><button class="btn ghost sm" id="sync" type="button">🔄 Sauvegarder maintenant</button><span class="note">' + (st === 'ok' ? '✓ Sauvegardé en ligne' : st === 'err' ? '⚠️ Pas de connexion : nouvel essai bientôt' : '⏳ Sauvegarde en cours…') + '</span></div></div>' +
+      '<div class="box glass"><h3>📲 Récupérer une collection</h3><p class="note">Sur un nouvel appareil, entre le code noté sur l\'ancien. La collection de cet appareil sera remplacée par celle du code.</p><input class="inp" id="rc" maxlength="16" placeholder="XXXX-XXXX-XXXX" autocomplete="off" style="margin-top:10px"><div class="row" style="margin-top:10px"><button class="btn sm" id="restore" type="button">Récupérer</button></div></div></div>';
+  }
+}
+/* ouverture de booster */
+function showPack(res, title){
+  if (!res) return; const el = $('pack'); el.classList.remove('hide'); document.body.style.overflow = 'hidden'; sfx.ok();
+  el.innerHTML = '<h2 style="font-size:22px;text-align:center">' + esc(title || 'Booster') + '</h2><p class="note">Touche chaque carte pour la retourner</p><div class="packrow">' + res.map((x, i) => '<div class="flip r' + x.c.r + '" data-i="' + i + '"><div class="in"><div class="back">🃏</div>' + card(x.c, 1) + '</div>' + (x.nw ? '<span class="nw hide">NOUVELLE</span>' : '') + '</div>').join('') + '</div><div class="row"><button class="btn ghost" id="flipAll" type="button">Tout retourner</button><button class="btn" id="packOk" type="button">Super !</button></div>';
+  const flip = f => { if (f.classList.contains('on')) return; f.classList.add('on'); const r = res[+f.dataset.i].c.r; const nw = f.querySelector('.nw'); if (nw) setTimeout(() => nw.classList.remove('hide'), 400); tone(500 + r * 180, 0, .12, 'triangle', .08); if (r >= 3) { tone(1046, .1, .3, 'triangle'); tone(1318, .2, .4, 'triangle'); } };
+  el.onclick = e => { const f = e.target.closest('.flip'); if (f) flip(f); if (e.target.id === 'flipAll') el.querySelectorAll('.flip').forEach((f, i) => setTimeout(() => flip(f), i * 180)); if (e.target.id === 'packOk') { el.classList.add('hide'); el.innerHTML = ''; document.body.style.overflow = ''; render(); } };
+}
+function detail(id){
+  const c = P.BYID[id], S = P.get(), n = S.cards[id] | 0, R = P.RAR[c.r];
+  modal(n ? c.n : 'Carte inconnue', card(c, n, true) + (n ? '<p class="q">« ' + esc(c.q) + ' »</p>' : '<p class="note">Tu ne possèdes pas encore cette carte.</p>') +
+    '<p class="note">' + R.n + ' · ' + esc(P.FAM[c.f].n) + (n > 1 ? ' · ' + n + ' exemplaires' : '') + '</p>',
+    (n > 1 ? [['♻️ Recycler les doublons (+' + (n - 1) * R.sh + ' ✨)', () => { const g = P.recycle(id); toast('+' + g + ' éclats ✨'); render(); }]] : []).concat(c.f !== 'ps' ? [['🛠️ Fabriquer · ' + R.cr + ' ✨', () => { if (!P.craft(id)) { toast('Pas assez d\'éclats (' + R.cr + ' nécessaires).'); return false; } sfx.win(); toast(c.e + ' ' + c.n + ' fabriquée !'); render(); }]] : []).concat([['Fermer', null, true]]));
+  const big = $('modal').querySelector('.tc.big'); if (big) { const mv = e => { const r = big.getBoundingClientRect(), x = (e.clientX - r.left) / r.width - .5, y = (e.clientY - r.top) / r.height - .5; big.style.transform = 'rotateY(' + x * 22 + 'deg) rotateX(' + -y * 22 + 'deg)'; }; big.addEventListener('pointermove', mv); big.addEventListener('pointerleave', () => { big.style.transform = ''; }); }
+}
+document.addEventListener('click', async e => {
+  const t = e.target.closest('[data-t]'); if (t) { tab = t.dataset.t; ls.set('col_tab', tab); sfx.click(); render(); return; }
+  if (e.target.closest('#pack')) return;
+  if (e.target.id === 'claim') { const r = P.claimDaily(); if (r) { sfx.win(); toast('🎁 Jour ' + (r.day + 1) + ' : ' + P.rewardText(r.r) + ' · +60 XP'); render(); } return; }
+  if (e.target.id === 'openFree') { showPack(P.open(null, true), 'Booster offert'); return; }
+  const pl = e.target.closest('[data-pl],[data-pp]'); if (pl) { const prem = !!pl.dataset.pp, l = +(pl.dataset.pl || pl.dataset.pp), r = P.claimPass(l, prem); if (r) { sfx.ok(); toast('Niveau ' + l + ' : ' + P.rewardText(r)); render(); } return; }
+  if (e.target.id === 'prem') { if (P.buyPremium()) { sfx.win(); toast('⭐ Pass premium débloqué !'); render(); } return; }
+  const b = e.target.closest('[data-buy]'); if (b) { const f = b.dataset.f, res = P.buy(b.dataset.buy, f); if (!res) { toast('Pas assez de jetons.'); return; } showPack(res, f ? 'Booster ' + P.FAM[f].n : 'Booster classique'); return; }
+  const ff = e.target.closest('#famF [data-f]'); if (ff) { famF = ff.dataset.f; render(); return; }
+  if (e.target.id === 'recAll') { const g = P.recycleAll(); if (g) { sfx.ok(); toast('♻️ +' + g + ' éclats ✨'); render(); } return; }
+  const c = e.target.closest('.album .tc'); if (c) { detail(c.dataset.c); return; }
+  if (e.target.id === 'copy') { const code = P.code(); try { await navigator.clipboard.writeText(code); toast('Code copié !'); } catch(x) { toast('Code : ' + code); } return; }
+  if (e.target.id === 'sync') { await P.syncNow(); render(); return; }
+  if (e.target.id === 'restore') { const v = $('rc').value; if (!confirm('Remplacer la collection de cet appareil par celle du code ?')) return; const r = await P.restore(v); toast(r === 'ok' ? '✓ Collection récupérée !' : r === 'format' ? 'Code invalide : 12 caractères.' : r === 'absent' ? 'Aucune sauvegarde avec ce code.' : 'Pas de connexion, réessaie.'); if (r === 'ok') sfx.win(); render(); }
+});
+P.on(() => { if ($('pack').classList.contains('hide') && !$('modal')) header(); });
+render();
+</script>
+</body>
+</html>
