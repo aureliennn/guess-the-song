@@ -35,10 +35,10 @@ async function init(){
   UID = await FBA.ready(); let admin = false; try { admin = !!(await get('/admins/' + UID)); } catch(e) {}
   if (!admin) { $('app').innerHTML = '<div class="box glass"><h3>Pas encore admin</h3><p class="note">Pour activer cet appareil comme admin, envoie cet identifiant au développeur du site (ce n\'est pas un secret, il sert juste à reconnaître ton téléphone) :</p><div class="uid">' + esc(UID) + '</div><button class="btn sm" id="cp" type="button">📋 Copier</button><p class="note">⚠️ Ouvre toujours cette page sur le même téléphone et le même navigateur, sinon il faudra recommencer.</p></div>';
     $('cp').onclick = async () => { try { await navigator.clipboard.writeText(UID); toast('Copié !'); } catch(e) { toast(UID); } }; return; }
-  $('app').innerHTML = '<div class="box glass"><h3>✅ Activer un Pass premium</h3><p class="note">Quand tu reçois un paiement Revolut, copie le code de 12 caractères écrit dans le message, puis colle-le ici.</p>' +
+  $('app').innerHTML = '<div class="box glass"><h3>✅ Activer un Pass premium</h3><p class="note">Quand tu reçois un paiement (PayPal), copie le code de 12 caractères écrit dans le message, puis colle-le ici.</p>' +
     '<input class="inp" id="code" maxlength="16" placeholder="XXXX-XXXX-XXXX" autocomplete="off"><div class="row"><button class="btn" id="chk" type="button">Vérifier</button><button class="btn" id="act" type="button">⭐ Activer le pass</button></div><div class="res" id="res"></div></div>' +
     '<div class="box glass"><h3>Passes activés</h3><div id="list" class="note">Chargement…</div></div>' +
-    '<div class="box glass"><p class="note">Remboursement : vérifie le code puis appuie sur « Retirer le pass ». N\'active un pass qu\'après avoir vu le paiement arriver sur ton compte Revolut.</p></div>';
+    '<div class="box glass"><p class="note">Remboursement : vérifie le code puis appuie sur « Retirer le pass ». N\'active un pass qu\'après avoir vu le paiement arriver sur ton compte PayPal.</p></div>';
   $('chk').onclick = check; $('act').onclick = activate; list();
 }
 async function check(){
