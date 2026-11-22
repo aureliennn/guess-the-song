@@ -164,12 +164,12 @@ document.addEventListener('click', async e => {
   if (e.target.id === 'sync') { await P.syncNow(); render(); return; }
   if (e.target.id === 'restore') { const v = $('rc').value; if (!confirm('Remplacer la collection de cet appareil par celle du code ?')) return; const r = await P.restore(v); toast(r === 'ok' ? '✓ Collection récupérée !' : r === 'format' ? 'Code invalide : 12 caractères.' : r === 'absent' ? 'Aucune sauvegarde avec ce code.' : 'Pas de connexion, réessaie.'); if (r === 'ok') sfx.win(); render(); }
 });
-/* achat réel contrôlé : accord majeur/parent + renonciation à la rétractation, puis paiement sécurisé Stripe */
+/* achat réel contrôlé : accord majeur/parent + renonciation à la rétractation, puis paiement sécurisé Revolut */
 function payDialog(){
   modal('💳 Acheter le Pass premium', '<p class="note">Pass premium de la ' + esc(P.SEASON.n) + ' : <b style="color:var(--txt)">' + P.PAY.price + '</b>, une seule fois. Il débloque la voie premium (cartes exclusives, boosters en plus). Aucun abonnement, aucun achat de cartes au hasard.</p>' +
     '<label class="note" style="display:flex;gap:8px;text-align:left;align-items:flex-start;margin-top:8px"><input type="checkbox" id="ckAge" style="margin-top:3px"> J\'ai 18 ans ou plus, ou un parent a donné son accord pour cet achat.</label>' +
     '<label class="note" style="display:flex;gap:8px;text-align:left;align-items:flex-start"><input type="checkbox" id="ckRet" style="margin-top:3px"> Je demande l\'activation immédiate du pass et je renonce à mon droit de rétractation de 14 jours.</label>' +
-    '<p class="note"><a href="legal.html" target="_blank" rel="noopener">Lire les conditions de vente</a> · paiement sécurisé par Stripe, le site ne voit jamais ta carte.</p>',
+    '<p class="note"><a href="legal.html" target="_blank" rel="noopener">Lire les conditions de vente</a> · paiement sécurisé par Revolut, le site ne voit jamais ta carte.</p>',
     [['Payer ' + P.PAY.price, () => { const majeur = $('ckAge').checked, retractation = $('ckRet').checked; if (!majeur || !retractation) { toast('Coche les deux cases pour continuer.'); return false; }
       if (!P.PAY.enabled) { toast('Le paiement n\'est pas encore ouvert.'); return false; }
       toast('Redirection vers le paiement sécurisé…'); P.startPayment({majeur, retractation}).then(r => { if (r !== 'ok') toast(r === 'deja' ? 'Ton pass est déjà acheté pour cette saison.' : 'Paiement indisponible pour le moment.'); }); return false; }], ['Annuler', null, true]]);
