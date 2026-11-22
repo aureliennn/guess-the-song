@@ -83,9 +83,11 @@
 
 <script src="arcade.js"></script>
 <script>
-const NOTES_V = '4.7';
+const NOTES_V = '5.0';
 const fmt = n => Number(n || 0).toLocaleString('fr-FR');
 const GAMES = [
+  {id: 'mille', href: 'jeux.html', e: '🎲', n: 'Mille Jeux', d: '30 jeux et plus de 1 300 variantes : réflexes, mémoire, réflexion, arcade, mots et calcul.', b: 'new', h: 290,
+    st: () => { const b = ls.get('mj_best', {}), k = Object.keys(b).length, s = Object.values(b).reduce((a, x) => a + (x.st | 0), 0); return k ? k + ' joué' + (k > 1 ? 's' : '') + ' · ⭐ ' + s : 'Plus de 1 000 jeux à découvrir'; }},
   {id: 'chess', href: 'echecs.html', e: '♞', n: 'Échecs', d: 'Contre l\'ordinateur (3 niveaux) ou à deux sur le même écran.', b: 'new', h: 205,
     st: () => { const s = ls.get('arc_chess', {}); return (s.w || s.l || s.d) ? (s.w | 0) + ' victoire' + ((s.w | 0) > 1 ? 's' : '') + ' · ' + (s.d | 0) + ' nul' + ((s.d | 0) > 1 ? 's' : '') + ' · ' + (s.l | 0) + ' défaite' + ((s.l | 0) > 1 ? 's' : '') : (s.g ? s.g + ' partie' + (s.g > 1 ? 's' : '') : 'Pas encore joué'); }},
   {id: 'cw', href: 'motscroises.html', e: '✏️', n: 'Mots croisés', d: 'Une nouvelle grille à chaque partie, avec ses définitions.', b: 'new', h: 150,
@@ -107,7 +109,7 @@ function render(){
   { const w = ls.get('arc_world', {}), c = ls.get('arc_coins', 0), b = ls.get('arc_obby_best', 0); $('featStat').textContent = (c || w.obby) ? '🪙 ' + c + ' pièce' + (c > 1 ? 's' : '') + (b ? ' · parcours en ' + b + ' s' : '') : 'Joue avec les autres joueurs connectés, en direct.'; }
   const gs = ls.get('gs_stats', {}), ch = ls.get('arc_chess', {}), cw = ls.get('arc_cw', {}), su = ls.get('arc_sudoku', {}), c4 = ls.get('arc_c4', {});
   const mm = ls.get('arc_mm', {}), total = (gs.games | 0) + (ch.g | 0) + (cw.solved | 0) + (su.solved | 0) + (c4.g | 0) + (mm.g | 0), name = String(ls.get('gs_name', '') || '');
-  $('chips').innerHTML = (name ? '<span class="chip">👤 ' + esc(name) + '</span>' : '') + '<span class="chip">🎮 ' + (GAMES.length + 1) + ' jeux</span>' + (total ? '<span class="chip">🏁 ' + fmt(total) + ' partie' + (total > 1 ? 's' : '') + ' terminée' + (total > 1 ? 's' : '') + '</span>' : '');
+  $('chips').innerHTML = (name ? '<span class="chip">👤 ' + esc(name) + '</span>' : '') + '<span class="chip">🎮 ' + fmt(1396 + GAMES.length) + ' jeux</span>' + (total ? '<span class="chip">🏁 ' + fmt(total) + ' partie' + (total > 1 ? 's' : '') + ' terminée' + (total > 1 ? 's' : '') + '</span>' : '');
   const rec = ls.get('arc_recent', []).map(id => GAMES.find(g => g.id === id)).filter(Boolean).slice(0, 4);
   $('recentWrap').classList.toggle('hide', !rec.length);
   $('recent').innerHTML = rec.map(g => '<a href="' + g.href + '" data-g="' + g.id + '"><span aria-hidden="true">' + g.e + '</span>' + esc(g.n) + '</a>').join('');
@@ -116,12 +118,17 @@ document.addEventListener('click', e => { const a = e.target.closest('a[data-g]'
 addEventListener('pageshow', render); render();
 
 function showNotes(){
-  modal('Quoi de neuf ? · v4.7', '<div id="notes"><ul>' +
+  modal('Quoi de neuf ? · v5.0', '<div id="notes"><ul>' +
+    '<li><b>🎲 Mille Jeux : 1 396 mini-jeux</b>30 nouveaux jeux, chacun décliné en dizaines de variantes (vitesse, taille de grille, règles, thème) : cibles, tape-taupe, esquive, serpent, vol néon, casse-briques, ping, empileur, sauts, défense spatiale, paires, écho lumineux, mémo-grille, fusion, démineur, interrupteurs, taquin, labyrinthe, morpion, l\'intrus, calcul éclair, anagrammes, frappe rapide, couleurs piégées…</li>' +
+    '<li><b>⭐ Étoiles et records</b>Gagne jusqu\'à 3 étoiles dans chaque variante. Ta progression, tes records et tes favoris sont gardés sur ton appareil.</li>' +
+    '<li><b>🔍 Catalogue</b>Recherche (« serpent rapide », « 5×5 », « fruits »…), filtres par catégorie, favoris ❤️, jeux pas encore joués, et bouton 🎲 Au hasard.</li>' +
+    '<li><b>📱 Pensé pour le téléphone</b>Glisser, toucher ou flèches du clavier selon les jeux, bouton ✕ Quitter toujours visible, et un nouveau portail 🎲 dans le Monde Néon.</li>' +
+    '</ul><details><summary>Version 4.7</summary><ul>' +
     '<li><b>🧪 54 cyberattaques testées</b>Le site a subi une batterie d\'attaques (faux jetons, données géantes, champs piégés, pollution de prototype, liens javascript:, défis truqués, spam…). Toutes les failles trouvées sont corrigées : 0 faille restante.</li>' +
     '<li><b>🚫 Anti-spam</b>Un message par seconde et demie dans le chat, un score toutes les 15 secondes, un salon toutes les 8 secondes, et un seul avis par joueur.</li>' +
     '<li><b>📏 Données contrôlées</b>Chaque information envoyée est vérifiée : liste exacte des champs, taille, type, valeurs possibles. Les musiques du défi du jour et des salons doivent venir de Deezer, et le défi ne peut être créé que le jour même.</li>' +
     '<li><b>🖼️ Anti-clickjacking</b>Le site refuse d\'être affiché à l\'intérieur d\'un autre site.</li>' +
-    '</ul><details><summary>Version 4.6</summary><ul>' +
+    '</ul></details><details><summary>Version 4.6</summary><ul>' +
     '<li><b>🛡️ Base de données protégée</b>Chaque appareil reçoit un identifiant secret signé par Google. Personne ne peut plus modifier ou effacer les scores, les records, l\'avatar, les blocs ou les messages des autres, et les données farfelues sont refusées.</li>' +
     '<li><b>🔐 Site verrouillé</b>Les fichiers 3D chargés depuis Internet sont vérifiés par empreinte (hachage SHA-384) : s\'ils sont modifiés, ils sont bloqués. Une politique de sécurité limite aussi les sites avec lesquels le jeu peut communiquer.</li>' +
     '<li><b>🩹 Fini la page blanche</b>Le mode hors ligne de l\'appli a été réparé. Si une page ne charge pas, un message apparaît avec un bouton « Réparer » qui vide le cache et recharge.</li>' +

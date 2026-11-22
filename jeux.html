@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://api.deezer.com; connect-src 'self' https://*.firebasedatabase.app wss://*.firebasedatabase.app https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://cdn.jsdelivr.net https://api.deezer.com; img-src 'self' data: blob: https:; media-src 'self' blob: https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<script>/* garde-fou : jamais de page blanche */(function(){/* anti-clickjacking : le site refuse d'être affiché dans le cadre d'un autre site */if(window.top!==window.self){var same=false;try{same=window.top.location.origin===location.origin}catch(e){}if(!same){document.documentElement.style.visibility='hidden';try{window.top.location.replace(location.href)}catch(e){}}}var t0=Date.now(),shown=0;function fix(){var p=[];try{if(navigator.serviceWorker)p.push(navigator.serviceWorker.getRegistrations().then(function(r){return Promise.all(r.map(function(x){return x.unregister()}))}));if(window.caches)p.push(caches.keys().then(function(k){return Promise.all(k.map(function(x){return caches.delete(x)}))}))}catch(e){}Promise.all(p).then(function(){location.reload()},function(){location.reload()})}window.__arcFix=fix;function show(msg){if(shown||Date.now()-t0>15000)return;shown=1;var d=document.createElement('div');d.setAttribute('role','alert');d.style.cssText='position:fixed;left:10px;right:10px;bottom:max(10px,env(safe-area-inset-bottom));z-index:99999;background:#1b1035;color:#f4f0ff;border:1px solid #b86bff;border-radius:14px;padding:12px 14px;font:14px system-ui,sans-serif;box-shadow:0 10px 30px rgba(0,0,0,.6);text-align:center';d.innerHTML='<b>Oups, la page n’a pas fini de charger.</b><div style="color:#a79fc4;font-size:12px;margin:4px 0 8px;overflow-wrap:anywhere"></div><button type="button" style="margin:3px;padding:9px 14px;border:0;border-radius:10px;background:#b86bff;color:#fff;font-weight:700">Recharger</button><button type="button" style="margin:3px;padding:9px 14px;border:1px solid #b86bff;border-radius:10px;background:none;color:#f4f0ff;font-weight:700">Réparer</button>';d.querySelector('div').textContent=String(msg).slice(0,140);var b=d.querySelectorAll('button');b[0].onclick=function(){location.reload()};b[1].onclick=fix;(document.body||document.documentElement).appendChild(d)}addEventListener('error',function(e){var g=e.target;if(g&&g!==window&&(g.tagName==='SCRIPT'||(g.tagName==='LINK'&&(g.href||'').indexOf(location.origin)===0)))show('Fichier introuvable : '+(g.src||g.href||'').split('/').pop());else if(e.message&&!/: 3d$/.test(e.message))show(e.message)},true)})();</script>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Mille Jeux — Arcade Néon</title>
+<meta name="description" content="Plus de 1 000 mini-jeux : réflexes, mémoire, réflexion, arcade, mots et calcul.">
+<meta name="theme-color" content="#07040f">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;800&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="arcade.css">
+<style>
+.intro{color:var(--mut);font-size:14px;max-width:70ch;margin:-6px 0 12px}
+.bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
+.search{flex:1;min-width:180px;padding:11px 14px;border-radius:14px;border:1px solid var(--line);background:rgba(255,255,255,.06);font-size:16px;outline:0}
+.fams{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px}
+.fam{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;align-items:center;padding:14px;border-radius:18px;border:1px solid var(--line);background:linear-gradient(150deg,rgba(184,107,255,.16),rgba(255,255,255,.03));text-align:left;transition:transform .12s,border-color .12s}
+.fam:hover{transform:translateY(-2px);border-color:var(--acc)}
+.fam .ic{grid-row:span 3;width:54px;height:54px;border-radius:15px;display:grid;place-items:center;font-size:30px;background:rgba(255,255,255,.07)}
+.fam h3{font-size:16px}.fam p{font-size:12.5px;color:var(--mut);line-height:1.35}
+.fam .pr{font-size:12px;font-weight:700;color:#e7defd}
+.prog{height:5px;border-radius:9px;background:rgba(255,255,255,.08);overflow:hidden;grid-column:2}.prog i{display:block;height:100%;background:linear-gradient(90deg,var(--acc),var(--acc2))}
+.vars{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px}
+.var{display:grid;grid-template-columns:auto 1fr auto;gap:2px 10px;align-items:center;padding:10px 12px;border-radius:14px;border:1px solid var(--line);background:rgba(255,255,255,.04);text-align:left}
+.var:hover{border-color:var(--acc2)}
+.var .e{font-size:22px;grid-row:span 2}.var b{font-size:13px}.var small{font-size:11.5px;color:var(--mut);grid-column:2;line-height:1.3}
+.var .s{grid-row:span 2;font-size:12px;letter-spacing:-1px}
+.var .fv{font-size:15px;grid-row:span 2;opacity:.35}.var .fv.on{opacity:1}
+.head2{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:6px 0 10px}
+.head2 h2{font-size:20px;margin-right:auto}
+.empty{padding:30px;text-align:center;color:var(--mut)}
+/* lecteur */
+#player{position:fixed;inset:0;z-index:40;display:flex;flex-direction:column;background:var(--bgc,#0d0820);padding:max(8px,env(safe-area-inset-top)) max(8px,env(safe-area-inset-right)) max(8px,env(safe-area-inset-bottom)) max(8px,env(safe-area-inset-left))}
+.ph{display:flex;align-items:center;gap:8px;min-height:44px}
+.ph .pt{flex:1;min-width:0;display:grid;line-height:1.15}.ph .pt b{font-family:Unbounded,Inter,sans-serif;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.ph .pt span{font-size:11.5px;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#pHud{font-size:13px;white-space:nowrap;max-width:48%;overflow:hidden;text-overflow:ellipsis}
+.mj-stage{flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:8px 0;user-select:none;-webkit-user-select:none;touch-action:manipulation;overflow:hidden}
+.mj-cv{width:100%;flex:1;min-height:0;object-fit:contain;touch-action:none;display:block}
+.mj-grid{display:grid;gap:clamp(3px,1vmin,8px);flex:none;touch-action:manipulation}
+.mj-cell{border-radius:12px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);display:grid;place-items:center;font-weight:800;color:#fff;transition:background .12s,transform .08s;line-height:1;padding:0;overflow:hidden;min-width:0;min-height:0}
+.mj-cell:active{transform:scale(.96)}
+.holes .mj-cell{border-radius:50%;background:radial-gradient(circle at 50% 60%,#000 0 45%,rgba(255,255,255,.08) 46%);font-size:1.4em}
+.holes .mj-cell.up{background:radial-gradient(circle at 50% 60%,color-mix(in srgb,var(--a) 40%,#000) 0 45%,rgba(255,255,255,.1) 46%)}
+.echo .mj-cell{background:hsl(var(--h),60%,22%);border-radius:18px}.echo .mj-cell.lit{background:hsl(var(--h),95%,62%);box-shadow:0 0 30px hsl(var(--h),95%,60%)}
+.cards .mj-cell{background:linear-gradient(135deg,var(--a),var(--c));font-size:1.3em}.cards .mj-cell span{opacity:0;transition:opacity .15s}.cards .mj-cell.open{background:rgba(255,255,255,.12)}.cards .mj-cell.open span{opacity:1}.cards .mj-cell.ok{background:rgba(61,255,162,.22);border-color:var(--ok)}
+.memo .mj-cell.lit{background:var(--a);box-shadow:0 0 18px var(--a)}.memo .mj-cell.ok{background:var(--ok)}.memo .mj-cell.ko{background:var(--bad)}
+.fuse .mj-cell{font-family:Unbounded,Inter,sans-serif;font-size:.8em}.fuse .mj-cell.v{background:hsl(calc(260 - var(--l) * 22),80%,calc(28% + var(--l) * 3%));border-color:transparent}
+.mines .mj-cell{border-radius:6px;font-size:.9em;background:color-mix(in srgb,var(--a) 38%,#1a1030)}.mines .mj-cell.o{background:rgba(255,255,255,.06);border-color:transparent}.mines .mj-cell.boom{background:var(--bad)}.mines .mj-cell.f{background:rgba(255,209,102,.25)}
+.mines [data-k="1"]{color:#7ef9ff}.mines [data-k="2"]{color:#3dffa2}.mines [data-k="3"]{color:#ffd166}.mines [data-k="4"]{color:#ff8ad8}.mines [data-k="5"],.mines [data-k="6"]{color:#ff4d6d}
+.mj-flag.on{background:linear-gradient(92deg,var(--acc),var(--acc2));color:#0a0618}
+.lights .mj-cell{background:rgba(255,255,255,.05)}.lights .mj-cell.lit{background:var(--b);box-shadow:0 0 18px var(--b)}
+.taquin .mj-cell{background:linear-gradient(150deg,var(--a),color-mix(in srgb,var(--a) 50%,#000));font-family:Unbounded,Inter,sans-serif;font-size:.85em}.taquin .mj-cell.grad{background:hsl(var(--h),75%,calc(var(--l) * 1%))}.taquin .mj-cell.empty{visibility:hidden}
+.ttt .mj-cell{font-size:1.6em}.ttt .p1{color:var(--a);text-shadow:0 0 12px var(--a)}.ttt .p2{color:var(--c);text-shadow:0 0 12px var(--c)}
+.odd .mj-cell{font-size:1.2em;border-radius:10px}.odd .mj-cell.ko{outline:3px solid var(--bad)}
+.mj-choices{display:grid;grid-template-columns:1fr 1fr;gap:8px;width:min(440px,100%);flex:none}
+.mj-choices.pad{grid-template-columns:repeat(3,1fr)}
+.mj-choices.letters{display:flex;flex-wrap:wrap;justify-content:center}.mj-choices.letters .mj-ch{width:52px;height:52px;padding:0;font-size:22px}
+.mj-ch{padding:14px 10px;border-radius:14px;background:rgba(255,255,255,.08);border:1px solid var(--line);font-weight:800;font-size:18px;font-family:Unbounded,Inter,sans-serif}
+.mj-ch:disabled{opacity:.3}.mj-ch.ok{background:rgba(61,255,162,.3);border-color:var(--ok);opacity:1}.mj-ch.ko{background:rgba(255,77,109,.3);border-color:var(--bad);opacity:1}
+.mj-row{display:flex;gap:8px;justify-content:center;width:100%;margin-top:4px}
+.mj-card{font-family:Unbounded,Inter,sans-serif;font-size:clamp(26px,7vw,44px);padding:14px 22px;border-radius:18px;background:rgba(255,255,255,.06);border:1px solid var(--line);min-width:min(60%,320px);text-align:center;letter-spacing:.04em;overflow-wrap:anywhere}
+.mj-card.pop{animation:pop .18s}.mj-card.bad{animation:shake .25s}.mj-card.okc{border-color:var(--ok);color:var(--ok)}
+.mj-card .dot{display:inline-block;width:min(90px,22vw);height:min(90px,22vw);border-radius:50%;vertical-align:middle}
+@keyframes pop{from{transform:scale(.8)}}@keyframes shake{25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+.mj-q{font-size:15px;color:var(--mut);text-align:center;max-width:440px}.mj-q b{color:var(--txt)}
+.mj-pad{width:min(440px,100%);flex:1;max-height:440px;border-radius:26px;font-size:clamp(20px,6vw,30px);font-weight:800;font-family:Unbounded,Inter,sans-serif;color:#fff;transition:background .05s}
+.mj-inp{width:min(440px,100%);padding:14px;font-size:20px;border-radius:14px;background:rgba(255,255,255,.07);border:1px solid var(--line);text-align:center;outline:0}.mj-inp.bad{border-color:var(--bad)}
+.start{display:grid;gap:12px;justify-items:center;text-align:center;max-width:440px;padding:20px}
+.start .big{font-size:64px}.start p{color:#d8d0f2;font-size:15px;line-height:1.45}
+.stars{font-size:30px;letter-spacing:4px}
+@media(max-width:560px){.ph{flex-wrap:wrap;row-gap:6px}#pHud{order:3;width:100%;max-width:100%;justify-content:center}}
+@media(max-width:640px){.fams{grid-template-columns:1fr}.vars{grid-template-columns:1fr 1fr}.var{grid-template-columns:auto 1fr;padding:9px}.var .s,.var .fv{grid-row:auto}.var .s{grid-column:2}.var .fv{display:none}}
+@media(max-width:360px){.vars{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap" id="cat">
+  <div class="top"><a class="back" href="./">← Arcade</a><h1>🎲 <span id="total">1 000+</span> mini-jeux</h1><button class="btn sm" id="rnd" type="button">🎲 Au hasard</button></div>
+  <p class="intro">30 jeux, chacun en dizaines de variantes : vitesse, taille, règles, thème… Gagne jusqu'à 3 ⭐ dans chacune !</p>
+  <div class="row" id="chips" style="margin-bottom:12px"></div>
+  <div class="bar"><input class="search" id="q" type="search" placeholder="Chercher : serpent, rapide, 5×5, fruits…" autocomplete="off" enterkeyhint="search" aria-label="Chercher un jeu"></div>
+  <div class="bar"><div class="seg" id="filt"></div></div>
+  <div id="list"></div>
+</div>
+<div id="player" class="hide" role="dialog" aria-modal="true" aria-label="Mini-jeu">
+  <div class="ph"><button class="back" id="pQuit" type="button">✕ Quitter</button><div class="pt"><b id="pName"></b><span id="pSub"></span></div><span class="chip" id="pHud"></span></div>
+  <div id="stage" class="mj-stage"></div>
+</div>
+<script src="arcade.js"></script>
+<script src="minis.js"></script>
+<script>
+const V = MJ.variants(), BYID = new Map(V.map(v => [v.id, v])), fmt = n => Number(n).toLocaleString('fr-FR');
+let best = ls.get('mj_best', {}), fav = new Set(ls.get('mj_fav', [])), filt = 'all', fam = null, cur = null, game = null;
+const starsOf = id => (best[id] && best[id].st) | 0, STR = n => '⭐'.repeat(n) + '☆'.repeat(3 - n);
+$('total').textContent = fmt(V.length);
+function chips(){
+  const played = Object.keys(best).filter(k => BYID.has(k)).length, st = Object.keys(best).reduce((a, k) => a + (BYID.has(k) ? best[k].st | 0 : 0), 0);
+  $('chips').innerHTML = '<span class="chip">🎮 ' + fmt(played) + ' / ' + fmt(V.length) + ' joués</span><span class="chip">⭐ ' + fmt(st) + ' / ' + fmt(V.length * 3) + '</span>' + (fav.size ? '<span class="chip">❤️ ' + fav.size + ' favori' + (fav.size > 1 ? 's' : '') + '</span>' : '');
+}
+function filters(){
+  const F = [['all', 'Tous']].concat(Object.entries(MJ.CATS)).concat([['fav', '❤️ Favoris'], ['new', '🆕 Pas joués']]);
+  $('filt').innerHTML = F.map(([k, n]) => '<button type="button" data-f="' + k + '" class="' + (k === filt ? 'on' : '') + '">' + n + '</button>').join('');
+}
+const varHtml = v => '<button class="var" type="button" data-v="' + v.id + '"><span class="e" aria-hidden="true">' + v.eng.e + '</span><b>' + esc(v.name) + ' n°' + v.num + '</b><span class="fv' + (fav.has(v.id) ? ' on' : '') + '" data-fav="' + v.id + '" role="button" aria-label="Favori">❤️</span><small>' + esc(v.sub) + '</small><span class="s" aria-label="' + starsOf(v.id) + ' étoiles">' + STR(starsOf(v.id)) + '</span></button>';
+function render(){
+  chips(); filters(); const q = $('q').value.trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/(\d)\s*[x*]\s*(\d)/g, '$1×$2'), L = $('list');
+  const norm = s => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+  let pool = V.filter(v => filt === 'all' || v.eng.cat === filt || (filt === 'fav' && fav.has(v.id)) || (filt === 'new' && !best[v.id]));
+  if (q) { const words = q.split(/\s+/); pool = pool.filter(v => { const h = norm(v.name + ' ' + v.sub + ' ' + v.eng.d + ' ' + MJ.CATS[v.eng.cat]); return words.every(w => h.includes(w)); }); }
+  if (q || filt === 'fav' || fam) {
+    const list = fam ? pool.filter(v => v.eng.id === fam) : pool, e = fam && MJ.ENG.find(x => x.id === fam);
+    L.innerHTML = '<div class="head2">' + (fam ? '<button class="btn ghost sm" id="backFam" type="button">← Tous les jeux</button><h2>' + e.e + ' ' + esc(e.n) + '</h2><span class="note">' + esc(e.how) + '</span>' : '<h2>' + fmt(list.length) + ' résultat' + (list.length > 1 ? 's' : '') + '</h2>') + '</div>' +
+      (list.length ? '<div class="vars">' + list.slice(0, 400).map(varHtml).join('') + '</div>' + (list.length > 400 ? '<p class="note" style="margin-top:10px">Affine ta recherche pour voir les ' + fmt(list.length - 400) + ' autres.</p>' : '') : '<div class="empty">Aucun jeu ne correspond.</div>');
+  } else {
+    const fams = MJ.ENG.filter(e => pool.some(v => v.eng === e));
+    L.innerHTML = fams.length ? '<div class="fams">' + fams.map(e => { const vs = V.filter(v => v.eng === e), st = vs.reduce((a, v) => a + starsOf(v.id), 0), played = vs.filter(v => best[v.id]).length;
+      return '<button class="fam" type="button" data-fam="' + e.id + '"><span class="ic" aria-hidden="true">' + e.e + '</span><h3>' + esc(e.n) + '</h3><p>' + esc(e.d) + '</p><span class="pr">' + vs.length + ' variantes · ' + played + ' jouée' + (played > 1 ? 's' : '') + ' · ⭐ ' + st + '/' + vs.length * 3 + '</span><span class="prog"><i style="width:' + Math.round(st / (vs.length * 3) * 100) + '%"></i></span></button>'; }).join('') + '</div>' : '<div class="empty">Tu as joué à tous les jeux de cette catégorie, bravo !</div>';
+  }
+}
+$('filt').onclick = e => { const b = e.target.closest('[data-f]'); if (!b) return; filt = b.dataset.f; fam = null; sfx.click(); render(); };
+$('q').oninput = () => { fam = null; render(); };
+$('list').onclick = e => {
+  const f = e.target.closest('[data-fav]'); if (f) { e.stopPropagation(); const id = f.dataset.fav; fav.has(id) ? fav.delete(id) : fav.add(id); ls.set('mj_fav', [...fav]); f.classList.toggle('on', fav.has(id)); chips(); return; }
+  if (e.target.closest('#backFam')) { fam = null; render(); scrollTo(0, 0); return; }
+  const a = e.target.closest('[data-fam]'); if (a) { fam = a.dataset.fam; sfx.click(); render(); scrollTo(0, 0); return; }
+  const v = e.target.closest('[data-v]'); if (v) open(BYID.get(v.dataset.v));
+};
+$('rnd').onclick = () => { const pool = V.filter(v => !best[v.id]); open((pool.length ? pool : V)[Math.random() * (pool.length || V.length) | 0]); };
+/* lecteur */
+function open(v){
+  if (!v) return; cur = v; closeModal(); if (game) { game.stop(); game = null; }
+  const T = MJ.PAL[v.P.t | 0] || MJ.PAL[0]; $('player').style.setProperty('--bgc', T.bg); $('player').classList.remove('hide'); document.body.style.overflow = 'hidden';
+  $('pName').textContent = v.eng.e + ' ' + v.name + ' n°' + v.num; $('pSub').textContent = v.sub; $('pHud').textContent = '';
+  try { history.replaceState(null, '', '#' + v.id); } catch(e) {}
+  const s = $('stage'); s.className = 'mj-stage'; s.innerHTML = '<div class="start"><div class="big" aria-hidden="true">' + v.eng.e + '</div><h2>' + esc(v.name) + '</h2><p>' + esc(v.eng.how) + '</p><span class="chip">' + esc(v.sub) + '</span>' + (best[v.id] ? '<span class="note">Record : ' + fmt(best[v.id].s) + ' pts · ' + STR(best[v.id].st) + '</span>' : '') + '<button class="btn" id="go" type="button">Jouer ▶</button></div>';
+  $('go').onclick = start; $('go').focus();
+}
+function start(){
+  const v = cur; sfx.ok(); $('pHud').textContent = '';
+  game = MJ.run($('stage'), v, {hud: t => { $('pHud').textContent = t; }, end: r => finish(v, r)});
+  const r = ls.get('arc_recent', []).filter(x => x !== 'mille'); r.unshift('mille'); ls.set('arc_recent', r.slice(0, 6));
+}
+function finish(v, r){
+  game = null; const old = best[v.id] || {s: 0, st: 0}, rec = r.score > old.s; best[v.id] = {s: Math.max(old.s, r.score), st: Math.max(old.st, r.stars), n: (old.n | 0) + 1}; ls.set('mj_best', best);
+  stat('arc_mille', s => { s.g = (s.g | 0) + 1; }); r.stars >= 2 ? sfx.win() : r.stars ? sfx.ok() : sfx.lose();
+  const idx = V.indexOf(v), nxt = V[idx + 1] && V[idx + 1].eng === v.eng ? V[idx + 1] : V.find(x => x.eng === v.eng);
+  modal(r.stars ? 'Bien joué !' : 'Partie terminée', '<div class="stars" aria-label="' + r.stars + ' étoiles">' + STR(r.stars) + '</div><p class="note">' + esc(r.msg) + '<br><b style="color:var(--txt)">' + fmt(r.score) + ' points</b>' + (rec && old.s ? '<br><b style="color:var(--gold)">★ Nouveau record !</b>' : old.s ? '<br>Record : ' + fmt(old.s) : '') + '</p>',
+    [['Rejouer', () => { open(v); start(); }], ['Variante suivante ▶', () => { open(nxt); }], ['Catalogue', quit, true]]);
+}
+function quit(){ if (game) { game.stop(); game = null; } closeModal(); $('player').classList.add('hide'); $('stage').innerHTML = ''; document.body.style.overflow = ''; try { history.replaceState(null, '', location.pathname); } catch(e) {} render(); }
+$('pQuit').onclick = () => { sfx.click(); quit(); };
+addEventListener('keydown', e => { if (e.code === 'Escape' && !$('player').classList.contains('hide') && !$('modal')) quit(); });
+render();
+{ const id = decodeURIComponent(location.hash.slice(1)); if (BYID.has(id)) open(BYID.get(id)); else if (/^[a-z]+$/.test(id) && MJ.ENG.some(e => e.id === id)) { fam = id; render(); } }
+</script>
+</body>
+</html>

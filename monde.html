@@ -136,7 +136,7 @@ const vinyl = new THREE.Group(); scene.add(vinyl); vinyl.position.set(0, 0, 0);
 box(0, 0, 0, 5, 1.2, 5, 0x3a2475, {});
 { const disc = new THREE.Mesh(new THREE.CylinderGeometry(2.6, 2.6, .3, 48), new THREE.MeshLambertMaterial({color: 0x0b0814})); disc.rotation.z = Math.PI / 2; disc.position.y = 3.9; vinyl.add(disc); const lab = new THREE.Mesh(new THREE.CylinderGeometry(.9, .9, .34, 32), new THREE.MeshBasicMaterial({color: 0x38e1ff})); lab.rotation.z = Math.PI / 2; lab.position.y = 3.9; vinyl.add(lab); colliders.push({min: [-.3, 1.2, -2.6], max: [.3, 6.5, 2.6]}); const s = label('🎵 ARCADE NÉON', '#ffd166', 768, 1.3); s.position.set(0, 8, 0); scene.add(s); }
 // portails vers les jeux
-const GAMES = [['blindtest.html', '🎵', 'Guess the Song', 268], ['echecs.html', '♞', 'Échecs', 205], ['motscroises.html', '✏️', 'Mots croisés', 150], ['motmystere.html', '🔤', 'Mot mystère', 95], ['sudoku.html', '🔢', 'Sudoku', 40], ['quatre.html', '🔴', 'Quatre en ligne', 330], ['foot.html', '⚽', 'Nations Cup', 120], ['penalty.html', '🥅', 'Tirs au but', 20]];
+const GAMES = [['jeux.html', '🎲', 'Mille Jeux', 290], ['blindtest.html', '🎵', 'Guess the Song', 268],['echecs.html', '♞', 'Échecs', 205], ['motscroises.html', '✏️', 'Mots croisés', 150], ['motmystere.html', '🔤', 'Mot mystère', 95], ['sudoku.html', '🔢', 'Sudoku', 40], ['quatre.html', '🔴', 'Quatre en ligne', 330], ['foot.html', '⚽', 'Nations Cup', 120], ['penalty.html', '🥅', 'Tirs au but', 20]];
 const portals = [];
 GAMES.forEach((g, i) => {
   const a = (200 + i * 140 / (GAMES.length - 1)) * Math.PI / 180, R = 24, x = Math.cos(a) * R, z = Math.sin(a) * R, col = new THREE.Color('hsl(' + g[3] + ',90%,62%)');
