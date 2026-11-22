@@ -1,5 +1,5 @@
 // Arcade Néon : service worker (réseau d'abord, cache en secours, jamais de page blanche).
-const CACHE = 'arc-v2';
+const CACHE = 'arc-v3';
 self.addEventListener('install', () => self.skipWaiting());
 self.addEventListener('activate', e => e.waitUntil(
   caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim())
@@ -15,7 +15,8 @@ self.addEventListener('fetch', e => {
   if (r.method !== 'GET' || new URL(r.url).origin !== location.origin) return;
   const nav = r.mode === 'navigate';
   e.respondWith(
-    fetch(r).then(res => {
+    // pages et scripts du site : toujours revalidés auprès de GitHub (sinon le navigateur garde l'ancienne version 10 min)
+    fetch(nav ? r.url : r, nav ? {cache: 'no-cache', credentials: 'same-origin'} : (/\.(html|js|css)$/.test(new URL(r.url).pathname) ? {cache: 'no-cache'} : undefined)).then(res => {
       if (res && res.ok && res.type === 'basic') { const copy = res.clone(); caches.open(CACHE).then(c => c.put(r, copy)).catch(() => {}); }
       return nav ? clean(res) : res;
     }).catch(() => caches.match(r, {ignoreSearch: true}).then(hit => {
