@@ -696,10 +696,10 @@ function openShop(tab){
 }
 function renderShop(){
   const el = $('shopBody'); if (!el) return; const d = new Date().toISOString().slice(0, 10), gift = ls.get('arc_gift', '') !== d;
-  el.innerHTML = '<div class="shopTop"><span class="wallet">🪙 ' + coinCount + '</span>' + (gift ? '<button class="btn sm" id="gift" type="button">🎁 Cadeau du jour</button>' : '<span class="note">Ramasse des pièces dans le monde et à la Pluie de pièces.</span>') + '</div>' +
+  el.innerHTML = '<div class="shopTop"><span class="wallet">🪙 ' + (ISADM ? '∞ · admin' : coinCount) + '</span>' + (gift ? '<button class="btn sm" id="gift" type="button">🎁 Cadeau du jour</button>' : '<span class="note">Ramasse des pièces dans le monde et à la Pluie de pièces.</span>') + '</div>' +
     '<div class="seg" id="shopTabs">' + SHOP_TABS.map(t => '<button type="button" data-tab="' + t[0] + '" class="' + (t[0] === shopTab ? 'on' : '') + '">' + t[1] + '</button>').join('') + '</div>' +
     '<div class="shopGrid">' + SHOP[shopTab].map(([id, e, n, price]) => { const own = owned.has(shopTab + ':' + id), eq = AV[shopTab] === id;
-      return '<div class="it' + (eq ? ' eq' : '') + '"><span class="ie" aria-hidden="true">' + e + '</span><b>' + esc(n) + '</b>' + (own ? '<button type="button" class="btn sm' + (eq ? ' ghost' : '') + '" data-act="' + (eq ? 'off' : 'on') + '" data-id="' + id + '">' + (eq ? 'Retirer' : 'Équiper') + '</button>' : '<button type="button" class="btn sm" data-act="buy" data-id="' + id + '"' + (coinCount < price && !ISADM ? ' disabled' : '') + '>🪙 ' + price + '</button>') + '</div>'; }).join('') + '</div>';
+      return '<div class="it' + (eq ? ' eq' : '') + '"><span class="ie" aria-hidden="true">' + e + '</span><b>' + esc(n) + '</b>' + (own ? '<button type="button" class="btn sm' + (eq ? ' ghost' : '') + '" data-act="' + (eq ? 'off' : 'on') + '" data-id="' + id + '">' + (eq ? 'Retirer' : 'Équiper') + '</button>' : '<button type="button" class="btn sm" data-act="buy" data-id="' + id + '"' + (coinCount < price && !ISADM ? ' disabled' : '') + '>' + (ISADM ? '🛡️ Gratuit' : '🪙 ' + price) + '</button>') + '</div>'; }).join('') + '</div>';
 }
 /* compagnons */
 const dotT = tex(cv(64, 64, (g) => { const r = g.createRadialGradient(32, 32, 0, 32, 32, 32); r.addColorStop(0, 'rgba(255,255,255,1)'); r.addColorStop(.4, 'rgba(255,255,255,.5)'); r.addColorStop(1, 'rgba(255,255,255,0)'); g.fillStyle = r; g.fillRect(0, 0, 64, 64); }));
