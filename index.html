@@ -84,7 +84,7 @@
 <script src="arcade.js"></script>
 <script src="fbauth.js"></script>
 <script>
-const NOTES_V = '5.3';
+const NOTES_V = '5.4';
 const fmt = n => Number(n || 0).toLocaleString('fr-FR');
 const GAMES = [
   {id: 'collection', href: 'collection.html', e: '🃏', n: 'Collection & Pass', d: '67 cartes de personnages à collectionner, Pass de saison, récompense chaque jour et jetons à gagner en jouant.', b: 'new', h: 45,
@@ -123,13 +123,18 @@ addEventListener('pageshow', render); render();
 FBA.isAdmin().then(a => { if (a) { const c = document.createElement('a'); c.className = 'chip'; c.href = 'admin.html'; c.style.cssText = 'text-decoration:none;color:var(--gold)'; c.textContent = '🛡️ Console admin'; $('chips').appendChild(c); } });
 
 function showNotes(){
-  modal('Quoi de neuf ? · v5.3', '<div id="notes"><ul>' +
+  modal('Quoi de neuf ? · v5.4', '<div id="notes"><ul>' +
+    '<li><b>🛡️ Mode admin illimité</b>Connecté en admin, tout est gratuit : boutique du Monde Néon (pièces ∞), boosters, fabrication de cartes, Pass premium et tous ses paliers, plus un bouton « Tout débloquer ». La gomme de construction efface n\'importe quel bloc.</li>' +
+    '<li><b>💳 Achat du Pass plus simple</b>Après le paiement, le bouton « J\'ai payé » envoie directement ta demande à l\'admin avec ton code. Le pass apparaît tout seul dès qu\'il est validé, même si la page était ouverte.</li>' +
+    '<li><b>🧾 Console admin</b>Liste des paiements à vérifier (Activer / Refuser en un clic), passes activés, et modération du Monde Néon : vider le chat et retirer un joueur. Mise à jour toutes les 15 secondes.</li>' +
+    '<li><b>🐞 Correction</b>Un pass acheté ne peut plus disparaître pendant la synchronisation de la sauvegarde.</li>' +
+    '</ul><details><summary>Version 5.3</summary><ul>' +
     '<li><b>🃏 Cartes à collectionner</b>67 personnages inventés répartis en 8 familles (Néon, Braise, Abysse, Sylve, Cosmos, Ombre, Mythes et Pass), de Commune à Mythique, avec effet holographique. Ouvre des boosters, recycle tes doublons en éclats ✨ et fabrique les cartes qui te manquent.</li>' +
     '<li><b>🎁 Connexion de la semaine</b>Une récompense chaque jour pendant 7 jours, avec un gros cadeau le 7ᵉ jour.</li>' +
     '<li><b>🎫 Pass de saison</b>30 niveaux à gagner en jouant, une voie gratuite et une voie premium (cartes exclusives) qui se débloque avec des jetons, jamais avec de l\'argent réel.</li>' +
     '<li><b>💠 Jetons</b>Chaque partie de Mille Jeux rapporte des jetons et de l\'XP, encore plus avec des étoiles.</li>' +
     '<li><b>💾 Sauvegarde en ligne</b>Ta collection est sauvegardée sous un code secret : note-le pour tout retrouver sur un autre appareil.</li>' +
-    '</ul><details><summary>Version 5.2</summary><ul>' +
+    '</ul></details><details><summary>Version 5.2</summary><ul>' +
     '<li><b>🌞 Nouveau Monde Néon en 3D</b>Le monde a été entièrement redessiné : ciel bleu et nuages, vraie lumière du soleil avec ombres, herbe, place pavée, arbres ronds, fleurs, buissons et rochers, lave qui ondule et plaque de construction façon jouet.</li>' +
     '<li><b>🧍 Avatars tout neufs</b>Formes arrondies, vrai visage (yeux brillants, sourire, joues), cheveux, chaussures, et des animations plus vivantes : balancement, respiration, regard.</li>' +
     '<li><b>🎲 12 nouveaux jeux · 1 924 au total</b>Inondation, Code secret, Tours de Hanoï, Pixel mystère, Grappes, Mots mêlés, Le pendu, Rythme néon, Réaction en chaîne, Traversée, Autoroute et Canonnier, chacun en plusieurs variantes.</li>' +

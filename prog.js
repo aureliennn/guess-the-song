@@ -53,14 +53,15 @@
   }
   const fromRemote = d => { const s = blank(); Object.assign(s, {j: d.j | 0, xp: d.xp | 0, sh: d.sh | 0, prem: !!d.prem, pc: String(d.pc || ''), pp: String(d.pp || ''), d: {n: (d.d && d.d.n) | 0, last: (d.d && d.d.last) || ''}, b: d.b | 0, cards: Object.assign({}, d.cards || {}), t: d.t | 0}); return s; };
   async function pull(){ // récupère la version en ligne si elle est plus récente (autre appareil)
-    if (!S.code) return; try { const d = await (await fetch(DB + '/save/' + S.code + '.json')).json(); if (d && typeof d.t === 'number' && d.t > S.t + 2000) { const code = S.code; S = fromRemote(d); S.code = code; ls.set(KEY, S); subs.forEach(f => f(S)); } status = 'ok'; } catch(e) {}
+    if (!S.code) return; try { const d = await (await fetch(DB + '/save/' + S.code + '.json')).json(); if (d && typeof d.t === 'number' && d.t > S.t + 2000) { const code = S.code; S = fromRemote(d); S.code = code; if (PAID) S.prem = true; ls.set(KEY, S); subs.forEach(f => f(S)); } status = 'ok'; } catch(e) {}
   }
+  let PAID = false; // pass acheté (premium/<code>) : la synchro ne doit jamais l'effacer
   /* ---------- paiement réel du Pass via Revolut Business (désactivé tant que le serveur n'est pas en ligne) ---------- */
   // version simple : lien de paiement (PayPal, Revolut ou Stripe) + activation par l'admin (admin.html). Mets le lien et passe enabled à true.
   const PAY = {enabled: false, link: 'https://paypal.me/Aurelienrcxo/2.99EUR', name: 'PayPal', price: '2,99 €', season: 's1'};
   async function checkPaid(){ // le serveur écrit premium/<code> après un paiement confirmé par Stripe
     if (!S.code) return false;
-    try { const d = await (await fetch(DB + '/premium/' + S.code + '.json')).json(); if (d && d.season === PAY.season) { if (!S.prem) { S.prem = true; emit(); } return true; } } catch(e) {}
+    try { const d = await (await fetch(DB + '/premium/' + S.code + '.json')).json(); if (d && d.season === PAY.season) { PAID = true; if (!S.prem) { S.prem = true; emit(); } return true; } } catch(e) {}
     return false;
   }
   window.PROG = {
@@ -91,7 +92,7 @@
       try { const r = await fetch(await FBA.url(DB, '/'), {method: 'PATCH', body: JSON.stringify(body)}); return r.ok ? 'ok' : 'attente'; } catch(e) { return 'reseau'; } },
     code: () => { if (!S.code) { S.code = newCode(); ls.set(KEY, S); schedule(); } return S.code; },
     async restore(code){ code = String(code || '').toUpperCase().replace(/[^A-Z0-9]/g, ''); if (!/^[A-Z2-9]{12}$/.test(code)) return 'format';
-      try { const d = await (await fetch(DB + '/save/' + code + '.json')).json(); if (!d || typeof d.t !== 'number') return 'absent'; S = fromRemote(d); S.code = code; S.t = Date.now(); ls.set(KEY, S); subs.forEach(f => f(S)); schedule(); return 'ok'; } catch(e) { return 'reseau'; } },
+      try { const d = await (await fetch(DB + '/save/' + code + '.json')).json(); if (!d || typeof d.t !== 'number') return 'absent'; S = fromRemote(d); S.code = code; S.t = Date.now(); PAID = false; ls.set(KEY, S); subs.forEach(f => f(S)); schedule(); checkPaid(); return 'ok'; } catch(e) { return 'reseau'; } },
     syncNow: push, pull,
     PAY, checkPaid,
     async startPayment(accords){ if (!PAY.enabled) return 'off'; if (!accords || !accords.majeur || !accords.retractation) return 'accords';
@@ -100,5 +101,5 @@
   };
   let ADMIN = false;
   if (window.FBA) FBA.isAdmin().then(a => { ADMIN = !!a; if (ADMIN && !S.prem) { S.prem = true; emit(); } else if (ADMIN) subs.forEach(f => { try { f(S); } catch(e) {} }); });
-  if (S.code) { pull(); checkPaid(); } else if (window.FBA) schedule(3000);
+  if (S.code) { pull().then(checkPaid); } else if (window.FBA) schedule(3000);
 })();

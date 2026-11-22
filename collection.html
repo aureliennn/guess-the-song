@@ -107,7 +107,7 @@ function render(){
       '<div class="box glass"><h3>💠 Gagner des jetons</h3><p class="note">Chaque partie de Mille Jeux rapporte des jetons et de l\'XP (plus avec des étoiles). Les jetons servent à ouvrir des boosters et à débloquer le Pass premium.</p><div class="row" style="margin-top:8px"><a class="btn sm" href="jeux.html">🎲 Jouer à Mille Jeux</a>' + (S.b ? '<button class="btn ghost sm" id="openFree" type="button">📦 Ouvrir un booster (' + S.b + ')</button>' : '') + '</div></div></div>';
   } else if (tab === 'pass') {
     const lv = P.level();
-    let h = '<div class="sec"><div class="box glass"><h3>🎫 ' + esc(P.SEASON.n) + '</h3><p class="note">Gagne de l\'XP en jouant pour monter de niveau. La voie gratuite est pour tout le monde ; la voie premium (cartes exclusives, plus de boosters) se débloque avec ' + P.PRICES.premium + ' 💠 gagnés en jouant, jamais avec de l\'argent réel.</p>' +
+    let h = '<div class="sec"><div class="box glass"><h3>🎫 ' + esc(P.SEASON.n) + '</h3><p class="note">Gagne de l\'XP en jouant pour monter de niveau. La voie gratuite est pour tout le monde ; la voie premium (cartes exclusives, plus de boosters) se débloque avec ' + P.PRICES.premium + ' 💠 gagnés en jouant' + (PAYON ? ', ou en l\'achetant (' + P.PAY.price + ', une seule fois par saison, jamais de cartes au hasard contre de l\'argent).' : ', jamais avec de l\'argent réel.') + '</p>' +
       (S.prem ? '<span class="chip" style="margin-top:8px">⭐ Pass premium actif</span>' : '<div class="row" style="margin-top:8px"><button class="btn sm" id="prem" type="button"' + (S.j < P.PRICES.premium && !P.isAdmin() ? ' disabled' : '') + '>⭐ Débloquer · ' + P.PRICES.premium + ' 💠</button>' + (PAYON ? '<button class="btn ghost sm" id="payBtn" type="button">💳 Acheter · ' + P.PAY.price + '</button>' : '') + '</div>') + (PAYON ? '<p class="note" style="margin-top:6px"><a href="legal.html">Conditions de vente et mentions légales</a></p>' : '') + '</div><div class="passlab"><span>Ligne du haut : gratuit</span><span>Ligne du bas : ⭐ premium</span></div><div class="pass" id="passRow">';
     for (let l = 1; l <= P.SEASON.levels; l++) { const fr = P.passFree(l), pr = P.passPrem(l), gf = P.passClaimed(l, false), gp = P.passClaimed(l, true), ok = l <= lv;
       h += '<div class="pl"><div class="n' + (ok ? ' on' : '') + '">' + l + '</div>' +
@@ -186,7 +186,7 @@ function payStep2(){
   $('payCopy').onclick = async () => { try { await navigator.clipboard.writeText(nice); toast('Code copié !'); } catch(e) { toast('Code : ' + nice); } };
 }
 // chaque visite : si l'admin a activé le pass, il apparaît
-P.checkPaid().then(ok => { if (ok && P.get().prem) header(); });
+P.checkPaid().then(ok => { if (ok && P.get().prem && $('pack').classList.contains('hide') && !$('modal')) render(); });
 P.on(() => { if ($('pack').classList.contains('hide') && !$('modal')) header(); });
 render();
 </script>
