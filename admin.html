@@ -38,12 +38,14 @@ async function init(){
       '<input class="inp" id="em" type="email" autocomplete="username" placeholder="E-mail admin" style="text-transform:none;letter-spacing:0">' +
       '<input class="inp" id="pw" type="password" autocomplete="current-password" placeholder="Mot de passe" style="text-transform:none;letter-spacing:0">' +
       '<button class="btn" id="login" type="button">Se connecter</button><p class="note" id="lmsg"></p>' +
-      (FBA.email() ? '<p class="note">Connecté avec ' + esc(FBA.email()) + ', mais ce compte n\'est pas admin. <button class="btn ghost sm" id="out" type="button">Se déconnecter</button></p>' : '') + '</div>';
+      (FBA.email() ? '<p class="note">Connecté avec ' + esc(FBA.email()) + ', mais ce compte n\'est pas admin. <button class="btn ghost sm" id="out" type="button">Se déconnecter</button></p>' : '') + '</div>' +
+      '<div class="box glass"><h3>📱 Identifiant de cet appareil</h3><p class="note">Ouvre cette page <b>dans l\'appli où tu joues</b> (Safari ou l\'icône sur ton écran d\'accueil, ce sont deux appareils différents), puis envoie cet identifiant au développeur pour rendre cet appareil admin. Ce n\'est pas un secret.</p><div class="uid">' + esc(UID) + '</div><button class="btn sm" id="cp" type="button">📋 Copier l\'identifiant</button></div>';
     const go = async () => { const em = $('em').value.trim(), pw = $('pw').value; if (!em || !pw) { $('lmsg').textContent = 'Entre ton e-mail et ton mot de passe.'; return; }
       $('lmsg').textContent = 'Connexion…'; try { await FBA.signIn(em, pw); $('pw').value = ''; if (await FBA.isAdmin()) { sfx.win(); toast('🛡️ Connecté en admin'); init(); } else { $('lmsg').textContent = 'Connecté, mais ce compte n\'est pas dans la liste des admins.'; init(); } }
       catch(e) { $('pw').value = ''; $('lmsg').textContent = /INVALID|PASSWORD|EMAIL_NOT_FOUND|CREDENTIAL/i.test(e.code || '') ? 'E-mail ou mot de passe incorrect.' : /TOO_MANY/i.test(e.code || '') ? 'Trop d\'essais : réessaie dans quelques minutes.' : /OPERATION_NOT_ALLOWED/i.test(e.code || '') ? 'La connexion par e-mail n\'est pas encore activée dans Firebase.' : 'Connexion impossible, réessaie.'; } };
     $('login').onclick = go; $('pw').onkeydown = e => { if (e.key === 'Enter') go(); };
     if ($('out')) $('out').onclick = async () => { await FBA.signOut(); init(); };
+    $('cp').onclick = async () => { try { await navigator.clipboard.writeText(UID); toast('Copié !'); } catch(e) { toast(UID); } };
     return;
   }
   $('app').innerHTML = '<div class="box glass"><p class="note">🛡️ Connecté en admin' + (FBA.email() ? ' : <b style="color:var(--txt)">' + esc(FBA.email()) + '</b>' : '') + '. Ton badge ADMIN est visible par tous dans le Monde Néon.</p><div class="row"><a class="btn ghost sm" href="monde.html">🌐 Aller dans le monde</a>' + (FBA.email() ? '<button class="btn ghost sm" id="out" type="button">Se déconnecter</button>' : '') + '</div></div>' +
