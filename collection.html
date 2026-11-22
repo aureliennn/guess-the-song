@@ -34,6 +34,7 @@
 .pl .n{text-align:center;font-weight:800;font-family:Unbounded,Inter,sans-serif;font-size:12px;padding:4px;border-radius:8px;background:rgba(255,255,255,.06)}
 .pl .n.on{background:linear-gradient(92deg,var(--acc),var(--acc2));color:#0a0618}
 .rw{display:grid;gap:4px;justify-items:center;align-content:center;text-align:center;padding:8px 4px;border-radius:12px;border:1px solid var(--line);background:rgba(255,255,255,.04);font-size:11px;min-height:92px}
+.quests{display:grid;gap:8px;margin-top:10px}.qrow{display:flex;gap:10px;align-items:center;padding:10px 12px;border-radius:14px;background:rgba(255,255,255,.05);border:1px solid var(--line)}.qrow.got{opacity:.55}.qrow .qt{flex:1;min-width:0;display:grid;gap:3px}.qrow .qt b{font-size:14px}.qrow .bar{height:6px}
 .rw .ic{font-size:22px}.rw.prem{background:linear-gradient(160deg,rgba(255,179,0,.18),rgba(255,255,255,.03));border-color:rgba(255,209,102,.4)}
 .rw.lock{opacity:.4}.rw.got{opacity:.5}.rw.got::after{content:'✓';color:var(--ok);font-weight:800}
 .rw button{font-size:11px;padding:5px 8px;border-radius:9px}
@@ -95,11 +96,19 @@ function header(){
   const S = P.get(), lv = P.level(), owned = P.CARDS.filter(c => S.cards[c.id]).length;
   $('bal').innerHTML = (P.isAdmin() ? '<a class="chip" href="admin.html" style="text-decoration:none;color:var(--gold)">🛡️ Admin : tout est gratuit</a>' : '') + '<span class="chip">💠 ' + (P.isAdmin() ? '∞' : fmt(S.j)) + ' jetons</span><span class="chip">✨ ' + fmt(S.sh) + ' éclats</span><span class="chip">📦 ' + S.b + ' booster' + (S.b > 1 ? 's' : '') + ' à ouvrir</span><span class="chip">🃏 ' + owned + ' / ' + P.CARDS.length + '</span>';
   $('lvl').innerHTML = '<b>Niv. ' + lv + '</b><div><div class="note" style="margin-bottom:4px">' + esc(P.SEASON.n) + ' · encore ' + P.daysLeft() + ' jours</div><div class="bar"><i style="width:' + (lv >= P.SEASON.levels ? 100 : P.xpIn()) + '%"></i></div></div><span class="note">' + (lv >= P.SEASON.levels ? 'MAX' : P.xpIn() + ' / ' + P.SEASON.xp + ' XP') + '</span>';
-  $('tabs').innerHTML = TABS.map(([k, n]) => '<button type="button" data-t="' + k + '" class="' + (k === tab ? 'on' : '') + '">' + n + (k === 'rec' && P.canDaily() ? ' 🔴' : '') + '</button>').join('');
+  $('tabs').innerHTML = TABS.map(([k, n]) => '<button type="button" data-t="' + k + '" class="' + (k === tab ? 'on' : '') + '">' + n + (k === 'rec' && (P.canDaily() || P.questsReady() || P.bonusReady()) ? ' 🔴' : '') + '</button>').join('');
 }
 // achat de paliers du Pass (jetons ; gratuit pour l'admin)
 // récompenses du Pass encore à prendre (l'admin peut tout prendre, même au-dessus de son niveau)
 function claimable(){ const S = P.get(), lv = P.isAdmin() ? P.SEASON.levels : P.level(), out = []; for (let l = 1; l <= lv; l++) { if (!P.passClaimed(l, false)) out.push([l, false]); if (S.prem && !P.passClaimed(l, true)) out.push([l, true]); } return out; }
+// quêtes du jour
+function questBox(){
+  const qs = P.quests(), bonus = P.bonusReady(), allDone = qs.every(q => q.claimed);
+  return '<div class="box glass"><h3>🎯 Quêtes du jour</h3><p class="note">3 nouvelles quêtes chaque jour (encore ' + P.questsLeftH() + ' h). Termine les 3 pour gagner un booster bonus.</p><div class="quests">' +
+    qs.map(q => '<div class="qrow' + (q.claimed ? ' got' : '') + '"><div class="qt"><b>' + esc(q.t) + '</b><span class="note">' + esc(P.rewardText(q.r)) + ' · +' + q.xp + ' XP</span><div class="bar"><i style="width:' + Math.round(q.p / q.n * 100) + '%"></i></div></div>' +
+      (q.claimed ? '<span class="chip">✓</span>' : q.done ? '<button class="btn sm" data-q="' + q.i + '" type="button">Prendre</button>' : '<span class="note">' + q.p + ' / ' + q.n + '</span>') + '</div>').join('') +
+    '</div>' + (bonus ? '<div class="row" style="margin-top:8px"><button class="btn" id="qBonus" type="button">🎁 Bonus : 1 booster + 100 XP</button></div>' : allDone ? '<p class="note" style="margin-top:6px">✓ Toutes les quêtes sont finies, reviens demain !</p>' : '') + '</div>';
+}
 function tierRow(lv, S){
   const cl = claimable().length, all = cl > 1 ? '<div class="row" style="margin-top:8px"><button class="btn sm" id="claimAll" type="button">🎁 Tout récupérer (' + cl + ')</button></div>' : '';
   const left = P.SEASON.levels - lv, adm = P.isAdmin();
@@ -115,7 +124,7 @@ function render(){
     V.innerHTML = '<div class="sec"><div class="box glass"><h3>🗓️ Connexion de la semaine</h3><p class="note">Reviens chaque jour pour récupérer ta récompense. Le 7ᵉ jour, gros cadeau, puis la semaine recommence !</p></div><div class="days">' +
       P.DAILY.map((r, i) => '<div class="day ' + (i < di ? 'done' : i === di && can ? 'today' : '') + '"><b>Jour ' + (i + 1) + '</b><span class="ic">' + (i === 6 ? '🎁' : r.b ? '📦' : '💠') + '</span><span>' + esc(P.rewardText(r)) + '</span>' + (i < di ? '<span>✓</span>' : '') + '</div>').join('') + '</div>' +
       '<div class="row" style="justify-content:center">' + (can ? '<button class="btn" id="claim" type="button">🎁 Récupérer le jour ' + (di + 1) + '</button>' : '<span class="chip">✓ Déjà récupéré aujourd\'hui · reviens demain</span>') + '</div>' +
-      '<div class="box glass"><h3>💠 Gagner des jetons</h3><p class="note">Chaque partie de Mille Jeux rapporte des jetons et de l\'XP (plus avec des étoiles). Les jetons servent à ouvrir des boosters et à débloquer le Pass premium.</p><div class="row" style="margin-top:8px"><a class="btn sm" href="jeux.html">🎲 Jouer à Mille Jeux</a>' + (S.b ? '<button class="btn ghost sm" id="openFree" type="button">📦 Ouvrir un booster (' + S.b + ')</button>' : '') + '</div></div></div>';
+      questBox() + '<div class="box glass"><h3>💠 Gagner des jetons</h3><p class="note">Chaque partie de Mille Jeux rapporte des jetons et de l\'XP (plus avec des étoiles). Les jetons servent à ouvrir des boosters et à débloquer le Pass premium.</p><div class="row" style="margin-top:8px"><a class="btn sm" href="jeux.html">🎲 Jouer à Mille Jeux</a>' + (S.b ? '<button class="btn ghost sm" id="openFree" type="button">📦 Ouvrir un booster (' + S.b + ')</button>' : '') + '</div></div></div>';
   } else if (tab === 'pass') {
     const lv = P.level();
     let h = '<div class="sec"><div class="box glass"><h3>🎫 ' + esc(P.SEASON.n) + '</h3><p class="note">Gagne de l\'XP en jouant pour monter de niveau. La voie gratuite est pour tout le monde ; la voie premium (cartes exclusives, plus de boosters) se débloque avec ' + P.PRICES.premium + ' 💠 gagnés en jouant' + (PAYON ? ', ou en l\'achetant (' + P.PAY.price + ', une seule fois par saison, jamais de cartes au hasard contre de l\'argent).' : ', jamais avec de l\'argent réel.') + '</p>' +
@@ -167,6 +176,8 @@ document.addEventListener('click', async e => {
   if (e.target.id === 'claimAll') { const tot = {j: 0, sh: 0, b: 0, c: 0}; let n = 0; claimable().forEach(([l, prem]) => { const r = P.claimPass(l, prem); if (r) { n++; tot.j += r.j | 0; tot.sh += r.sh | 0; tot.b += r.b | 0; if (r.c) tot.c++; } }); if (n) { sfx.win(); toast('🎁 ' + n + ' récompenses : ' + [tot.j ? '💠 ' + fmt(tot.j) : '', tot.sh ? '✨ ' + fmt(tot.sh) : '', tot.b ? '📦 ' + tot.b : '', tot.c ? '🃏 ' + tot.c + ' carte' + (tot.c > 1 ? 's' : '') : ''].filter(Boolean).join(' · ')); render(); } return; }
   const pl = e.target.closest('[data-pl],[data-pp]'); if (pl) { const prem = !!pl.dataset.pp, l = +(pl.dataset.pl || pl.dataset.pp), r = P.claimPass(l, prem); if (r) { sfx.ok(); toast('Niveau ' + l + ' : ' + P.rewardText(r)); render(); } return; }
   if (e.target.id === 'payBtn') { payDialog('pass'); return; }
+  if (e.target.dataset && e.target.dataset.q) { const r = P.claimQuest(+e.target.dataset.q); if (r) { sfx.win(); toast('🎯 Quête terminée : ' + P.rewardText(r) + ' · +50 XP'); render(); } return; }
+  if (e.target.id === 'qBonus') { if (P.claimBonus()) { sfx.win(); toast('🎁 Bonus du jour : 1 booster + 100 XP !'); render(); } return; }
   if (e.target.dataset && e.target.dataset.payk) { payDialog(e.target.dataset.payk); return; }
   if (e.target.dataset && e.target.dataset.tier) { const n = P.buyTiers(+e.target.dataset.tier); if (n) { sfx.win(); toast('⏫ +' + n + ' palier' + (n > 1 ? 's' : '') + ' : niveau ' + P.level() + ' ! Récupère tes récompenses.'); render(); } else toast('Pas assez de jetons 💠'); return; }
   if (e.target.id === 'prem') { if (P.buyPremium()) { sfx.win(); toast('⭐ Pass premium débloqué !'); render(); } return; }

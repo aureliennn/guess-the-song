@@ -82,6 +82,11 @@
 .meles .mj-cell{border-radius:6px;font-size:.8em}.meles .sel{background:var(--b);color:#0a0618}.meles .ok{background:color-mix(in srgb,var(--a) 55%,transparent)}
 .mj-words{display:flex;flex-wrap:wrap;gap:5px;justify-content:center;max-width:440px}.mj-words span{padding:3px 8px;border-radius:8px;background:rgba(255,255,255,.07);font-size:12px;font-weight:700}.mj-words span.ok{text-decoration:line-through;opacity:.45}
 .bub .mj-cell{border-radius:50%}
+.mj-card.big{font-size:clamp(22px,6vw,38px)}
+.mj-clock{width:min(250px,68vw,36vh);aspect-ratio:1;flex:none}
+.mj-dice{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;max-width:440px;flex:none}.die{width:clamp(50px,15vw,72px);height:clamp(50px,15vw,72px);filter:drop-shadow(0 0 10px var(--a));animation:pop .18s}
+.mirror{position:relative}.mirror::after{content:"";position:absolute;left:50%;top:-6px;bottom:-6px;width:3px;margin-left:-1.5px;background:var(--b);box-shadow:0 0 12px var(--b);border-radius:2px;pointer-events:none}.mirror .mj-cell:disabled{opacity:1;cursor:default;background:rgba(255,255,255,.03)}.mirror .mj-cell.lit{background:var(--a);box-shadow:0 0 14px var(--a)}.mirror .mj-cell.src.lit{background:var(--c);box-shadow:0 0 14px var(--c)}.mirror.win .mj-cell.lit{background:var(--ok);box-shadow:0 0 14px var(--ok)}
+.mj-light{width:min(230px,58vw,38vh);aspect-ratio:1;border-radius:50%;border:6px solid rgba(255,255,255,.15);background:rgba(255,255,255,.08);flex:none;touch-action:manipulation;cursor:pointer}
 .stars{font-size:30px;letter-spacing:4px}
 .lb{display:grid;gap:4px;text-align:left;margin-top:4px}
 .lb div{display:grid;grid-template-columns:2.2em 1fr auto;gap:8px;align-items:center;padding:7px 10px;border-radius:10px;background:rgba(255,255,255,.05);font-size:14px}
@@ -166,9 +171,9 @@ function start(){
 function finish(v, r){
   game = null; const old = best[v.id] || {s: 0, st: 0}, rec = r.score > old.s; best[v.id] = {s: Math.max(old.s, r.score), st: Math.max(old.st, r.stars), n: (old.n | 0) + 1}; ls.set('mj_best', best);
   stat('arc_mille', s => { s.g = (s.g | 0) + 1; }); r.stars >= 2 ? sfx.win() : r.stars ? sfx.ok() : sfx.lose();
-  const gain = window.PROG ? PROG.gameReward(r.stars) : null;
+  const gain = window.PROG ? PROG.gameReward(r.stars, {id: v.eng.id, cat: v.eng.cat}) : null;
   const idx = V.indexOf(v), nxt = V[idx + 1] && V[idx + 1].eng === v.eng ? V[idx + 1] : V.find(x => x.eng === v.eng);
-  modal(r.stars ? 'Bien joué !' : 'Partie terminée', '<div class="stars" aria-label="' + r.stars + ' étoiles">' + STR(r.stars) + '</div><p class="note">' + esc(r.msg) + '<br><b style="color:var(--txt)">' + fmt(r.score) + ' points</b>' + (rec && old.s ? '<br><b style="color:var(--gold)">★ Nouveau record !</b>' : old.s ? '<br>Record : ' + fmt(old.s) : '') + '</p>' + (gain ? '<p class="note"><a href="collection.html" style="text-decoration:none"><b style="color:var(--acc2)">+' + gain.j + ' 💠 · +' + gain.xp + ' XP' + (gain.up ? ' · 🎫 niveau ' + PROG.level() + ' !' : '') + '</b></a></p>' : '') + '<div id="vlb"></div>',
+  modal(r.stars ? 'Bien joué !' : 'Partie terminée', '<div class="stars" aria-label="' + r.stars + ' étoiles">' + STR(r.stars) + '</div><p class="note">' + esc(r.msg) + '<br><b style="color:var(--txt)">' + fmt(r.score) + ' points</b>' + (rec && old.s ? '<br><b style="color:var(--gold)">★ Nouveau record !</b>' : old.s ? '<br>Record : ' + fmt(old.s) : '') + '</p>' + (gain ? '<p class="note"><a href="collection.html" style="text-decoration:none"><b style="color:var(--acc2)">+' + gain.j + ' 💠 · +' + gain.xp + ' XP' + (gain.up ? ' · 🎫 niveau ' + PROG.level() + ' !' : '') + '</b></a></p>' + (gain.quests ? '<p class="note"><a href="collection.html" style="text-decoration:none"><b style="color:var(--gold)">🎯 ' + gain.quests + ' quête' + (gain.quests > 1 ? 's' : '') + ' du jour terminée' + (gain.quests > 1 ? 's' : '') + ' : récupère ta récompense !</b></a></p>' : '') : '') + '<div id="vlb"></div>',
     [['Rejouer', () => { open(v); start(); }], ['Variante suivante ▶', () => { open(nxt); }], ['Catalogue', quit, true]]);
   varBoard(v, true);
 }

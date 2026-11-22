@@ -37,6 +37,27 @@
   const level = () => Math.min(SEASON.levels, Math.floor(S.xp / SEASON.xp) + TB), give = r => { if (!r) return; if (r.j) S.j += r.j; if (r.sh) S.sh += r.sh; if (r.b) S.b += r.b; if (r.c) S.cards[r.c] = (S.cards[r.c] | 0) + 1; };
   const rewardText = r => [r.j ? '💠 ' + r.j : '', r.sh ? '✨ ' + r.sh + ' éclats' : '', r.b ? '📦 ' + r.b + ' booster' + (r.b > 1 ? 's' : '') : '', r.c ? '🃏 ' + BYID[r.c].n : ''].filter(Boolean).join(' · ');
   const roll = fam => { let x = Math.random(), r = 0; for (; r < 4 && x > ODDS[r]; r++) x -= ODDS[r]; let pool = DROP.filter(c => c.r === r && (!fam || c.f === fam)); while (!pool.length && r > 0) { r--; pool = DROP.filter(c => c.r === r && (!fam || c.f === fam)); } return pool[Math.random() * pool.length | 0]; };
+  /* ---------- quêtes du jour : 3 par jour, les mêmes pour tout le monde (tirées à partir de la date) ---------- */
+  const QPOOL = [
+    {k: 'play', n: 5, t: 'Joue 5 parties de Mille Jeux', r: {j: 40}}, {k: 'play', n: 10, t: 'Joue 10 parties de Mille Jeux', r: {j: 70, sh: 20}},
+    {k: 'stars', n: 6, t: 'Gagne 6 étoiles ⭐', r: {j: 50}}, {k: 'stars', n: 12, t: 'Gagne 12 étoiles ⭐', r: {j: 90}},
+    {k: 'three', n: 1, t: 'Fais 3 étoiles dans une partie', r: {j: 40, sh: 20}}, {k: 'three', n: 3, t: 'Fais 3 étoiles dans 3 parties', r: {j: 80, sh: 30}},
+    {k: 'diff', n: 3, t: 'Joue à 3 jeux différents', r: {j: 45}}, {k: 'diff', n: 5, t: 'Joue à 5 jeux différents', r: {j: 70}},
+    {k: 'cat', c: 'ref', n: 2, t: 'Joue 2 parties de ⚡ Réflexes', r: {j: 40}}, {k: 'cat', c: 'mem', n: 2, t: 'Joue 2 parties de 🧠 Mémoire', r: {j: 40}},
+    {k: 'cat', c: 'log', n: 2, t: 'Joue 2 parties de 🧩 Réflexion', r: {j: 40}}, {k: 'cat', c: 'arc', n: 2, t: 'Joue 2 parties d\'🕹️ Arcade', r: {j: 40}},
+    {k: 'cat', c: 'mot', n: 2, t: 'Joue 2 parties de 🔤 Mots & calcul', r: {j: 40}},
+    {k: 'booster', n: 1, t: 'Ouvre un booster de cartes', r: {sh: 40}}, {k: 'daily', n: 1, t: 'Récupère ta récompense du jour', r: {j: 25}},
+    {k: 'claim', n: 2, t: 'Prends 2 récompenses du Pass', r: {j: 35}}
+  ];
+  const QBONUS = {b: 1}, QXP = 50;
+  const seedOf = s => { let h = 2166136261; for (const ch of s) { h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); } return h >>> 0; };
+  function todayQuests(){ let h = seedOf('q' + today()); const out = [], kinds = new Set(), idx = [...QPOOL.keys()];
+    while (out.length < 3 && idx.length) { h = Math.imul(h ^ (h >>> 15), 2246822519) >>> 0; const i = idx.splice(h % idx.length, 1)[0], q = QPOOL[i]; if (kinds.has(q.k)) continue; kinds.add(q.k); out.push(i); } return out; }
+  let Q = ls.get('arc_quests', null);
+  const qFresh = () => { if (!Q || Q.d !== today()) { Q = {d: today(), ids: todayQuests(), p: [0, 0, 0], c: [0, 0, 0], g: [], bonus: 0}; ls.set('arc_quests', Q); } return Q; };
+  function track(k, amount, info){ qFresh(); let ch = false; Q.ids.forEach((qi, i) => { const q = QPOOL[qi]; if (q.k !== k || Q.p[i] >= q.n) return; if (k === 'cat' && (!info || info.cat !== q.c)) return; Q.p[i] = Math.min(q.n, Q.p[i] + amount); ch = true; }); if (ch) ls.set('arc_quests', Q); }
+  function trackGame(stars, info){ track('play', 1); if (stars) track('stars', stars); if (stars >= 3) track('three', 1);
+    if (info && info.id) { qFresh(); if (!Q.g.includes(info.id)) { Q.g.push(info.id); if (Q.g.length > 40) Q.g.shift(); track('diff', 1); } if (info.cat) track('cat', 1, info); } }
   /* ---------- sauvegarde en ligne (code secret) ---------- */
   const ALPH = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789', newCode = () => { const a = new Uint32Array(12); crypto.getRandomValues(a); return [...a].map(v => ALPH[v % ALPH.length]).join(''); };
   let timer = 0, lastPush = 0, status = 'local', busy = false, again = false;
@@ -86,18 +107,25 @@
     on: f => { subs.push(f); },
     addXP(n){ S.xp = Math.min(SEASON.levels * SEASON.xp * 3, S.xp + n); emit(); },
     addJ(n){ S.j += n; emit(); },
-    gameReward(stars){ const j = 1 + stars * 2, xp = 10 + stars * 10, before = level(); S.j += j; S.xp += xp; emit(); return {j, xp, up: level() > before}; },
+    gameReward(stars, info){ const j = 1 + stars * 2, xp = 10 + stars * 10, before = level(); S.j += j; S.xp += xp; trackGame(stars, info); emit(); return {j, xp, up: level() > before, quests: this.questsReady()}; },
+    // quêtes du jour
+    quests(){ qFresh(); return Q.ids.map((qi, i) => { const q = QPOOL[qi]; return {i, t: q.t, n: q.n, p: Q.p[i], r: q.r, xp: QXP, done: Q.p[i] >= q.n, claimed: !!Q.c[i]}; }); },
+    questsReady(){ return this.quests().filter(q => q.done && !q.claimed).length; },
+    claimQuest(i){ qFresh(); const qi = Q.ids[i], q = QPOOL[qi]; if (!q || Q.c[i] || Q.p[i] < q.n) return null; Q.c[i] = 1; ls.set('arc_quests', Q); give(q.r); S.xp += QXP; emit(); return q.r; },
+    bonusReady(){ qFresh(); return Q.c.every(Boolean) && !Q.bonus; },
+    claimBonus(){ if (!this.bonusReady()) return null; Q.bonus = 1; ls.set('arc_quests', Q); give(QBONUS); S.xp += 100; emit(); return QBONUS; },
+    questsLeftH: () => { const d = new Date(), m = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1); return Math.max(1, Math.ceil((m - d) / 36e5)); },
     canDaily: () => S.d.last !== today(),
-    claimDaily(){ if (S.d.last === today()) return null; const day = S.d.n % 7, r = DAILY[day]; give(r); S.xp += 60; S.d = {n: day + 1 >= 7 ? 0 : day + 1, last: today()}; emit(); return {day, r}; },
+    claimDaily(){ if (S.d.last === today()) return null; const day = S.d.n % 7, r = DAILY[day]; give(r); S.xp += 60; S.d = {n: day + 1 >= 7 ? 0 : day + 1, last: today()}; track('daily', 1); emit(); return {day, r}; },
     dayIndex: () => S.d.n % 7,
     buy(what, fam){ const p = what === 'family' ? PRICES.family : PRICES.booster; if (!ADMIN) { if (S.j < p) return false; S.j -= p; } const cards = this.open(fam); return cards; },
-    open(fam, free){ if (free) { if (S.b < 1) return null; S.b--; } const out = []; for (let i = 0; i < 5; i++) out.push(roll(fam)); if (!out.some(c => c.r >= 1)) { const rp = DROP.filter(c => c.r === 1 && (!fam || c.f === fam)); if (rp.length) out[4] = rp[Math.random() * rp.length | 0]; } // au moins une Rare par booster
+    open(fam, free){ if (free) { if (S.b < 1) return null; S.b--; } const out = []; for (let i = 0; i < 5; i++) out.push(roll(fam)); track('booster', 1); if (!out.some(c => c.r >= 1)) { const rp = DROP.filter(c => c.r === 1 && (!fam || c.f === fam)); if (rp.length) out[4] = rp[Math.random() * rp.length | 0]; } // au moins une Rare par booster
       const res = out.map(c => { const had = S.cards[c.id] | 0; S.cards[c.id] = had + 1; return {c, nw: !had}; }); emit(); return res; },
     recycle(id){ const n = S.cards[id] | 0; if (n < 2) return 0; const g = (n - 1) * RAR[BYID[id].r].sh; S.cards[id] = 1; S.sh += g; emit(); return g; },
     recycleAll(){ let g = 0; Object.keys(S.cards).forEach(id => { const n = S.cards[id] | 0; if (n > 1 && BYID[id]) { g += (n - 1) * RAR[BYID[id].r].sh; S.cards[id] = 1; } }); if (g) { S.sh += g; emit(); } return g; },
     craft(id){ const c = BYID[id]; if (!c || c.f === 'ps') return false; const p = RAR[c.r].cr; if (!ADMIN) { if (S.sh < p) return false; S.sh -= p; } S.cards[id] = (S.cards[id] | 0) + 1; emit(); return true; },
     passClaimed: (l, prem) => (prem ? S.pp : S.pc)[l - 1] === '1',
-    claimPass(l, prem){ if ((l > level() && !ADMIN) || (prem && !S.prem)) return null; const k = prem ? 'pp' : 'pc'; const arr = S[k].padEnd(SEASON.levels, '0').split(''); if (arr[l - 1] === '1') return null; arr[l - 1] = '1'; S[k] = arr.join(''); const r = prem ? passPrem(l) : passFree(l); give(r); emit(); return r; },
+    claimPass(l, prem){ if ((l > level() && !ADMIN) || (prem && !S.prem)) return null; const k = prem ? 'pp' : 'pc'; const arr = S[k].padEnd(SEASON.levels, '0').split(''); if (arr[l - 1] === '1') return null; arr[l - 1] = '1'; S[k] = arr.join(''); const r = prem ? passPrem(l) : passFree(l); give(r); track('claim', 1); emit(); return r; },
     buyPremium(){ if (S.prem || (!ADMIN && S.j < PRICES.premium)) return false; if (!ADMIN) S.j -= PRICES.premium; S.prem = true; emit(); return true; },
     // mode admin : achats gratuits et illimités (vérifié par la base via FBA.isAdmin)
     // achat de paliers du Pass avec des jetons (gratuit pour l'admin) : n paliers, limité au niveau max

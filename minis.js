@@ -741,5 +741,153 @@ const MJ = (() => {
         txt(g, P.w ? 'Vent ' + (wind > 0 ? '→ ' : '← ') + Math.round(Math.abs(wind) / 10) : 'Pas de vent', 450, 26, 14, '#a79fc4'); if (flash > 0) { flash -= dt; txt(g, last, 270, 120, 20, T.b); }
         x.hud('🧨 Tir ' + Math.min(10, shots + (ball ? 0 : 1)) + ' / 10 · 🎯 ' + hits); });
     }});
+  /* ================= v6.0 : 8 nouveaux jeux ================= */
+  def({id: 'jongle', n: 'Jongleur', e: '⚽', cat: 'arc', d: 'Garde les ballons en l\'air le plus longtemps possible.', how: 'Touche un ballon pour le renvoyer vers le haut. S\'il touche le sol, tu perds une vie. 3 vies.',
+    axes: [{k: 'n', o: [['1 ballon', 1], ['2 ballons', 2], ['3 ballons', 3]]}, {k: 'g', o: [['Gravité lunaire', .7], ['Gravité normale', 1], ['Gravité forte', 1.35]]}, {k: 't', o: TH3}],
+    play(x){
+      const {P, T} = x, cv = x.canvas(360, 540), g = cv.g, R = 26, G = 520 * P.g; let balls = [], lives = 3, hits = 0, t = 0;
+      for (let i = 0; i < P.n; i++) balls.push({x: 90 + i * 90 + x.rnd(-20, 20), y: 140 - i * 70, vx: x.rnd(-40, 40), vy: 0, rot: 0, h: [T.a, T.b, T.c][i % 3]});
+      x.on(cv.c, 'pointerdown', e => { if (x.dead) return; const p = cv.pos(e); let best = null, bd = 1e9; for (const b of balls) { const d = Math.hypot(p.x - b.x, p.y - b.y); if (d < R + 26 && d < bd) { bd = d; best = b; } } if (!best) return; best.vy = -Math.max(420, 520 * Math.sqrt(P.g)); best.vx = (best.x - p.x) * 6 + x.rnd(-30, 30); hits++; x.beep(500 + Math.min(hits, 40) * 12, .05); });
+      x.loop(dt => { t += dt; bg(cv, T);
+        for (const b of balls) { b.vy += G * dt; b.x += b.vx * dt; b.y += b.vy * dt; b.rot += b.vx * dt * .03;
+          if (b.x < R) { b.x = R; b.vx = Math.abs(b.vx) * .8; } if (b.x > 360 - R) { b.x = 360 - R; b.vx = -Math.abs(b.vx) * .8; } if (b.y < R) { b.y = R; b.vy = Math.abs(b.vy) * .5; }
+          if (b.y > 540 - R) { lives--; x.beep(120, .3); b.y = 100; b.vy = 0; b.vx = x.rnd(-40, 40); b.x = x.rnd(60, 300); if (lives <= 0) return x.end(hits * 10 * P.n, st3(hits, 10 * P.n, 25 * P.n, 45 * P.n), pl(hits, 'touche{s}') + ' en ' + Math.round(t) + ' s'); }
+          glow(g, b.h, 16); g.fillStyle = b.h; g.beginPath(); g.arc(b.x, b.y, R, 0, 7); g.fill(); g.shadowBlur = 0; g.strokeStyle = 'rgba(0,0,0,.35)'; g.lineWidth = 3; g.beginPath(); g.arc(b.x, b.y, R * .55, b.rot, b.rot + 2); g.stroke(); g.beginPath(); g.arc(b.x, b.y, R * .55, b.rot + 3.1, b.rot + 5.1); g.stroke(); }
+        g.shadowBlur = 0; g.fillStyle = 'rgba(255,77,109,.3)'; g.fillRect(0, 532, 360, 8);
+        if (hits === 0) txt(g, 'Touche les ballons !', 180, 300, 16, '#fff');
+        x.hud('⚽ ' + hits + ' · ' + '❤️'.repeat(Math.max(0, lives))); });
+    }});
+
+  def({id: 'basket', n: 'Panier néon', e: '🏀', cat: 'arc', d: 'Lance le ballon dans le panier, encore et encore.', how: 'Glisse le doigt vers le haut puis relâche pour tirer (plus tu glisses loin, plus tu tires fort). Les paniers d\'affilée rapportent un bonus. 45 secondes.',
+    axes: [{k: 'm', o: [['Panier fixe', 0], ['Panier lent', 1], ['Panier rapide', 2]]}, {k: 'w', o: [['Grand panier', 1.25], ['Panier normal', 1], ['Petit panier', .8]]}, {k: 't', o: TH3}],
+    play(x){
+      const {P, T} = x, cv = x.canvas(360, 540), g = cv.g, B0 = {x: 180, y: 470}, GR = 980, K = 6, VMAX = 1150, HW = 40 * P.w; let ball = null, drag = null, sc = 0, made = 0, shots = 0, time = 45, msg = '', mt = 0, streak = 0; const hoop = {x: 180, y: 170, vx: P.m * 60};
+      const vel = (dx, dy) => { let vx = dx * K, vy = dy * K; const s = Math.hypot(vx, vy); if (s > VMAX) { vx *= VMAX / s; vy *= VMAX / s; } return {vx, vy}; };
+      x.on(cv.c, 'pointerdown', e => { if (!ball && !x.dead && time > 0) { const p = cv.pos(e); drag = {x: p.x, y: p.y, cx: p.x, cy: p.y}; } });
+      x.on(cv.c, 'pointermove', e => { if (drag) { const p = cv.pos(e); drag.cx = p.x; drag.cy = p.y; } });
+      x.on(cv.c, 'pointerup', e => { if (!drag || ball) { drag = null; return; } const p = cv.pos(e), dy = p.y - drag.y, v = vel(p.x - drag.x, dy); drag = null; if (dy > -30 || time <= 0) return; ball = {x: B0.x, y: B0.y, vx: v.vx, vy: v.vy, scored: false}; shots++; x.beep(260, .1); });
+      x.loop(dt => { time -= dt;
+        if (P.m) { hoop.x += hoop.vx * dt; if (hoop.x < 40 + HW || hoop.x > 320 - HW) { hoop.vx *= -1; hoop.x = Math.max(40 + HW, Math.min(320 - HW, hoop.x)); } }
+        if (ball) { const py = ball.y; ball.vy += GR * dt; ball.x += ball.vx * dt; ball.y += ball.vy * dt;
+          if (ball.x < 14 || ball.x > 346) { ball.vx *= -.7; ball.x = Math.max(14, Math.min(346, ball.x)); }
+          if (!ball.scored && ball.vy > 0 && py < hoop.y && ball.y >= hoop.y) { const d = Math.abs(ball.x - hoop.x);
+            if (d < HW - 10) { ball.scored = true; made++; streak++; const sw = d < HW * .35, pts = (sw ? 3 : 2) + Math.min(3, streak - 1); sc += pts; msg = (sw ? 'Swish ! +' : 'Panier ! +') + pts; mt = 1; x.beep(880, .12); }
+            else if (d < HW + 12) { ball.vx = (ball.x - hoop.x) * 4; ball.vy = -ball.vy * .45; x.beep(300, .05); } }
+          if (ball.y > 560) { if (!ball.scored) { streak = 0; msg = 'Raté'; mt = .8; } ball = null; } }
+        bg(cv, T); g.shadowBlur = 0; g.fillStyle = 'rgba(255,255,255,.1)'; g.fillRect(hoop.x - HW - 12, hoop.y - 72, HW * 2 + 24, 62); g.strokeStyle = 'rgba(255,255,255,.55)'; g.lineWidth = 2; g.strokeRect(hoop.x - 18, hoop.y - 48, 36, 30);
+        g.strokeStyle = 'rgba(255,255,255,.35)'; g.lineWidth = 1.5; for (let i = 0; i <= 4; i++) { g.beginPath(); g.moveTo(hoop.x - HW + i * HW / 2, hoop.y); g.lineTo(hoop.x - HW * .6 + i * HW * .3, hoop.y + 34); g.stroke(); }
+        glow(g, T.c, 12); g.strokeStyle = T.c; g.lineWidth = 5; g.beginPath(); g.moveTo(hoop.x - HW, hoop.y); g.lineTo(hoop.x + HW, hoop.y); g.stroke();
+        const bp = ball || B0; glow(g, '#ff9a3d', 14); g.fillStyle = '#ff8a2a'; g.beginPath(); g.arc(bp.x, bp.y, 15, 0, 7); g.fill(); g.shadowBlur = 0; g.strokeStyle = 'rgba(0,0,0,.4)'; g.lineWidth = 1.5; g.beginPath(); g.moveTo(bp.x - 15, bp.y); g.lineTo(bp.x + 15, bp.y); g.moveTo(bp.x, bp.y - 15); g.lineTo(bp.x, bp.y + 15); g.stroke();
+        if (drag && !ball && drag.cy - drag.y < -10) { const v = vel(drag.cx - drag.x, drag.cy - drag.y); g.fillStyle = 'rgba(255,255,255,.5)'; for (let k = 1; k < 16; k++) { const tt = k * .05; g.beginPath(); g.arc(B0.x + v.vx * tt, B0.y + v.vy * tt + GR * tt * tt / 2, 2.5, 0, 7); g.fill(); } }
+        if (!shots && !drag) txt(g, 'Glisse vers le haut ↑', 180, 400, 15, '#fff');
+        if (mt > 0) { mt -= dt; txt(g, msg, 180, 300, 22, T.b); }
+        x.hud('🏀 ' + sc + ' pts · ' + made + ' / ' + shots + ' · ⏱ ' + Math.max(0, Math.ceil(time)));
+        if (time <= 0 && !ball) x.end(sc * 20, st3(sc, 8, 18, 30), pl(made, 'panier{s}') + ' sur ' + pl(shots, 'tir{s}')); });
+    }});
+
+  def({id: 'suite', n: 'Suite logique', e: '🔢', cat: 'mot', d: 'Trouve le nombre qui continue la suite.', how: 'Observe la suite et choisis le nombre suivant parmi 4. Une erreur coûte du temps.',
+    axes: [{k: 'd', o: D3}, {k: 'm', o: [['60 secondes', 't'], ['15 questions', 'q']]}, {k: 't', o: TH3}],
+    play(x){
+      const {P} = x, hint = x.el('div', 'mj-q', 'Quel nombre vient ensuite ?'), q = x.el('div', 'mj-card big'); x.stage.append(hint, q); let ok = 0, n = 0, time = 60, t = 0, box = null;
+      const S5 = f => [...Array(5)].map((_, i) => f(i));
+      const gens = [
+        () => { const a = x.ri(1, 20), k = x.ri(2, 9); return S5(i => a + i * k); },
+        () => { const a = x.ri(40, 90), k = x.ri(2, 7); return S5(i => a - i * k); },
+        () => { const a = x.ri(1, 4), k = x.pick([2, 3]); return S5(i => a * k ** i); },
+        () => { const a = x.ri(1, 10), p = x.ri(2, 6), r = x.ri(7, 12); return S5(i => a + Math.ceil(i / 2) * p + Math.floor(i / 2) * r); },
+        () => { const o = x.ri(0, 4); return S5(i => (i + 1 + o) ** 2); },
+        () => { const s = [x.ri(1, 5), x.ri(1, 5)]; while (s.length < 5) s.push(s[s.length - 1] + s[s.length - 2]); return s; },
+        () => { const s = [x.ri(1, 6)]; let k = x.ri(1, 3); while (s.length < 5) { s.push(s[s.length - 1] + k); k++; } return s; }
+      ], pool = [[0, 1, 2], [0, 1, 2, 3, 4], [0, 1, 2, 3, 4, 5, 6]][P.d - 1];
+      const finish = () => x.end(ok * 60 + (P.m === 'q' ? Math.max(0, 600 - t * 5) : 0), P.m === 't' ? st3(ok, 6, 11, 16) : st3(ok - (t > 120 ? 3 : 0), 9, 12, 14), pl(ok, 'bonne{s} réponse{s}') + (P.m === 'q' ? ' en ' + Math.round(t) + ' s' : ''));
+      const mk = () => { const s = gens[x.pick(pool)](), ans = s[4]; q.textContent = s.slice(0, 4).join(', ') + ', ?';
+        const opts = new Set([ans]), sp = Math.max(3, Math.min(30, Math.abs(ans - s[3]))); while (opts.size < 4) opts.add(ans + x.ri(-sp, sp)); const arr = x.shuf([...opts]);
+        if (box) box.remove(); box = x.choices(arr.map(String), i => { n++; if (arr[i] === ans) { ok++; x.beep(800); } else { time -= 4; x.beep(140, .2); } if (P.m === 'q' && n >= 15) return finish(); mk(); }); x.stage.append(box); };
+      mk(); x.loop(dt => { t += dt; if (P.m === 't') { time -= dt; if (time <= 0) return finish(); } x.hud((P.m === 't' ? '⏱ ' + Math.ceil(time) + ' s' : '❔ ' + n + ' / 15') + ' · ✅ ' + ok); });
+    }});
+
+  def({id: 'horloge', n: 'Quelle heure ?', e: '🕰️', cat: 'mot', d: 'Lis l\'heure sur l\'horloge à aiguilles.', how: 'La petite aiguille montre les heures, la grande les minutes. Choisis la bonne heure parmi 4.',
+    axes: [{k: 'd', o: [['Heures pile', 1], ['Quarts d\'heure', 2], ['5 minutes', 3], ['À la minute', 4]]}, {k: 'm', o: [['60 secondes', 't'], ['12 questions', 'q']]}, {k: 't', o: TH3}],
+    play(x){
+      const {P, T} = x, clk = x.el('div', 'mj-clock'); x.stage.append(clk); let ok = 0, n = 0, time = 60, t = 0, box = null;
+      const f = (h, m) => h + ' h ' + String(m).padStart(2, '0'), key = (h, m) => h * 60 + m, step = [60, 15, 5, 1][P.d - 1];
+      const hand = (ang, len, w, c) => { const a = ang * Math.PI / 180; return '<line x1="0" y1="0" x2="' + (Math.sin(a) * len).toFixed(1) + '" y2="' + (-Math.cos(a) * len).toFixed(1) + '" stroke="' + c + '" stroke-width="' + w + '" stroke-linecap="round"/>'; };
+      let face = '<circle r="100" fill="rgba(255,255,255,.06)" stroke="' + T.a + '" stroke-width="5"/>';
+      for (let i = 0; i < 60; i++) { const a = i * 6 * Math.PI / 180, big = i % 5 === 0, r1 = big ? 84 : 91; face += '<line x1="' + (Math.sin(a) * r1).toFixed(1) + '" y1="' + (-Math.cos(a) * r1).toFixed(1) + '" x2="' + (Math.sin(a) * 96).toFixed(1) + '" y2="' + (-Math.cos(a) * 96).toFixed(1) + '" stroke="' + (big ? '#fff' : 'rgba(255,255,255,.35)') + '" stroke-width="' + (big ? 3 : 1) + '"/>'; }
+      for (let i = 1; i <= 12; i++) { const a = i * 30 * Math.PI / 180; face += '<text x="' + (Math.sin(a) * 68).toFixed(1) + '" y="' + (-Math.cos(a) * 68 + 6).toFixed(1) + '" fill="#fff" font-size="17" font-weight="800" text-anchor="middle" font-family="Inter,sans-serif">' + i + '</text>'; }
+      const draw = (h, m) => { clk.innerHTML = '<svg viewBox="-110 -110 220 220" width="100%" height="100%" aria-label="Horloge">' + face + hand(((h % 12) + m / 60) * 30, 50, 8, T.c) + hand(m * 6, 80, 5, T.b) + '<circle r="7" fill="#fff"/></svg>'; };
+      const finish = () => x.end(ok * 60 + (P.m === 'q' ? Math.max(0, 500 - t * 5) : 0), P.m === 't' ? st3(ok, 6, 11, 16) : st3(ok - (t > 100 ? 2 : 0), 8, 10, 12), pl(ok, 'bonne{s} réponse{s}') + (P.m === 'q' ? ' en ' + Math.round(t) + ' s' : ''));
+      const mk = () => { const h = x.ri(1, 12), m = step === 60 ? 0 : x.ri(0, (60 / step | 0) - 1) * step; draw(h, m); const opts = new Map([[key(h, m), f(h, m)]]);
+        for (let guard = 0; opts.size < 4 && guard < 200; guard++) { let h2 = h, m2 = m; const r = Math.random();
+          if (r < .4) h2 = ((h - 1 + x.pick([-1, 1, 6, 2]) + 12) % 12) + 1; else if (r < .75 && step < 60) m2 = (m + x.pick([-1, 1, 2, -2]) * Math.max(5, step) + 60) % 60; else { h2 = Math.round(m / 5) || 12; m2 = (h % 12) * 5; }
+          opts.set(key(h2, m2), f(h2, m2)); }
+        const arr = x.shuf([...opts.entries()]);
+        if (box) box.remove(); box = x.choices(arr.map(e => e[1]), i => { n++; if (arr[i][0] === key(h, m)) { ok++; x.beep(800); } else { time -= 4; x.beep(140, .2); } if (P.m === 'q' && n >= 12) return finish(); mk(); }); x.stage.append(box); };
+      mk(); x.loop(dt => { t += dt; if (P.m === 't') { time -= dt; if (time <= 0) return finish(); } x.hud((P.m === 't' ? '⏱ ' + Math.ceil(time) + ' s' : '❔ ' + n + ' / 12') + ' · ✅ ' + ok); });
+    }});
+
+  def({id: 'des', n: 'Dés express', e: '🎲', cat: 'mot', d: 'Additionne les dés le plus vite possible.', how: 'Compte les points de tous les dés et choisis le bon total. Une erreur coûte du temps.',
+    axes: [{k: 'n', o: [['2 dés', 2], ['3 dés', 3], ['4 dés', 4], ['5 dés', 5]]}, {k: 'm', o: [['60 secondes', 't'], ['20 lancers', 'q']]}, {k: 't', o: TH3}],
+    play(x){
+      const {P} = x, row = x.el('div', 'mj-dice'); x.stage.append(row); let ok = 0, n = 0, time = 60, t = 0, box = null;
+      const DOTS = {1: [4], 2: [0, 8], 3: [0, 4, 8], 4: [0, 2, 6, 8], 5: [0, 2, 4, 6, 8], 6: [0, 2, 3, 5, 6, 8]};
+      const face = v => '<svg class="die" viewBox="0 0 100 100" role="img" aria-label="' + v + '"><rect x="3" y="3" width="94" height="94" rx="20" fill="#fff"/>' + DOTS[v].map(i => '<circle cx="' + (24 + (i % 3) * 26) + '" cy="' + (24 + (i / 3 | 0) * 26) + '" r="9" fill="#1a1030"/>').join('') + '</svg>';
+      const finish = () => x.end(ok * 50 + (P.m === 'q' ? Math.max(0, 600 - t * 5) : 0), P.m === 't' ? st3(ok, 12 - P.n, 19 - P.n, 26 - P.n) : st3(ok - (t > 40 + P.n * 10 ? 3 : 0), 14, 17, 19), pl(ok, 'bonne{s} réponse{s}') + (P.m === 'q' ? ' en ' + Math.round(t) + ' s' : ''));
+      const mk = () => { const d = [...Array(P.n)].map(() => x.ri(1, 6)), ans = d.reduce((a, b) => a + b, 0); row.innerHTML = d.map(face).join('');
+        const opts = new Set([ans]); while (opts.size < 4) { const v = ans + x.ri(-3, 3); if (v >= P.n && v <= P.n * 6) opts.add(v); } const arr = x.shuf([...opts]);
+        if (box) box.remove(); box = x.choices(arr.map(String), i => { n++; if (arr[i] === ans) { ok++; x.beep(800); } else { time -= 3; x.beep(140, .2); } if (P.m === 'q' && n >= 20) return finish(); mk(); }); x.stage.append(box); };
+      mk(); x.loop(dt => { t += dt; if (P.m === 't') { time -= dt; if (time <= 0) return finish(); } x.hud((P.m === 't' ? '⏱ ' + Math.ceil(time) + ' s' : '🎲 ' + n + ' / 20') + ' · ✅ ' + ok); });
+    }});
+
+  def({id: 'chemin', n: 'Chemin caché', e: '👣', cat: 'mem', d: 'Mémorise le chemin puis refais-le.', how: 'Regarde le chemin s\'allumer case par case, puis touche les cases dans le même ordre. Chaque niveau ajoute un pas. 3 erreurs maximum.',
+    axes: [{k: 'g', o: [['Grille 4×4', 4], ['Grille 5×5', 5], ['Grille 6×6', 6]]}, {k: 'v', o: [['Lent', 1], ['Normal', 2], ['Rapide', 3]]}, {k: 't', o: TH3}],
+    play(x){
+      const {P} = x, N = P.g, G = x.grid(N, N, 'memo'); let path = [], step = 0, lvl = 1, err = 0, show = true, sc = 0, rid = 0;
+      const nb = i => { const r = i / N | 0, c = i % N, o = []; if (r > 0) o.push(i - N); if (r < N - 1) o.push(i + N); if (c > 0) o.push(i - 1); if (c < N - 1) o.push(i + 1); return o; };
+      const build = len => { for (let k = 0; k < 60; k++) { const p = [x.ri(0, N * N - 1)]; while (p.length < len) { const o = nb(p[p.length - 1]).filter(v => !p.includes(v)); if (!o.length) break; p.push(x.pick(o)); } if (p.length === len) return p; } return null; };
+      const round = () => { const my = ++rid, len = Math.min(N * N - 2, 2 + lvl); path = build(len) || build(3); step = 0; show = true; G.cells.forEach(c => { c.className = 'mj-cell'; }); const ms = [650, 480, 340][P.v - 1];
+        path.forEach((v, i) => x.after(500 + i * ms, () => { if (my !== rid) return; G.cells.forEach(c => c.classList.remove('lit')); G.cells[v].classList.add('lit'); x.beep(400 + i * 40, .06); }));
+        x.after(500 + path.length * ms + 150, () => { if (my !== rid) return; G.cells.forEach(c => c.classList.remove('lit')); show = false; }); };
+      x.on(G.el, 'click', e => { const b = e.target.closest('.mj-cell'); if (!b || show || x.dead) return; const i = +b.dataset.i;
+        if (i === path[step]) { b.classList.add('ok'); step++; x.beep(500 + step * 40, .05); if (step === path.length) { sc += path.length * 10; lvl++; show = true; x.after(600, round); } }
+        else { err++; b.classList.add('ko'); x.beep(130, .25); x.after(300, () => b.classList.remove('ko')); if (err >= 3) { show = true; G.cells[path[step]].classList.add('lit'); x.after(800, () => x.end(sc, st3(lvl - 1, 3, 6, 9), 'Niveau ' + lvl + ' atteint · ' + pl(lvl - 1, 'chemin{s} réussi{s}'))); } } });
+      x.loop(() => x.hud('👣 Niveau ' + lvl + ' · ' + (show ? 'Regarde…' : 'À toi ! ' + step + ' / ' + path.length) + ' · ❌ ' + err + ' / 3'));
+      round();
+    }});
+
+  def({id: 'miroir', n: 'Miroir', e: '🪞', cat: 'log', d: 'Reproduis le dessin en symétrie.', how: 'Le côté gauche montre un dessin. Allume les cases du côté droit pour en faire le reflet parfait, comme dans un miroir. 8 dessins, le plus vite possible.',
+    axes: [{k: 'r', o: [['4 lignes', 4], ['5 lignes', 5], ['6 lignes', 6]]}, {k: 'd', o: D3}, {k: 't', o: TH3}],
+    play(x){
+      const {P} = x, R = P.r, H = 3, C = H * 2, G = x.grid(C, R, 'mirror'); let lvl = 1, sc = 0, t = 0, moves = 0, target = new Set(), on = new Set(), busy = false;
+      const mirrorOf = i => (i / C | 0) * C + (C - 1 - i % C);
+      const setup = () => { target = new Set(); on = new Set(); moves = 0; busy = false; const k = Math.min(R * H - 2, 1 + P.d + lvl); while (target.size < k) target.add(x.ri(0, R - 1) * C + x.ri(0, H - 1));
+        G.cells.forEach((c, i) => { const src = i % C < H; c.className = 'mj-cell' + (src ? ' src' + (target.has(i) ? ' lit' : '') : ''); c.disabled = src; }); };
+      x.on(G.el, 'click', e => { const b = e.target.closest('.mj-cell'); if (!b || x.dead || busy) return; const i = +b.dataset.i; if (i % C < H) return; moves++; if (on.has(i)) on.delete(i); else on.add(i); b.classList.toggle('lit'); x.beep(on.has(i) ? 600 : 400, .04);
+        const need = [...target].map(mirrorOf); if (need.length === on.size && need.every(v => on.has(v))) { busy = true; sc += 100 + Math.max(0, 40 - (moves - need.length) * 10); lvl++; x.beep(900, .15); G.el.classList.add('win');
+          x.after(550, () => { G.el.classList.remove('win'); if (lvl > 8) x.end(sc + Math.max(0, 300 - Math.round(t) * 2), st3(sc + Math.max(0, 300 - Math.round(t) * 2), 900, 1050, 1180), '8 dessins réussis en ' + Math.round(t) + ' s'); else setup(); }); } });
+      x.loop(dt => { t += dt; x.hud('🪞 Dessin ' + Math.min(8, lvl) + ' / 8 · ⏱ ' + Math.round(t) + ' s'); });
+      setup();
+    }});
+
+  def({id: 'feu', n: 'Feu vert', e: '🚦', cat: 'ref', d: 'Touche uniquement quand la lumière passe au vert.', how: 'Le grand feu change de couleur. Touche-le dès qu\'il devient vert, le plus vite possible. Toucher trop tôt ou sur une autre couleur coûte une vie. 15 feux verts.',
+    axes: [{k: 'd', o: D4}, {k: 'c', o: [['Rouge et vert', 2], ['Couleurs pièges', 4]]}, {k: 't', o: TH3}],
+    play(x){
+      const {P} = x, L = x.el('button', 'mj-light'), info = x.el('div', 'mj-q', 'Touche le feu quand il passe au <b style="color:#3dff7a">vert</b>'); L.type = 'button'; L.setAttribute('aria-label', 'Feu'); x.stage.append(L, info);
+      const TRAP = P.c === 2 ? ['#ff4d6d'] : ['#ff4d6d', '#ffd166', '#38e1ff', '#b86bff'], GREEN = '#3dff7a', OFF = 'rgba(255,255,255,.08)';
+      let state = 'idle', since = 0, greens = 0, lives = 3, times = [], sc = 0, rid = 0;
+      const set = (col, st) => { L.style.background = col; L.style.boxShadow = col === OFF ? 'none' : '0 0 60px ' + col; state = st; since = performance.now(); };
+      const done = () => { const avg = times.length ? times.reduce((a, b) => a + b, 0) / times.length : 0; x.end(sc, greens < 15 ? (greens >= 5 ? 1 : 0) : st3(1000 - avg, 400, 550, 680), pl(greens, 'feu{s} vert{s}') + (times.length ? ' · réaction moyenne ' + Math.round(avg) + ' ms' : '')); };
+      const next = () => { if (lives <= 0 || greens >= 15) return x.after(400, done); const my = ++rid; set(OFF, 'wait'); const traps = x.ri(0, P.d); let k = 0;
+        const go = () => { if (my !== rid || x.dead) return;
+          if (k < traps) { k++; set(x.pick(TRAP), 'trap'); x.after(x.rnd(450, 1000), () => { if (my !== rid) return; set(OFF, 'wait'); x.after(x.rnd(250, 700), go); }); }
+          else { set(GREEN, 'go'); x.after(Math.max(450, 1500 - P.d * 230), () => { if (my !== rid || state !== 'go') return; lives--; x.beep(140, .3); info.textContent = 'Trop lent !'; next(); }); } };
+        x.after(x.rnd(600, 1400), go); };
+      x.on(L, 'pointerdown', e => { e.preventDefault(); if (x.dead || state === 'idle') return;
+        if (state === 'go') { const ms = performance.now() - since; times.push(ms); greens++; sc += Math.max(10, Math.round(600 - ms)); x.beep(900, .06); info.textContent = '⚡ ' + Math.round(ms) + ' ms'; }
+        else { lives--; x.beep(120, .3); info.textContent = state === 'trap' ? 'Piège : ce n\'était pas vert !' : 'Trop tôt !'; }
+        rid++; set(OFF, 'idle'); x.after(500, next); });
+      x.loop(() => x.hud('🚦 ' + greens + ' / 15 · ' + '❤️'.repeat(Math.max(0, lives))));
+      x.after(300, next);
+    }});
   return {ENG, CATS, PAL, run, variants};
 })();

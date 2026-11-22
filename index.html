@@ -53,6 +53,14 @@
 #inst ol{text-align:left;margin:6px 0 4px 20px;display:grid;gap:5px;font-size:14px;line-height:1.4}
 @media(max-width:640px){.feat{grid-template-columns:auto 1fr;padding:16px;gap:14px}.feat .ic{width:64px;height:64px;font-size:34px;border-radius:18px}.feat .play{grid-column:1/-1;width:100%}.grid{grid-template-columns:1fr 1fr;gap:10px}.card{min-height:0;padding:12px;gap:4px}.card .ic{width:44px;height:44px;font-size:24px;border-radius:12px}.card h3{font-size:14px}.card p{font-size:12px}.card .badge{top:10px;right:10px;font-size:9px;padding:3px 6px}}
 @media(max-width:340px){.grid{grid-template-columns:1fr}}
+.prof{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);gap:14px;padding:16px;border-radius:22px;margin-bottom:18px;text-decoration:none;color:var(--txt);border:1px solid rgba(56,225,255,.35);background:linear-gradient(135deg,rgba(56,225,255,.14),rgba(184,107,255,.14));transition:transform .15s,box-shadow .15s}
+.prof:hover{transform:translateY(-2px);box-shadow:0 12px 40px rgba(56,225,255,.2)}
+.prof .lv{display:flex;align-items:center;gap:12px}.prof .lvn{width:58px;height:58px;flex:none;border-radius:50%;display:grid;place-items:center;font:800 20px Unbounded,Inter,sans-serif;background:conic-gradient(var(--acc2) calc(var(--p) * 1%),rgba(255,255,255,.1) 0);position:relative}
+.prof .lvn span{position:absolute;inset:5px;border-radius:50%;background:#140b2a;display:grid;place-items:center}
+.prof .stats{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}.prof .stats .chip{font-size:12px;padding:5px 9px}
+.prof h3{font-size:15px;margin-bottom:6px}.prof .q{display:flex;gap:8px;align-items:center;font-size:13px;padding:5px 0;border-top:1px solid rgba(255,255,255,.07)}.prof .q:first-of-type{border-top:0}
+.prof .q span:first-child{flex:1;min-width:0}.prof .q .ok{color:var(--ok);font-weight:800}.prof .q .go{color:var(--gold);font-weight:800}.prof .q small{color:var(--mut);white-space:nowrap}
+@media(max-width:640px){.prof{grid-template-columns:1fr;padding:14px}}
 </style>
 </head>
 <body>
@@ -62,6 +70,8 @@
     <p class="tag">Une seule appli, plein de jeux : un monde 3D en ligne, un blind test, les échecs, les mots croisés, le sudoku… Choisis ton jeu.</p>
     <div class="chips" id="chips"></div>
   </header>
+
+  <a class="prof" href="collection.html" id="prof" data-g="collection" aria-label="Ma progression et mes quêtes du jour"></a>
 
   <div id="recentWrap" class="hide"><div class="lbl" style="margin-top:0">Reprendre</div><div class="recent" id="recent"></div></div>
 
@@ -83,14 +93,15 @@
 
 <script src="arcade.js"></script>
 <script src="fbauth.js"></script>
+<script src="prog.js"></script>
 <script>
-const NOTES_V = '5.8';
+const NOTES_V = '6.0';
 const fmt = n => Number(n || 0).toLocaleString('fr-FR');
 const GAMES = [
   {id: 'collection', href: 'collection.html', e: '🃏', n: 'Collection & Pass', d: '67 cartes de personnages à collectionner, Pass de saison, récompense chaque jour et jetons à gagner en jouant.', b: 'new', h: 45,
     st: () => { const p = ls.get('arc_prog', null); if (!p) return '🎁 Récompense du jour à récupérer'; const n = Object.keys(p.cards || {}).length; return '💠 ' + (p.j | 0) + ' · 🃏 ' + n + ' / 67 · niv. ' + Math.min(30, Math.floor((p.xp | 0) / 100)); }},
-  {id: 'mille', href: 'jeux.html', e: '🎲', n: 'Mille Jeux', d: '42 jeux et plus de 1 900 variantes : réflexes, mémoire, réflexion, arcade, mots et calcul.', b: 'new', h: 290,
-    st: () => { const b = ls.get('mj_best', {}), k = Object.keys(b).length, s = Object.values(b).reduce((a, x) => a + (x.st | 0), 0); return k ? k + ' joué' + (k > 1 ? 's' : '') + ' · ⭐ ' + s : 'Plus de 1 900 jeux à découvrir'; }},
+  {id: 'mille', href: 'jeux.html', e: '🎲', n: 'Mille Jeux', d: '50 jeux et plus de 2 100 variantes : réflexes, mémoire, réflexion, arcade, mots et calcul.', b: 'new', h: 290,
+    st: () => { const b = ls.get('mj_best', {}), k = Object.keys(b).length, s = Object.values(b).reduce((a, x) => a + (x.st | 0), 0); return k ? k + ' joué' + (k > 1 ? 's' : '') + ' · ⭐ ' + s : 'Plus de 2 100 jeux à découvrir'; }},
   {id: 'chess', href: 'echecs.html', e: '♞', n: 'Échecs', d: 'Contre l\'ordinateur (3 niveaux) ou à deux sur le même écran.', b: 'new', h: 205,
     st: () => { const s = ls.get('arc_chess', {}); return (s.w || s.l || s.d) ? (s.w | 0) + ' victoire' + ((s.w | 0) > 1 ? 's' : '') + ' · ' + (s.d | 0) + ' nul' + ((s.d | 0) > 1 ? 's' : '') + ' · ' + (s.l | 0) + ' défaite' + ((s.l | 0) > 1 ? 's' : '') : (s.g ? s.g + ' partie' + (s.g > 1 ? 's' : '') : 'Pas encore joué'); }},
   {id: 'cw', href: 'motscroises.html', e: '✏️', n: 'Mots croisés', d: 'Une nouvelle grille à chaque partie, avec ses définitions.', b: 'new', h: 150,
@@ -112,20 +123,29 @@ function render(){
   { const w = ls.get('arc_world', {}), c = ls.get('arc_coins', 0), b = ls.get('arc_obby_best', 0); $('featStat').textContent = (c || w.obby) ? '🪙 ' + c + ' pièce' + (c > 1 ? 's' : '') + (b ? ' · parcours en ' + b + ' s' : '') : 'Joue avec les autres joueurs connectés, en direct.'; }
   const gs = ls.get('gs_stats', {}), ch = ls.get('arc_chess', {}), cw = ls.get('arc_cw', {}), su = ls.get('arc_sudoku', {}), c4 = ls.get('arc_c4', {});
   const mm = ls.get('arc_mm', {}), total = (gs.games | 0) + (ch.g | 0) + (cw.solved | 0) + (su.solved | 0) + (c4.g | 0) + (mm.g | 0), name = String(ls.get('gs_name', '') || '');
-  $('chips').innerHTML = (name ? '<span class="chip">👤 ' + esc(name) + '</span>' : '') + '<span class="chip">🎮 ' + fmt(1924 + GAMES.length) + ' jeux</span>' + (total ? '<span class="chip">🏁 ' + fmt(total) + ' partie' + (total > 1 ? 's' : '') + ' terminée' + (total > 1 ? 's' : '') + '</span>' : '');
+  $('chips').innerHTML = (name ? '<span class="chip">👤 ' + esc(name) + '</span>' : '') + '<span class="chip">🎮 ' + fmt(2122 + GAMES.length) + ' jeux</span>' + (total ? '<span class="chip">🏁 ' + fmt(total) + ' partie' + (total > 1 ? 's' : '') + ' terminée' + (total > 1 ? 's' : '') + '</span>' : '');
+  if (window.PROG) { const P = PROG, S = P.get(), lv = P.level(), own = P.CARDS.filter(c => S.cards[c.id]).length, qs = P.quests(), done = qs.filter(q => q.claimed).length, ready = P.questsReady() + (P.bonusReady() ? 1 : 0);
+    $('prof').innerHTML = '<div><div class="lv"><div class="lvn" style="--p:' + (lv >= P.SEASON.levels ? 100 : P.xpIn()) + '"><span>' + lv + '</span></div><div><b>Niveau ' + lv + '</b><div class="note">' + esc(P.SEASON.n) + (lv >= P.SEASON.levels ? ' · MAX' : ' · ' + P.xpIn() + ' / ' + P.SEASON.xp + ' XP') + '</div></div></div>' +
+      '<div class="stats"><span class="chip">💠 ' + (P.isAdmin() ? '∞' : fmt(S.j)) + '</span><span class="chip">🃏 ' + own + ' / ' + P.CARDS.length + '</span>' + (S.b ? '<span class="chip">📦 ' + S.b + '</span>' : '') + (P.canDaily() ? '<span class="chip" style="color:var(--gold)">🎁 Cadeau du jour</span>' : '') + (S.prem ? '<span class="chip">⭐ Premium</span>' : '') + '</div></div>' +
+      '<div><h3>🎯 Quêtes du jour · ' + done + ' / 3' + (ready ? ' <span style="color:var(--gold)">· ' + ready + ' à récupérer !</span>' : '') + '</h3>' + qs.map(q => '<div class="q"><span>' + esc(q.t) + '</span>' + (q.claimed ? '<span class="ok">✓</span>' : q.done ? '<span class="go">Prendre ▶</span>' : '<small>' + q.p + ' / ' + q.n + '</small>') + '</div>').join('') + '</div>';
+  } else $('prof').classList.add('hide');
   const rec = ls.get('arc_recent', []).map(id => GAMES.find(g => g.id === id)).filter(Boolean).slice(0, 4);
   $('recentWrap').classList.toggle('hide', !rec.length);
   $('recent').innerHTML = rec.map(g => '<a href="' + g.href + '" data-g="' + g.id + '"><span aria-hidden="true">' + g.e + '</span>' + esc(g.n) + '</a>').join('');
 }
 document.addEventListener('click', e => { const a = e.target.closest('a[data-g]'); if (!a) return; const id = a.dataset.g, r = ls.get('arc_recent', []).filter(x => x !== id); r.unshift(id); ls.set('arc_recent', r.slice(0, 6)); });
-addEventListener('pageshow', render); render();
+addEventListener('pageshow', render); render(); if (window.PROG) PROG.on(() => render());
 // appareil admin : raccourci vers la console
 FBA.isAdmin().then(a => { if (a) { const c = document.createElement('a'); c.className = 'chip'; c.href = 'admin.html'; c.style.cssText = 'text-decoration:none;color:var(--gold)'; c.textContent = '🛡️ Console admin'; $('chips').appendChild(c); } });
 
 function showNotes(){
-  modal('Quoi de neuf ? · v5.8', '<div id="notes"><ul>' +
+  modal('Quoi de neuf ? · v6.0', '<div id="notes"><ul>' +
+    '<li><b>🎯 Quêtes du jour</b>3 nouvelles quêtes chaque jour (jouer, gagner des étoiles, essayer des jeux différents, ouvrir un booster…). Chacune rapporte des jetons ou des éclats et 50 XP, et finir les 3 donne un booster bonus.</li>' +
+    '<li><b>🎲 8 nouveaux jeux dans Mille Jeux</b>⚽ Jongleur, 🏀 Panier néon, 🔢 Suite logique, 🕰️ Quelle heure ?, 🎲 Dés express, 👣 Chemin caché, 🪞 Miroir et 🚦 Feu vert. Ça fait 50 jeux et 2 122 variantes.</li>' +
+    '<li><b>👤 Ta progression sur l\'accueil</b>Une carte en haut de l\'accueil montre ton niveau, tes jetons, tes cartes et tes quêtes du jour, et te dit quand une récompense t\'attend.</li>' +
+    '</ul><details><summary>Version 5.8</summary><ul>' +
     '<li><b>📱 Chat sur iPhone</b>Quand le clavier se fermait après un message, Safari pouvait laisser l\'écran du Monde Néon décalé (boutons et doigts qui ne tombent plus au bon endroit). L\'écran se remet maintenant en place tout seul.</li>' +
-    '</ul><details><summary>Version 5.7</summary><ul>' +
+    '</ul></details><details><summary>Version 5.7</summary><ul>' +
     '<li><b>🎁 Tout récupérer</b>Un bouton dans l\'onglet Pass prend d\'un coup toutes les récompenses débloquées (voie gratuite et premium) et affiche le total gagné.</li>' +
     '<li><b>🛡️ Admin</b>Les récompenses du Pass n\'étaient pas cliquables au-dessus du niveau de l\'admin : tout est maintenant prenable. Dans la boutique du Monde Néon, le porte-monnaie affiche ∞ et les prix « Gratuit ».</li>' +
     '</ul></details><details><summary>Version 5.6</summary><ul>' +
