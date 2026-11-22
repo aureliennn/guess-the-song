@@ -2,6 +2,9 @@
 <html lang="fr">
 <head>
 <meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://api.deezer.com; connect-src 'self' https://*.firebasedatabase.app wss://*.firebasedatabase.app https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://cdn.jsdelivr.net https://api.deezer.com; img-src 'self' data: blob: https:; media-src 'self' blob: https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<script>/* garde-fou : jamais de page blanche */(function(){var t0=Date.now(),shown=0;function fix(){var p=[];try{if(navigator.serviceWorker)p.push(navigator.serviceWorker.getRegistrations().then(function(r){return Promise.all(r.map(function(x){return x.unregister()}))}));if(window.caches)p.push(caches.keys().then(function(k){return Promise.all(k.map(function(x){return caches.delete(x)}))}))}catch(e){}Promise.all(p).then(function(){location.reload()},function(){location.reload()})}window.__arcFix=fix;function show(msg){if(shown||Date.now()-t0>15000)return;shown=1;var d=document.createElement('div');d.setAttribute('role','alert');d.style.cssText='position:fixed;left:10px;right:10px;bottom:max(10px,env(safe-area-inset-bottom));z-index:99999;background:#1b1035;color:#f4f0ff;border:1px solid #b86bff;border-radius:14px;padding:12px 14px;font:14px system-ui,sans-serif;box-shadow:0 10px 30px rgba(0,0,0,.6);text-align:center';d.innerHTML='<b>Oups, la page n’a pas fini de charger.</b><div style="color:#a79fc4;font-size:12px;margin:4px 0 8px;overflow-wrap:anywhere"></div><button type="button" style="margin:3px;padding:9px 14px;border:0;border-radius:10px;background:#b86bff;color:#fff;font-weight:700">Recharger</button><button type="button" style="margin:3px;padding:9px 14px;border:1px solid #b86bff;border-radius:10px;background:none;color:#f4f0ff;font-weight:700">Réparer</button>';d.querySelector('div').textContent=String(msg).slice(0,140);var b=d.querySelectorAll('button');b[0].onclick=function(){location.reload()};b[1].onclick=fix;(document.body||document.documentElement).appendChild(d)}addEventListener('error',function(e){var g=e.target;if(g&&g!==window&&(g.tagName==='SCRIPT'||(g.tagName==='LINK'&&(g.href||'').indexOf(location.origin)===0)))show('Fichier introuvable : '+(g.src||g.href||'').split('/').pop());else if(e.message&&!/: 3d$/.test(e.message))show(e.message)},true)})();</script>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <title>Guess the Song 3D — Arcade Néon</title>
 <meta name="theme-color" content="#07040f">
@@ -269,13 +272,14 @@ select.inp{appearance:none;-webkit-appearance:none;min-width:0}select.inp option
 <div id="toast" class="glass hide"></div>
 <audio id="au" crossorigin="anonymous" preload="auto"></audio>
 
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/LuminosityHighPassShader.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js" integrity="sha384-CI3ELBVUz9XQO+97x6nwMDPosPR5XvsxW2ua7N1Xeygeh1IxtgqtCkGfQY9WWdHu" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js" integrity="sha384-GkidzTYmQg24v13sa3xhBBbvOLbVLO1QxfyKLdOWweQqNqS/iWwUst2T1fER2Xrg" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js" integrity="sha384-2EpLreWSFuZsk4hcSplXLhlHd/wzvDNF907bTGIXSXM0SlhJNzy4YK0DhBFvkFEs" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js" integrity="sha384-I3lsvPeDJYFrEAzn/TA0yhc/SCYKwpyfyq8lKzHYKohu43H9f7xc/Q9ZWgSVUDl3" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js" integrity="sha384-nhO9toQuMo5osCuA0l+YFpSqscZWxDu251Bnho2gD3kSPv1neEwHg0LyEmrA+mPj" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/LuminosityHighPassShader.js" integrity="sha384-mY+ii969jnDCI2HjRHftH2NZVkIO5ZGUkcnGCg3oVJ3kVstWQXwerYWBg+nbUG4R" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.js" integrity="sha384-aVQ2QnWkoxhOefDB0YZB64OPVzujvccydpcC7UqMDJUK0ChwA382zOHmrWHGDRRa" crossorigin="anonymous"></script>
+<script src="fbauth.js"></script>
 <script>
 'use strict';
 const $ = id => document.getElementById(id);
@@ -807,11 +811,12 @@ addEventListener('keydown', e => {
 /* ---------------- Duel en ligne ---------------- */
 let R = null; const emoSeen = new Set();
 const PID = (() => { let p = null; try { p = sessionStorage.getItem('gs_pid'); } catch(e) {} if (!p) { p = Math.random().toString(36).slice(2, 10); try { sessionStorage.setItem('gs_pid', p); } catch(e) {} } return p; })();
-const db = (path, method, body) => fetch(DB_URL + '/' + path + '.json', method ? {method, body: JSON.stringify(body)} : undefined).then(r => { if (!r.ok) throw new Error('db'); return r.json(); });
+// écritures signées par l'identifiant anonyme (fbauth.js) ; body peut être une fonction uid => données
+const db = (path, method, body) => (method ? FBA.url(DB_URL + '/', path).then(u => fetch(u, {method, body: JSON.stringify(typeof body === 'function' ? body(FBA.uid()) : body)})) : fetch(DB_URL + '/' + path + '.json')).then(r => { if (!r.ok) throw new Error('db'); return r.json(); });
 const SV = {'.sv': 'timestamp'}, EMOS = ['👏', '😂', '🔥', '😱', '😭', '🫡'];
 const rnow = () => Date.now() + (R ? R.off : 0);
 const alive = p => !!p && typeof p.n === 'string' && rnow() - (p.t || 0) < 30000;
-const newPlayer = n => ({n, s: 0, i: 0, g: 0, w: 0, gm: -1, done: false, t: SV});
+const newPlayer = (n, u) => ({n, u, s: 0, i: 0, g: 0, w: 0, gm: -1, done: false, t: SV});
 const modeName = m => m === 'artist' ? 'Trouver l\'artiste' : 'Trouver le titre';
 function roomName(){ const n = $('duelName').value.replace(/\s+/g, ' ').trim().slice(0, 16); if (n.length < 2) { toast('Choisis un pseudo d\'au moins 2 caractères.'); $('duelName').focus(); return null; } ls.set('gs_name', n); syncTotal(); return n; }
 async function roomCreate(){
@@ -820,7 +825,7 @@ async function roomCreate(){
     for (let k = 0; k < 6; k++) {
       const code = Array.from({length: 4}, () => 'ABCDEFGHJKLMNPQRSTUVWXYZ'[Math.random() * 24 | 0]).join('');
       if (await db('rooms/' + code + '/live/meta')) continue;
-      await db('rooms/' + code + '/live', 'PUT', {meta: {host: PID, hn: n, state: 'lobby', game: 0, won: 0, pub, catId: 'top', diff, mode: gmode, t: SV, ht: SV}, players: spec ? null : {[PID]: newPlayer(n)}});
+      await db('rooms/' + code + '/live', 'PUT', u => ({meta: {host: PID, hu: u, hn: n, state: 'lobby', game: 0, won: 0, pub, catId: 'top', diff, mode: gmode, t: SV, ht: SV}, players: spec ? null : {[PID]: newPlayer(n, u)}}));
       roomEnter(code, n, spec); return;
     }
     toast('Impossible de créer un salon pour le moment. Réessaie.');
@@ -835,7 +840,7 @@ async function roomJoin(c, spec){
     if (live.meta.kick && live.meta.kick[PID]) { toast('Tu ne peux plus rejoindre ce salon.'); return; }
     const pl = live.players || {}, t = Math.max(0, ...Object.values(pl).map(p => p && p.t || 0));
     if (!spec && Object.values(pl).filter(p => p && t - (p.t || 0) < 30000).length >= 8 && !pl[PID]) { toast('Ce salon est complet (8 joueurs).'); return; }
-    if (!spec) await db('rooms/' + code + '/live/players/' + PID, 'PUT', newPlayer(n));
+    if (!spec) await db('rooms/' + code + '/live/players/' + PID, 'PUT', u => newPlayer(n, u));
     roomEnter(code, n, spec);
   } catch(e) { toast('Connexion au serveur impossible. Réessaie.'); }
 }
@@ -847,8 +852,9 @@ function roomEnter(code, n, spec){
 function leaveRoom(kicked){
   if (!R) return; clearInterval(R.timer); const code = R.code, wasHost = R.host, spec = R.spec, pub = R.live && R.live.meta && R.live.meta.pub; R = null;
   $('sb').classList.add('hide'); $('count').classList.add('hide'); try { history.replaceState(null, '', location.pathname); } catch(e) {}
-  if (!kicked && !spec) fetch(DB_URL + '/rooms/' + code + '/live/players/' + PID + '.json', {method: 'DELETE', keepalive: true}).catch(() => {});
-  if (wasHost && pub) fetch(DB_URL + '/lobbies/' + code + '.json', {method: 'DELETE', keepalive: true}).catch(() => {});
+  const tk = '.json?auth=' + encodeURIComponent(FBA.cached());
+  if (!kicked && !spec) fetch(DB_URL + '/rooms/' + code + '/live/players/' + PID + tk, {method: 'DELETE', keepalive: true}).catch(() => {});
+  if (wasHost && pub) fetch(DB_URL + '/lobbies/' + code + tk, {method: 'DELETE', keepalive: true}).catch(() => {});
 }
 addEventListener('pagehide', () => leaveRoom());
 async function roomPoll(){
@@ -862,9 +868,9 @@ async function roomPoll(){
     if (pl[PID] && pl[PID].t) R.off = pl[PID].t - R.beatAt; else if (R.spec && R.host && m.ht && R.tick > 2) R.off = m.ht - R.beatAt;
     R.live = live;
     const al = Object.keys(pl).filter(id => alive(pl[id])).sort();
-    if (!alive(pl[m.host]) && !(rnow() - (m.ht || 0) < 30000) && !R.spec && al[0] === PID && m.host !== PID) { m.host = PID; m.hn = R.n; db('rooms/' + code + '/live/meta', 'PATCH', {host: PID, hn: R.n}).catch(() => {}); }
+    if (!alive(pl[m.host]) && !(rnow() - (m.ht || 0) < 30000) && !R.spec && al[0] === PID && m.host !== PID) { m.host = PID; m.hn = R.n; db('rooms/' + code + '/live/meta', 'PATCH', u => ({host: PID, hu: u, hn: R.n})).catch(() => {}); }
     R.host = m.host === PID;
-    if (R.host && m.pub && R.tick % 4 === 1) db('lobbies/' + code, 'PUT', {n: m.hn || R.n, c: al.length, cat: (CATS.find(c => c.id === m.catId) || CATS[0]).n, p: m.state === 'play' && al.some(id => !pl[id].done) ? 1 : 0, t: SV}).catch(() => {});
+    if (R.host && m.pub && R.tick % 4 === 1) db('lobbies/' + code, 'PUT', u => ({u, n: m.hn || R.n, c: al.length, cat: (CATS.find(c => c.id === m.catId) || CATS[0]).n, p: m.state === 'play' && al.some(id => !pl[id].done) ? 1 : 0, t: SV})).catch(() => {});
     if (R.host && m.state === 'play' && (m.won | 0) !== (m.game | 0) && al.length && al.every(id => pl[id].done && (pl[id].gm | 0) === (m.game | 0))) {
       const win = al.slice().sort((a, b) => (pl[b].s | 0) - (pl[a].s | 0))[0]; m.won = m.game | 0;
       db('rooms/' + code + '/live/meta', 'PATCH', {won: m.game | 0}).catch(() => {});
@@ -1008,7 +1014,7 @@ async function lbFetch(path){
 }
 async function lbPost(e, path){
   if (!DB_URL) { const a = ls.get('gs_lb', []); a.push(e); a.sort((x, y) => y.s - x.s); ls.set('gs_lb', a.slice(0, 50)); return; }
-  const r = await fetch(DB_URL + '/' + (path || 'scores') + '.json', {method: 'POST', body: JSON.stringify(e)}); if (!r.ok) throw new Error('db');
+  await db(path || 'scores', 'POST', u => Object.assign({}, e, {u}));
 }
 let published = false;
 async function publish(ev){
@@ -1025,7 +1031,7 @@ const UID = (() => { let u = ls.get('gs_uid', ''); if (!u) { u = Math.random().t
 function syncTotal(){
   const n = String(ls.get('gs_name', '') || '').trim().slice(0, 16), st = ls.get('gs_stats', null);
   if (!DB_URL || n.length < 2 || !st || !(st.pts > 0)) return Promise.resolve(false);
-  return db('totals/' + UID, 'PUT', {n, p: Math.round(st.pts), g: st.games | 0, t: Date.now()}).then(() => true, () => false);
+  return db('totals/' + UID, 'PUT', u => ({n, u, p: Math.round(st.pts), g: st.games | 0, t: Date.now()})).then(() => true, () => false);
 }
 async function renderLb(){
   const el = $('tabLb'), mode = lbMode, head = '<div class="seg">' + [['cum', '🏆 Cumul'], ['all', '🌍 Meilleures parties'], ['day', '📅 Défi du jour']].map(m => '<button type="button" data-lb="' + m[0] + '" class="' + (m[0] === mode ? 'on' : '') + '">' + m[1] + '</button>').join('') + '</div>';
@@ -1082,7 +1088,7 @@ $('revForm').onsubmit = async ev => {
   ev.preventDefault(); const n = $('revName').value.replace(/\s+/g, ' ').trim().slice(0, 16), m = $('revMsg').value.replace(/\s+/g, ' ').trim().slice(0, 240);
   if (n.length < 2 || m.length < 3) { $('revInfo').textContent = 'Indique un pseudo et un avis de quelques mots.'; return; }
   ls.set('gs_name', n); const e = {n, m, s: revStars, t: Date.now()};
-  try { if (!DB_URL) { const a = ls.get('gs_rev', []); a.unshift(e); ls.set('gs_rev', a.slice(0, 40)); } else { const r = await fetch(DB_URL + '/reviews.json', {method: 'POST', body: JSON.stringify(e)}); if (!r.ok) throw new Error('db'); }
+  try { if (!DB_URL) { const a = ls.get('gs_rev', []); a.unshift(e); ls.set('gs_rev', a.slice(0, 40)); } else { await db('reviews', 'POST', u => Object.assign({}, e, {u})); }
     $('revMsg').value = ''; sfx.ok(0); renderRev('✓ Merci pour ton avis !'); }
   catch(x) { $('revInfo').textContent = 'Envoi impossible pour le moment. Réessaie.'; }
 };

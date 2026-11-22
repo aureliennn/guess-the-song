@@ -2,6 +2,9 @@
 <html lang="fr">
 <head>
 <meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://api.deezer.com; connect-src 'self' https://*.firebasedatabase.app wss://*.firebasedatabase.app https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://cdn.jsdelivr.net https://api.deezer.com; img-src 'self' data: blob: https:; media-src 'self' blob: https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<script>/* garde-fou : jamais de page blanche */(function(){var t0=Date.now(),shown=0;function fix(){var p=[];try{if(navigator.serviceWorker)p.push(navigator.serviceWorker.getRegistrations().then(function(r){return Promise.all(r.map(function(x){return x.unregister()}))}));if(window.caches)p.push(caches.keys().then(function(k){return Promise.all(k.map(function(x){return caches.delete(x)}))}))}catch(e){}Promise.all(p).then(function(){location.reload()},function(){location.reload()})}window.__arcFix=fix;function show(msg){if(shown||Date.now()-t0>15000)return;shown=1;var d=document.createElement('div');d.setAttribute('role','alert');d.style.cssText='position:fixed;left:10px;right:10px;bottom:max(10px,env(safe-area-inset-bottom));z-index:99999;background:#1b1035;color:#f4f0ff;border:1px solid #b86bff;border-radius:14px;padding:12px 14px;font:14px system-ui,sans-serif;box-shadow:0 10px 30px rgba(0,0,0,.6);text-align:center';d.innerHTML='<b>Oups, la page n’a pas fini de charger.</b><div style="color:#a79fc4;font-size:12px;margin:4px 0 8px;overflow-wrap:anywhere"></div><button type="button" style="margin:3px;padding:9px 14px;border:0;border-radius:10px;background:#b86bff;color:#fff;font-weight:700">Recharger</button><button type="button" style="margin:3px;padding:9px 14px;border:1px solid #b86bff;border-radius:10px;background:none;color:#f4f0ff;font-weight:700">Réparer</button>';d.querySelector('div').textContent=String(msg).slice(0,140);var b=d.querySelectorAll('button');b[0].onclick=function(){location.reload()};b[1].onclick=fix;(document.body||document.documentElement).appendChild(d)}addEventListener('error',function(e){var g=e.target;if(g&&g!==window&&(g.tagName==='SCRIPT'||(g.tagName==='LINK'&&(g.href||'').indexOf(location.origin)===0)))show('Fichier introuvable : '+(g.src||g.href||'').split('/').pop());else if(e.message&&!/: 3d$/.test(e.message))show(e.message)},true)})();</script>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <title>Monde Néon — Arcade Néon</title>
 <meta name="description" content="Un monde 3D en ligne : ton avatar, les autres joueurs en direct, un parcours d'obstacles, une zone de construction et des portails vers tous les jeux.">
@@ -72,8 +75,9 @@ canvas#c{position:fixed;inset:0;width:100%;height:100%;display:block;touch-actio
 <div id="joy" aria-hidden="true"><i id="knob"></i></div>
 <button id="jump" type="button" aria-label="Sauter">SAUTER</button>
 <div id="pal" class="hide"></div>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js" integrity="sha384-CI3ELBVUz9XQO+97x6nwMDPosPR5XvsxW2ua7N1Xeygeh1IxtgqtCkGfQY9WWdHu" crossorigin="anonymous"></script>
 <script src="arcade.js"></script>
+<script src="fbauth.js"></script>
 <script>
 const DB = 'https://guess-the-song-27134-default-rtdb.europe-west1.firebasedatabase.app';
 const COARSE = matchMedia('(pointer:coarse)').matches;
@@ -324,20 +328,24 @@ function tap(x, y){
   v2.set(x / innerWidth * 2 - 1, -(y / innerHeight) * 2 + 1); ray.setFromCamera(v2, cam);
   const h = ray.intersectObjects([bmesh, window.BUILD_GROUND])[0]; if (!h || h.distance > 40) return;
   if (performance.now() - lastPlace < 120) return; lastPlace = performance.now();
-  if (h.object === bmesh && erase) { const k = bIndex[h.instanceId]; if (k) { BLOCKS.delete(k); blocksDirty = true; net('DELETE', '/world/blocks/' + k); tone(300, 0, .08, 'square', .05); } return; }
+  if (h.object === bmesh && erase) { const k = bIndex[h.instanceId], bk = k && BLOCKS.get(k); if (bk && bk.u && bk.u !== FBA.uid()) { toast('Tu ne peux effacer que tes propres blocs.', 1800); return; } if (k) { BLOCKS.delete(k); blocksDirty = true; net('DELETE', '/world/blocks/' + k); tone(300, 0, .08, 'square', .05); } return; }
   if (erase) return;
   const p = h.point.clone().add(h.face.normal.clone().transformDirection(h.object.matrixWorld).multiplyScalar(.5));
   const bx = Math.floor(p.x), by = Math.max(0, Math.floor(p.y)), bz = Math.floor(p.z);
   if (bx < BZ.x0 + 1 || bx > BZ.x1 - 1 || bz < BZ.z0 || bz > BZ.z1 - 1 || by > 40) { toast('Tu ne peux construire que dans la zone de construction.', 2200); return; }
   if (me.pos.x + R > bx && me.pos.x - R < bx + 1 && me.pos.z + R > bz && me.pos.z - R < bz + 1 && me.pos.y + H > by && me.pos.y < by + 1) return;
   if (BLOCKS.size >= MAXB) { toast('La zone est pleine !'); return; }
-  const k = bkey(bx, by, bz); BLOCKS.set(k, {x: bx, y: by, z: bz, c: bcol}); blocksDirty = true; net('PUT', '/world/blocks/' + k, {c: bcol, o: PID}); tone(620 + bcol * 20, 0, .07, 'triangle', .07);
+  const k = bkey(bx, by, bz); BLOCKS.set(k, {x: bx, y: by, z: bz, c: bcol, u: FBA.uid()}); blocksDirty = true; net('PUT', '/world/blocks/' + k, {c: bcol, o: PID}); tone(620 + bcol * 20, 0, .07, 'triangle', .07);
 }
 
 /* ---------- réseau (Firebase, en direct) ---------- */
 const SV = {'.sv': 'timestamp'}, W = {players: {}, chat: {}, blocks: {}, tag: null};
 let offset = 0, sentAt = 0, inflight = false, last = {x: 0, y: 0, z: 0, r: 0, a: -1}, joined = false, seenChat = new Set(), firstSnap = true;
-function net(method, path, body, keep){ return fetch(DB + path + '.json', {method, body: body === undefined ? undefined : JSON.stringify(body), keepalive: !!keep}).catch(() => {}); }
+// écritures signées par l'identifiant anonyme (fbauth.js) ; PUT/POST reçoivent le champ u (propriétaire)
+function net(method, path, body, keep){
+  if (keep) return fetch(DB + path + '.json?auth=' + encodeURIComponent(FBA.cached()), {method, body: body === undefined ? undefined : JSON.stringify(body), keepalive: true}).catch(() => {});
+  return FBA.url(DB, path).then(url => { if (body && typeof body === 'object' && !Array.isArray(body) && (method === 'PUT' || method === 'POST')) body = Object.assign({}, body, {u: FBA.uid()}); return fetch(url, {method, body: body === undefined ? undefined : JSON.stringify(body)}); }).catch(() => {});
+}
 const srvNow = () => Date.now() + offset;
 function myRecord(){ return {n: NAME, x: +me.pos.x.toFixed(2), y: +me.pos.y.toFixed(2), z: +me.pos.z.toFixed(2), r: +me.yaw.toFixed(2), a: me.ground ? (me.speed > .5 ? 1 : 0) : 2, s: AV.s, p: AV.p, k: AV.k, h: AV.h, o: AV.o || null, pet: AV.pet || null, tr: AV.tr || null, c: car.on ? AV.s : null, t: SV}; }
 function join(){ joined = true; sentAt = Date.now(); net('PUT', '/world/players/' + PID, myRecord()); }
@@ -360,14 +368,14 @@ function applyEv(msg, patch){
     else if (msg.data === null) delete o[k]; else o[k] = msg.data;
   }
   const top = parts[0];
-  if (!top || top === 'blocks') { BLOCKS.clear(); for (const k in (W.blocks || {})) { const m = /^b(-?\d+)_(\d+)_(-?\d+)$/.exec(k), v = W.blocks[k]; if (m && v) BLOCKS.set(k, {x: +m[1], y: +m[2], z: +m[3], c: v.c | 0}); } blocksDirty = true; }
+  if (!top || top === 'blocks') { BLOCKS.clear(); for (const k in (W.blocks || {})) { const m = /^b(-?\d+)_(\d+)_(-?\d+)$/.exec(k), v = W.blocks[k]; if (m && v) BLOCKS.set(k, {x: +m[1], y: +m[2], z: +m[3], c: v.c | 0, u: typeof v.u === 'string' ? v.u : ''}); } blocksDirty = true; }
   if (!top || top === 'chat') drawChat();
   if (!top || top === 'players') { const mine = W.players && W.players[PID]; if (mine && typeof mine.t === 'number' && parts[1] === PID) offset = mine.t - sentAt; syncPlayers(); }
   if (firstSnap && !top) { firstSnap = false; cleanup(); }
 }
 function cleanup(){
   const now = srvNow(), dead = {}; for (const id in W.players) { const p = W.players[id]; if (!p || typeof p.t !== 'number' || now - p.t > 120000) dead[id] = null; } if (Object.keys(dead).length) net('PATCH', '/world/players', dead);
-  const ck = Object.keys(W.chat || {}).sort(); if (ck.length > 80) { const del = {}; ck.slice(0, ck.length - 50).forEach(k => { del[k] = null; }); net('PATCH', '/world/chat', del); }
+  const old = Object.keys(W.chat || {}).filter(k => { const c = W.chat[k]; return !c || typeof c.t !== 'number' || now - c.t > 16 * 60000; }); if (old.length > 20) { const del = {}; old.forEach(k => { del[k] = null; }); net('PATCH', '/world/chat', del); }
 }
 let es = null;
 function connect(){
@@ -749,7 +757,7 @@ function lapDone(lt){
 }
 function submitLap(lt){
   if (window.NO_SUBMIT || lt < 8 || lt > 600) return;
-  fetch(DB + '/race/' + UIDW + '.json', {method: 'PUT', body: JSON.stringify({n: NAME, t: +lt.toFixed(2)})}).then(r => { if (r.ok) { refreshBoard(); if (!boardRows || !boardRows.length || lt < boardRows[0].t) sysMsg(NAME + ' bat le record du circuit : ' + lt.toFixed(2) + ' s 🏎️'); } }).catch(() => {});
+  net('PUT', '/race/' + UIDW, {n: NAME, t: +lt.toFixed(2)}).then(r => { if (r && r.ok) { refreshBoard(); if (!boardRows || !boardRows.length || lt < boardRows[0].t) sysMsg(NAME + ' bat le record du circuit : ' + lt.toFixed(2) + ' s 🏎️'); } }).catch(() => {});
 }
 function raceDone(laps){
   const tot = laps.reduce((a, b) => a + b, 0), best3 = ls.get('arc_race3', 0), rec = !best3 || tot < best3; if (rec) ls.set('arc_race3', +tot.toFixed(2));
