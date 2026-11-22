@@ -83,7 +83,7 @@
 
 <script src="arcade.js"></script>
 <script>
-const NOTES_V = '5.0';
+const NOTES_V = '5.1';
 const fmt = n => Number(n || 0).toLocaleString('fr-FR');
 const GAMES = [
   {id: 'mille', href: 'jeux.html', e: '🎲', n: 'Mille Jeux', d: '30 jeux et plus de 1 300 variantes : réflexes, mémoire, réflexion, arcade, mots et calcul.', b: 'new', h: 290,
@@ -118,12 +118,16 @@ document.addEventListener('click', e => { const a = e.target.closest('a[data-g]'
 addEventListener('pageshow', render); render();
 
 function showNotes(){
-  modal('Quoi de neuf ? · v5.0', '<div id="notes"><ul>' +
+  modal('Quoi de neuf ? · v5.1', '<div id="notes"><ul>' +
+    '<li><b>🏆 Classement en ligne des Mille Jeux</b>Un classement mondial des étoiles sur les 1 396 mini-jeux (bouton 🏆 Classement), et à la fin de chaque partie, le top de la variante avec ta place.</li>' +
+    '<li><b>🛡️ Anti-triche</b>Chacun ne peut écrire que ses propres scores, les étoiles ne peuvent que monter (4 188 au maximum), les scores sont plafonnés et un envoi toutes les 2,5 s au plus. 14 attaques testées, toutes bloquées.</li>' +
+    '<li><b>☁️ Étoiles retrouvées</b>Tes étoiles en ligne sont récupérées même si tu changes de navigateur. Ton pseudo est le même que dans le blind test.</li>' +
+    '</ul><details><summary>Version 5.0</summary><ul>' +
     '<li><b>🎲 Mille Jeux : 1 396 mini-jeux</b>30 nouveaux jeux, chacun décliné en dizaines de variantes (vitesse, taille de grille, règles, thème) : cibles, tape-taupe, esquive, serpent, vol néon, casse-briques, ping, empileur, sauts, défense spatiale, paires, écho lumineux, mémo-grille, fusion, démineur, interrupteurs, taquin, labyrinthe, morpion, l\'intrus, calcul éclair, anagrammes, frappe rapide, couleurs piégées…</li>' +
     '<li><b>⭐ Étoiles et records</b>Gagne jusqu\'à 3 étoiles dans chaque variante. Ta progression, tes records et tes favoris sont gardés sur ton appareil.</li>' +
     '<li><b>🔍 Catalogue</b>Recherche (« serpent rapide », « 5×5 », « fruits »…), filtres par catégorie, favoris ❤️, jeux pas encore joués, et bouton 🎲 Au hasard.</li>' +
     '<li><b>📱 Pensé pour le téléphone</b>Glisser, toucher ou flèches du clavier selon les jeux, bouton ✕ Quitter toujours visible, et un nouveau portail 🎲 dans le Monde Néon.</li>' +
-    '</ul><details><summary>Version 4.7</summary><ul>' +
+    '</ul></details><details><summary>Version 4.7</summary><ul>' +
     '<li><b>🧪 54 cyberattaques testées</b>Le site a subi une batterie d\'attaques (faux jetons, données géantes, champs piégés, pollution de prototype, liens javascript:, défis truqués, spam…). Toutes les failles trouvées sont corrigées : 0 faille restante.</li>' +
     '<li><b>🚫 Anti-spam</b>Un message par seconde et demie dans le chat, un score toutes les 15 secondes, un salon toutes les 8 secondes, et un seul avis par joueur.</li>' +
     '<li><b>📏 Données contrôlées</b>Chaque information envoyée est vérifiée : liste exacte des champs, taille, type, valeurs possibles. Les musiques du défi du jour et des salons doivent venir de Deezer, et le défi ne peut être créé que le jour même.</li>' +

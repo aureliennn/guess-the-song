@@ -75,6 +75,12 @@
 .start{display:grid;gap:12px;justify-items:center;text-align:center;max-width:440px;padding:20px}
 .start .big{font-size:64px}.start p{color:#d8d0f2;font-size:15px;line-height:1.45}
 .stars{font-size:30px;letter-spacing:4px}
+.lb{display:grid;gap:4px;text-align:left;margin-top:4px}
+.lb div{display:grid;grid-template-columns:2.2em 1fr auto;gap:8px;align-items:center;padding:7px 10px;border-radius:10px;background:rgba(255,255,255,.05);font-size:14px}
+.lb div.me{background:rgba(184,107,255,.28);outline:1px solid var(--acc)}.lb b{font-family:Unbounded,Inter,sans-serif;font-size:13px}.lb .rk{font-weight:800;color:var(--mut)}
+.lb .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lbbox{max-height:52vh;overflow:auto;padding-right:2px}
+.inpn{width:100%;padding:11px 14px;border-radius:12px;border:1px solid var(--line);background:rgba(255,255,255,.06);font-size:16px;outline:0;text-align:center}
 @media(max-width:560px){.ph{flex-wrap:wrap;row-gap:6px}#pHud{order:3;width:100%;max-width:100%;justify-content:center}}
 @media(max-width:640px){.fams{grid-template-columns:1fr}.vars{grid-template-columns:1fr 1fr}.var{grid-template-columns:auto 1fr;padding:9px}.var .s,.var .fv{grid-row:auto}.var .s{grid-column:2}.var .fv{display:none}}
 @media(max-width:360px){.vars{grid-template-columns:1fr}}
@@ -82,7 +88,7 @@
 </head>
 <body>
 <div class="wrap" id="cat">
-  <div class="top"><a class="back" href="./">← Arcade</a><h1>🎲 <span id="total">1 000+</span> mini-jeux</h1><button class="btn sm" id="rnd" type="button">🎲 Au hasard</button></div>
+  <div class="top"><a class="back" href="./">← Arcade</a><h1>🎲 <span id="total">1 000+</span> mini-jeux</h1><button class="btn ghost sm" id="lbBtn" type="button">🏆 Classement</button><button class="btn sm" id="rnd" type="button">🎲 Au hasard</button></div>
   <p class="intro">30 jeux, chacun en dizaines de variantes : vitesse, taille, règles, thème… Gagne jusqu'à 3 ⭐ dans chacune !</p>
   <div class="row" id="chips" style="margin-bottom:12px"></div>
   <div class="bar"><input class="search" id="q" type="search" placeholder="Chercher : serpent, rapide, 5×5, fruits…" autocomplete="off" enterkeyhint="search" aria-label="Chercher un jeu"></div>
@@ -95,6 +101,7 @@
 </div>
 <script src="arcade.js"></script>
 <script src="minis.js"></script>
+<script src="fbauth.js"></script>
 <script>
 const V = MJ.variants(), BYID = new Map(V.map(v => [v.id, v])), fmt = n => Number(n).toLocaleString('fr-FR');
 let best = ls.get('mj_best', {}), fav = new Set(ls.get('mj_fav', [])), filt = 'all', fam = null, cur = null, game = null;
@@ -151,9 +158,55 @@ function finish(v, r){
   game = null; const old = best[v.id] || {s: 0, st: 0}, rec = r.score > old.s; best[v.id] = {s: Math.max(old.s, r.score), st: Math.max(old.st, r.stars), n: (old.n | 0) + 1}; ls.set('mj_best', best);
   stat('arc_mille', s => { s.g = (s.g | 0) + 1; }); r.stars >= 2 ? sfx.win() : r.stars ? sfx.ok() : sfx.lose();
   const idx = V.indexOf(v), nxt = V[idx + 1] && V[idx + 1].eng === v.eng ? V[idx + 1] : V.find(x => x.eng === v.eng);
-  modal(r.stars ? 'Bien joué !' : 'Partie terminée', '<div class="stars" aria-label="' + r.stars + ' étoiles">' + STR(r.stars) + '</div><p class="note">' + esc(r.msg) + '<br><b style="color:var(--txt)">' + fmt(r.score) + ' points</b>' + (rec && old.s ? '<br><b style="color:var(--gold)">★ Nouveau record !</b>' : old.s ? '<br>Record : ' + fmt(old.s) : '') + '</p>',
+  modal(r.stars ? 'Bien joué !' : 'Partie terminée', '<div class="stars" aria-label="' + r.stars + ' étoiles">' + STR(r.stars) + '</div><p class="note">' + esc(r.msg) + '<br><b style="color:var(--txt)">' + fmt(r.score) + ' points</b>' + (rec && old.s ? '<br><b style="color:var(--gold)">★ Nouveau record !</b>' : old.s ? '<br>Record : ' + fmt(old.s) : '') + '</p><div id="vlb"></div>',
     [['Rejouer', () => { open(v); start(); }], ['Variante suivante ▶', () => { open(nxt); }], ['Catalogue', quit, true]]);
+  varBoard(v, true);
 }
+/* ---------- classement en ligne (Firebase, écritures signées par fbauth.js, règles anti-triche côté base) ---------- */
+const DB = 'https://guess-the-song-27134-default-rtdb.europe-west1.firebasedatabase.app', SV = {'.sv': 'timestamp'};
+let sent = ls.get('mj_sent', {}), remoteSt = ls.get('mj_rst', 0);
+const myName = () => String(ls.get('gs_name', '') || '').trim().slice(0, 16);
+const totalStars = () => Object.keys(best).reduce((a, k) => a + (BYID.has(k) ? best[k].st | 0 : 0), 0);
+const wait = ms => new Promise(r => setTimeout(r, ms));
+const rows = (arr, me, val) => '<div class="lb">' + arr.map(e => '<div class="' + (e.u === me ? 'me' : '') + '"><span class="rk">' + (e.rank <= 3 ? ['🥇', '🥈', '🥉'][e.rank - 1] : e.rank) + '</span><span class="nm">' + esc(e.n) + (e.u === me ? ' (toi)' : '') + '</span><b>' + val(e) + '</b></div>').join('') + '</div>';
+async function publishScore(v){
+  const n = myName(); if (n.length < 2) return false;
+  const u = await FBA.ready(), st = Math.max(totalStars(), remoteSt), g = (ls.get('arc_mille', {}).g) | 0, b = v && best[v.id], body = {['mj/tot/' + u]: {n, st, g, t: Date.now(), u}, ['rl/' + u + '/m']: SV};
+  const vk = v ? 'mj/v/' + v.id + '/' + u : null; if (b && b.s > (sent[v.id] || 0)) body[vk] = {n, s: b.s, t: Date.now(), u};
+  for (let k = 0; k < 3; k++) {
+    const r = await fetch(await FBA.url(DB, '/'), {method: 'PATCH', body: JSON.stringify(body)}).catch(() => null);
+    if (r && r.ok) { if (vk && body[vk]) { sent[v.id] = b.s; ls.set('mj_sent', sent); } remoteSt = st; ls.set('mj_rst', st); return true; }
+    if (k === 1 && vk) delete body[vk]; // un meilleur score existe déjà en ligne (autre appareil) : on n'envoie que les étoiles
+    await wait(2700); // anti-spam de la base : une écriture toutes les 2,5 s
+  }
+  return false;
+}
+async function varBoard(v, afterGame){
+  const el = $('vlb'); if (!el) return;
+  if (myName().length < 2) { el.innerHTML = '<p class="note">🏆 Choisis un pseudo pour entrer dans le classement mondial.</p><input class="inpn" id="nm" maxlength="16" placeholder="Ton pseudo" autocomplete="nickname"><div class="row" style="margin-top:8px"><button class="btn sm" id="nmOk" type="button">Valider</button></div>';
+    $('nmOk').onclick = () => { const n = $('nm').value.replace(/\s+/g, ' ').trim().slice(0, 16); if (n.length < 2) { toast('Ton pseudo doit faire au moins 2 caractères.'); return; } ls.set('gs_name', n); sfx.ok(); varBoard(v, true); }; return; }
+  el.innerHTML = '<p class="note">🏆 Classement mondial de cette variante…</p>';
+  if (afterGame) await publishScore(v);
+  try {
+    const u = await FBA.ready(), d = await (await fetch(DB + '/mj/v/' + v.id + '.json?orderBy=%22s%22&limitToLast=100')).json() || {};
+    const arr = Object.values(d).filter(e => e && typeof e.s === 'number' && typeof e.n === 'string').sort((a, b) => b.s - a.s || a.t - b.t).map((e, i) => Object.assign(e, {rank: i + 1}));
+    if (!$('vlb')) return; const mine = arr.find(e => e.u === u), top = arr.slice(0, 5); if (mine && mine.rank > 5) top.push(mine);
+    $('vlb').innerHTML = '<p class="note" style="margin-bottom:4px">🏆 Classement mondial de cette variante' + (mine ? ' : tu es <b style="color:var(--gold)">n°' + mine.rank + '</b> sur ' + arr.length : '') + '</p>' + (arr.length ? rows(top, u, e => fmt(e.s)) : '<p class="note">Personne encore : sois le premier !</p>');
+  } catch(e) { if ($('vlb')) $('vlb').innerHTML = '<p class="note">Classement indisponible (connexion ?).</p>'; }
+}
+async function globalBoard(){
+  modal('🏆 Classement mondial', '<p class="note">Les joueurs qui ont gagné le plus d\'étoiles sur les ' + fmt(V.length) + ' mini-jeux.</p><div class="lbbox" id="glb"><p class="note">Chargement…</p></div>' + (myName().length < 2 ? '<p class="note">Choisis un pseudo à la fin d\'une partie pour y apparaître.</p>' : ''), [['Fermer']]);
+  try {
+    if (myName().length >= 2 && totalStars() > remoteSt) await publishScore(null);
+    const u = await FBA.ready(), d = await (await fetch(DB + '/mj/tot.json?orderBy=%22st%22&limitToLast=100')).json() || {};
+    const arr = Object.values(d).filter(e => e && typeof e.st === 'number' && typeof e.n === 'string').sort((a, b) => b.st - a.st || b.g - a.g).map((e, i) => Object.assign(e, {rank: i + 1}));
+    if (!$('glb')) return; const mine = arr.find(e => e.u === u);
+    $('glb').innerHTML = (mine ? '<p class="note" style="margin-bottom:6px">Tu es <b style="color:var(--gold)">n°' + mine.rank + '</b> avec ⭐ ' + fmt(mine.st) + '</p>' : '') + (arr.length ? rows(arr.slice(0, 50), u, e => '⭐ ' + fmt(e.st)) : '<p class="note">Personne encore : sois le premier !</p>');
+  } catch(e) { if ($('glb')) $('glb').innerHTML = '<p class="note">Classement indisponible (connexion ?).</p>'; }
+}
+$('lbBtn').onclick = () => { sfx.click(); globalBoard(); };
+// au chargement : récupère tes étoiles déjà en ligne (si tu as joué sur un autre appareil ou vidé le navigateur)
+FBA.ready().then(u => fetch(DB + '/mj/tot/' + u + '.json')).then(r => r.json()).then(d => { if (d && typeof d.st === 'number' && d.st > remoteSt) { remoteSt = d.st; ls.set('mj_rst', d.st); } }).catch(() => {});
 function quit(){ if (game) { game.stop(); game = null; } closeModal(); $('player').classList.add('hide'); $('stage').innerHTML = ''; document.body.style.overflow = ''; try { history.replaceState(null, '', location.pathname); } catch(e) {} render(); }
 $('pQuit').onclick = () => { sfx.click(); quit(); };
 addEventListener('keydown', e => { if (e.code === 'Escape' && !$('player').classList.contains('hide') && !$('modal')) quit(); });
