@@ -58,9 +58,11 @@ async function init(){
   $('chk').onclick = check; $('act').onclick = activate; list(); reqs(); players(); $('clrChat').onclick = clearChat; clearInterval(window.__iv); window.__iv = setInterval(() => { reqs(); players(); }, 15000);
   if ($('out')) $('out').onclick = async () => { await FBA.signOut(); toast('Déconnecté'); init(); };
 }
+const KIND = {pass: {l: '⭐ Pass premium', n: 0}, t5: {l: '⏫ +5 paliers', n: 5}, t10: {l: '⏫ +10 paliers', n: 10}};
+const kindOf = key => KIND[key.split('_')[1]] ? key.split('_')[1] : 'pass';
 async function reqs(){
   try { const d = await get('/payreq') || {}; const e = Object.entries(d).sort((a, b) => (a[1].t || 0) - (b[1].t || 0));
-    $('reqs').innerHTML = e.length ? e.map(([k, v]) => '<div class="li" style="flex-wrap:wrap;align-items:center"><span><b>' + k.replace(/(.{4})(?=.)/g, '$1-') + '</b><br>' + esc(v.n || 'sans pseudo') + ' · ' + ((v.a | 0) / 100).toFixed(2).replace('.', ',') + ' € · ' + new Date(v.t || 0).toLocaleString('fr-FR') + '</span><span class="row"><button class="btn sm" data-ok="' + k + '" type="button">⭐ Activer</button><button class="btn ghost sm" data-no="' + k + '" type="button">Refuser</button></span></div>').join('') : 'Aucune demande en attente. 🎉';
+    $('reqs').innerHTML = e.length ? e.map(([k, v]) => '<div class="li" style="flex-wrap:wrap;align-items:center"><span><b>' + k.split('_')[0].replace(/(.{4})(?=.)/g, '$1-') + '</b> · ' + KIND[kindOf(k)].l + '<br>' + esc(v.n || 'sans pseudo') + ' · ' + ((v.a | 0) / 100).toFixed(2).replace('.', ',') + ' € · ' + new Date(v.t || 0).toLocaleString('fr-FR') + '</span><span class="row"><button class="btn sm" data-ok="' + k + '" type="button">⭐ Activer</button><button class="btn ghost sm" data-no="' + k + '" type="button">Refuser</button></span></div>').join('') : 'Aucune demande en attente. 🎉';
     document.title = (e.length ? '(' + e.length + ') ' : '') + 'Admin — Arcade Néon';
   } catch(x) { $('reqs').textContent = 'Liste indisponible.'; }
 }
@@ -73,16 +75,20 @@ const adminWrite = async (path, method, body) => { const t = await FBA.token(); 
 async function clearChat(){ if (!confirm('Effacer tous les messages du chat ?')) return; const r = await adminWrite('/world/chat', 'DELETE'); toast(r.ok ? '🧹 Chat vidé' : 'Refusé'); }
 document.addEventListener('click', async e => {
   const ok = e.target.closest('[data-ok]'), no = e.target.closest('[data-no]'), kick = e.target.closest('[data-kick]');
-  if (ok) { const code = ok.dataset.ok; if (!confirm('As-tu bien reçu le paiement PayPal avec le code ' + code + ' ?')) return;
-    const r = await adminWrite('/', 'PATCH', {['premium/' + code]: {season: 's1', t: {'.sv': 'timestamp'}, by: UID}, ['payreq/' + code]: null}); toast(r.ok ? '⭐ Pass activé !' : 'Refusé par la base'); if (r.ok) sfx.win(); reqs(); list(); }
+  if (ok) { const key = ok.dataset.ok, code = key.split('_')[0], kd = kindOf(key), K = KIND[kd]; if (!confirm('As-tu bien reçu le paiement PayPal avec le code ' + code + ' (' + K.l + ') ?')) return;
+    const body = kd === 'pass' ? {['premium/' + code]: {season: 's1', t: {'.sv': 'timestamp'}, by: UID}} : {['tiers/' + code + '/' + Date.now().toString(36)]: {n: K.n, s: 's1', t: {'.sv': 'timestamp'}, by: UID}};
+    body['payreq/' + key] = null;
+    const r = await adminWrite('/', 'PATCH', body); toast(r.ok ? (kd === 'pass' ? '⭐ Pass activé !' : K.l + ' ajoutés !') : 'Refusé par la base'); if (r.ok) sfx.win(); reqs(); list(); }
   if (no) { if (!confirm('Refuser cette demande (paiement non reçu) ?')) return; const r = await adminWrite('/payreq/' + no.dataset.no, 'DELETE'); toast(r.ok ? 'Demande refusée' : 'Refusé'); reqs(); }
   if (kick) { if (!confirm('Retirer ce joueur du monde ?')) return; const r = await adminWrite('/world/players/' + kick.dataset.kick, 'DELETE'); toast(r.ok ? 'Joueur retiré' : 'Refusé'); players(); }
 });
 async function check(){
   const code = norm($('code').value); if (!/^[A-Z2-9]{12}$/.test(code)) { $('res').textContent = 'Code invalide : il faut 12 caractères.'; return null; }
-  const [save, prem] = await Promise.all([fetch(DB + '/save/' + code + '.json').then(r => r.json()).catch(() => null), get('/premium/' + code).catch(() => null)]);
-  $('res').innerHTML = save ? '👤 Joueur : <b>' + esc(save.n || 'sans pseudo') + '</b> · 💠 ' + (save.j | 0) + ' · niveau ' + Math.min(30, Math.floor((save.xp | 0) / 100)) + '<br>' + (prem ? '⭐ Pass déjà activé le ' + new Date(prem.t).toLocaleString('fr-FR') + ' <button class="btn ghost sm" id="del" type="button">Retirer le pass</button>' : 'Pass non activé.') : '⚠️ Aucune sauvegarde avec ce code : vérifie qu\'il est bien recopié.';
+  const [save, prem, tiers] = await Promise.all([fetch(DB + '/save/' + code + '.json').then(r => r.json()).catch(() => null), get('/premium/' + code).catch(() => null), get('/tiers/' + code).catch(() => null)]);
+  const tn = tiers ? Object.values(tiers).reduce((s, g) => s + (g.n | 0), 0) : 0;
+  $('res').innerHTML = save ? '👤 Joueur : <b>' + esc(save.n || 'sans pseudo') + '</b> · 💠 ' + (save.j | 0) + ' · niveau ' + Math.min(30, Math.floor((save.xp | 0) / 100) + tn) + '<br>' + (prem ? '⭐ Pass déjà activé le ' + new Date(prem.t).toLocaleString('fr-FR') + ' <button class="btn ghost sm" id="del" type="button">Retirer le pass</button>' : 'Pass non activé.') + (tn ? '<br>⏫ ' + tn + ' paliers achetés <button class="btn ghost sm" id="delT" type="button">Retirer les paliers</button>' : '') : '⚠️ Aucune sauvegarde avec ce code : vérifie qu\'il est bien recopié.';
   if (prem && $('del')) $('del').onclick = () => remove(code);
+  if (tn && $('delT')) $('delT').onclick = async () => { if (!confirm('Retirer les ' + tn + ' paliers achetés par ' + code + ' (remboursement) ?')) return; const r = await adminWrite('/tiers/' + code, 'DELETE'); toast(r.ok ? 'Paliers retirés.' : 'Refusé.'); check(); };
   return {code, save, prem};
 }
 async function activate(){

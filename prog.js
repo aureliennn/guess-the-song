@@ -33,7 +33,8 @@
   const blank = () => ({j: 150, xp: 0, sh: 0, prem: false, pc: '', pp: '', d: {n: 0, last: ''}, b: 1, cards: {}, code: '', t: 0});
   let S = Object.assign(blank(), ls.get(KEY, {})); const subs = [];
   const emit = () => { S.t = Date.now(); ls.set(KEY, S); subs.forEach(f => { try { f(S); } catch(e) {} }); schedule(); };
-  const level = () => Math.min(SEASON.levels, Math.floor(S.xp / SEASON.xp)), give = r => { if (!r) return; if (r.j) S.j += r.j; if (r.sh) S.sh += r.sh; if (r.b) S.b += r.b; if (r.c) S.cards[r.c] = (S.cards[r.c] | 0) + 1; };
+  let TB = 0; // paliers achetés en euros (tiers/<code>, écrits par l'admin) : s'ajoutent au niveau, jamais effacés par la synchro
+  const level = () => Math.min(SEASON.levels, Math.floor(S.xp / SEASON.xp) + TB), give = r => { if (!r) return; if (r.j) S.j += r.j; if (r.sh) S.sh += r.sh; if (r.b) S.b += r.b; if (r.c) S.cards[r.c] = (S.cards[r.c] | 0) + 1; };
   const rewardText = r => [r.j ? '💠 ' + r.j : '', r.sh ? '✨ ' + r.sh + ' éclats' : '', r.b ? '📦 ' + r.b + ' booster' + (r.b > 1 ? 's' : '') : '', r.c ? '🃏 ' + BYID[r.c].n : ''].filter(Boolean).join(' · ');
   const roll = fam => { let x = Math.random(), r = 0; for (; r < 4 && x > ODDS[r]; r++) x -= ODDS[r]; let pool = DROP.filter(c => c.r === r && (!fam || c.f === fam)); while (!pool.length && r > 0) { r--; pool = DROP.filter(c => c.r === r && (!fam || c.f === fam)); } return pool[Math.random() * pool.length | 0]; };
   /* ---------- sauvegarde en ligne (code secret) ---------- */
@@ -59,7 +60,20 @@
   let PAID = false; // pass acheté (premium/<code>) : la synchro ne doit jamais l'effacer
   /* ---------- paiement réel du Pass via Revolut Business (désactivé tant que le serveur n'est pas en ligne) ---------- */
   // version simple : lien de paiement (PayPal, Revolut ou Stripe) + activation par l'admin (admin.html). Mets le lien et passe enabled à true.
-  const PAY = {enabled: false, link: 'https://paypal.me/Aurelienrcxo/2.99EUR', name: 'PayPal', price: '2,99 €', season: 's1'};
+  const PAY = {enabled: false, link: 'https://paypal.me/Aurelienrcxo/2.99EUR', me: 'https://paypal.me/Aurelienrcxo/', name: 'PayPal', price: '2,99 €', season: 's1'};
+  // offres en euros : le Pass premium (une fois par saison) et des packs de paliers (jamais de cartes au hasard)
+  const OFFERS = {
+    pass: {k: 'pass', a: 299, price: '2,99 €', label: 'Pass premium', n: 0},
+    t5: {k: 't5', a: 199, price: '1,99 €', label: '+5 paliers du Pass', n: 5},
+    t10: {k: 't10', a: 349, price: '3,49 €', label: '+10 paliers du Pass', n: 10}
+  };
+  const payLink = k => PAY.me + (OFFERS[k].a / 100).toFixed(2) + 'EUR';
+  async function checkTiers(){ // somme des paliers achetés (tiers/<code>), validés par l'admin
+    if (!S.code) return TB;
+    try { const d = await (await fetch(DB + '/tiers/' + S.code + '.json')).json(); let n = 0; if (d && typeof d === 'object') Object.values(d).forEach(g => { if (g && g.s === PAY.season) n += g.n | 0; });
+      if (n !== TB) { TB = n; ls.set('arc_tb', {c: S.code, n}); subs.forEach(f => { try { f(S); } catch(e) {} }); } } catch(e) {}
+    return TB;
+  }
   async function checkPaid(){ // le serveur écrit premium/<code> après un paiement confirmé par Stripe
     if (!S.code) return false;
     try { const d = await (await fetch(DB + '/premium/' + S.code + '.json')).json(); if (d && d.season === PAY.season) { PAID = true; if (!S.prem) { S.prem = true; emit(); } return true; } } catch(e) {}
@@ -90,22 +104,23 @@
     tierCost,
     buyTiers(n){ const lv = level(); n = Math.min(n | 0, SEASON.levels - lv); if (n < 1) return 0; const p = tierCost(n);
       if (!ADMIN) { if (S.j < p) return 0; S.j -= p; }
-      S.xp = lv + n >= SEASON.levels ? SEASON.levels * SEASON.xp : (lv + n) * SEASON.xp + S.xp % SEASON.xp; emit(); return n; },
+      S.xp = lv + n >= SEASON.levels ? Math.max(S.xp, (SEASON.levels - TB) * SEASON.xp) : S.xp + n * SEASON.xp; emit(); return n; },
     isAdmin: () => ADMIN,
     unlockAll(){ if (!ADMIN) return 0; let n = 0; CARDS.forEach(c => { if (!S.cards[c.id]) { S.cards[c.id] = 1; n++; } }); S.prem = true; emit(); return n; },
     // demande de vérification de paiement envoyée à la console admin (payreq/<code>)
-    async requestPay(){ const u = await FBA.ready(), code = this.code(), body = {['payreq/' + code]: {n: String(ls.get('gs_name', '') || '').slice(0, 16), a: 299, u, t: {'.sv': 'timestamp'}}, ['rl/' + u + '/p']: {'.sv': 'timestamp'}};
+    async requestPay(k){ const o = OFFERS[k] || OFFERS.pass, u = await FBA.ready(), code = this.code(), key = code + (o.k === 'pass' ? '' : '_' + o.k), body = {['payreq/' + key]: {n: String(ls.get('gs_name', '') || '').slice(0, 16), a: o.a, k: o.k, u, t: {'.sv': 'timestamp'}}, ['rl/' + u + '/p']: {'.sv': 'timestamp'}};
       try { const r = await fetch(await FBA.url(DB, '/'), {method: 'PATCH', body: JSON.stringify(body)}); return r.ok ? 'ok' : 'attente'; } catch(e) { return 'reseau'; } },
     code: () => { if (!S.code) { S.code = newCode(); ls.set(KEY, S); schedule(); } return S.code; },
     async restore(code){ code = String(code || '').toUpperCase().replace(/[^A-Z0-9]/g, ''); if (!/^[A-Z2-9]{12}$/.test(code)) return 'format';
-      try { const d = await (await fetch(DB + '/save/' + code + '.json')).json(); if (!d || typeof d.t !== 'number') return 'absent'; S = fromRemote(d); S.code = code; S.t = Date.now(); PAID = false; ls.set(KEY, S); subs.forEach(f => f(S)); schedule(); checkPaid(); return 'ok'; } catch(e) { return 'reseau'; } },
+      try { const d = await (await fetch(DB + '/save/' + code + '.json')).json(); if (!d || typeof d.t !== 'number') return 'absent'; S = fromRemote(d); S.code = code; S.t = Date.now(); PAID = false; TB = 0; ls.set(KEY, S); subs.forEach(f => f(S)); schedule(); checkPaid(); checkTiers(); return 'ok'; } catch(e) { return 'reseau'; } },
     syncNow: push, pull,
-    PAY, checkPaid,
+    PAY, OFFERS, payLink, checkPaid, checkTiers, tiersBought: () => TB,
     async startPayment(accords){ if (!PAY.enabled) return 'off'; if (!accords || !accords.majeur || !accords.retractation) return 'accords';
       try { const tok = await FBA.token(), r = await fetch(PAY.url, {method: 'POST', headers: {'Content-Type': 'application/json', Authorization: 'Bearer ' + tok}, body: JSON.stringify({code: this.code(), accords})}); const d = await r.json().catch(() => ({}));
         if (r.ok && d.url && /^https:\/\/([a-z0-9-]+\.)*revolut\.com\//.test(d.url)) { location.href = d.url; return 'ok'; } return d.err || 'erreur'; } catch(e) { return 'reseau'; } }
   };
   let ADMIN = false;
   if (window.FBA) FBA.isAdmin().then(a => { ADMIN = !!a; if (ADMIN && !S.prem) { S.prem = true; emit(); } else if (ADMIN) subs.forEach(f => { try { f(S); } catch(e) {} }); });
-  if (S.code) { pull().then(checkPaid); } else if (window.FBA) schedule(3000);
+  try { const c = ls.get('arc_tb', null); if (c && c.c === S.code) TB = c.n | 0; } catch(e) {}
+  if (S.code) { pull().then(() => { checkPaid(); checkTiers(); }); } else if (window.FBA) schedule(3000);
 })();

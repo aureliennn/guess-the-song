@@ -102,7 +102,8 @@ function tierRow(lv, S){
   const left = P.SEASON.levels - lv, adm = P.isAdmin();
   if (left < 1) return '<p class="note" style="margin-top:8px">🏆 Niveau maximum atteint !</p>';
   const b = n => { const c = P.tierCost(n); return '<button class="btn ghost sm" data-tier="' + n + '" type="button"' + (!adm && S.j < c ? ' disabled' : '') + '>⏫ +' + n + ' palier' + (n > 1 ? 's' : '') + ' · ' + (adm ? 'gratuit' : fmt(c) + ' 💠') + '</button>'; };
-  return '<div class="row" style="margin-top:8px">' + b(1) + (left >= 5 ? b(5) : '') + (adm && left > 5 ? '<button class="btn ghost sm" data-tier="' + left + '" type="button">🚀 Niveau max · gratuit</button>' : '') + '</div>';
+  return '<div class="row" style="margin-top:8px">' + b(1) + (left >= 5 ? b(5) : '') + (adm && left > 5 ? '<button class="btn ghost sm" data-tier="' + left + '" type="button">🚀 Niveau max · gratuit</button>' : '') + '</div>' +
+    (PAYON && !adm && left >= 5 ? '<div class="row" style="margin-top:6px">' + ['t5', 't10'].filter(k => left >= P.OFFERS[k].n).map(k => '<button class="btn ghost sm" data-payk="' + k + '" type="button">💳 ' + P.OFFERS[k].label.replace(' du Pass', '') + ' · ' + P.OFFERS[k].price + '</button>').join('') + '</div>' : '');
 }
 function render(){
   header(); const S = P.get(), V = $('view');
@@ -161,7 +162,8 @@ document.addEventListener('click', async e => {
   if (e.target.id === 'claim') { const r = P.claimDaily(); if (r) { sfx.win(); toast('🎁 Jour ' + (r.day + 1) + ' : ' + P.rewardText(r.r) + ' · +60 XP'); render(); } return; }
   if (e.target.id === 'openFree') { showPack(P.open(null, true), 'Booster offert'); return; }
   const pl = e.target.closest('[data-pl],[data-pp]'); if (pl) { const prem = !!pl.dataset.pp, l = +(pl.dataset.pl || pl.dataset.pp), r = P.claimPass(l, prem); if (r) { sfx.ok(); toast('Niveau ' + l + ' : ' + P.rewardText(r)); render(); } return; }
-  if (e.target.id === 'payBtn') { payDialog(); return; }
+  if (e.target.id === 'payBtn') { payDialog('pass'); return; }
+  if (e.target.dataset && e.target.dataset.payk) { payDialog(e.target.dataset.payk); return; }
   if (e.target.dataset && e.target.dataset.tier) { const n = P.buyTiers(+e.target.dataset.tier); if (n) { sfx.win(); toast('⏫ +' + n + ' palier' + (n > 1 ? 's' : '') + ' : niveau ' + P.level() + ' ! Récupère tes récompenses.'); render(); } else toast('Pas assez de jetons 💠'); return; }
   if (e.target.id === 'prem') { if (P.buyPremium()) { sfx.win(); toast('⭐ Pass premium débloqué !'); render(); } return; }
   const b = e.target.closest('[data-buy]'); if (b) { const f = b.dataset.f, res = P.buy(b.dataset.buy, f); if (!res) { toast('Pas assez de jetons.'); return; } showPack(res, f ? 'Booster ' + P.FAM[f].n : 'Booster classique'); return; }
@@ -175,25 +177,27 @@ document.addEventListener('click', async e => {
 });
 /* achat contrôlé, version simple : accord majeur/parent + rétractation, paiement par lien (PayPal/Revolut/Stripe) avec le code de sauvegarde en message, activation par l'admin */
 let payWait = 0;
-function payDialog(){
-  modal('💳 Acheter le Pass premium', '<p class="note">Pass premium de la ' + esc(P.SEASON.n) + ' : <b style="color:var(--txt)">' + P.PAY.price + '</b>, une seule fois. Il débloque la voie premium (cartes exclusives, boosters en plus). Aucun abonnement, aucun achat de cartes au hasard.</p>' +
+function payDialog(k){
+  const o = P.OFFERS[k] || P.OFFERS.pass;
+  modal('💳 ' + (o.k === 'pass' ? 'Acheter le Pass premium' : 'Acheter ' + o.label), '<p class="note">' + (o.k === 'pass' ? 'Pass premium de la ' + esc(P.SEASON.n) + ' : <b style="color:var(--txt)">' + o.price + '</b>, une seule fois. Il débloque la voie premium (cartes exclusives, boosters en plus).' : '<b style="color:var(--txt)">' + o.label + ' : ' + o.price + '</b>. Ton niveau du Pass monte de ' + o.n + ' (sans dépasser le niveau ' + P.SEASON.levels + ') et tu récupères les récompenses de ces paliers. Les paliers comptent pour cette saison seulement.') + ' Aucun abonnement, aucun achat de cartes au hasard.</p>' +
     '<label class="note" style="display:flex;gap:8px;text-align:left;align-items:flex-start;margin-top:8px"><input type="checkbox" id="ckAge" style="margin-top:3px"> J\'ai 18 ans ou plus, ou un parent a donné son accord pour cet achat.</label>' +
     '<label class="note" style="display:flex;gap:8px;text-align:left;align-items:flex-start"><input type="checkbox" id="ckRet" style="margin-top:3px"> Je demande l\'activation du pass dès réception du paiement et je renonce à mon droit de rétractation de 14 jours.</label>' +
     '<p class="note"><a href="legal.html" target="_blank" rel="noopener">Lire les conditions de vente</a> · paiement par ' + esc(P.PAY.name) + ', le site ne voit jamais ta carte.</p>',
     [['Continuer', () => { if (!$('ckAge').checked || !$('ckRet').checked) { toast('Coche les deux cases pour continuer.'); return false; }
-      if ((!P.PAY.enabled && !/[?&]testpay=1/.test(location.search)) || !/^https:\/\/(([a-z0-9-]+\.)*revolut\.(com|me)|(www\.)?paypal\.(me|com)|buy\.stripe\.com)\//.test(P.PAY.link)) { toast('Le paiement n\'est pas encore ouvert.'); return false; }
-      setTimeout(payStep2, 50); }], ['Annuler', null, true]]);
+      if ((!P.PAY.enabled && !/[?&]testpay=1/.test(location.search)) || !/^https:\/\/(([a-z0-9-]+\.)*revolut\.(com|me)|(www\.)?paypal\.(me|com)|buy\.stripe\.com)\//.test(P.payLink(o.k))) { toast('Le paiement n\'est pas encore ouvert.'); return false; }
+      setTimeout(() => payStep2(o.k), 50); }], ['Annuler', null, true]]);
 }
-function payStep2(){
-  const code = P.code(), nice = code.replace(/(.{4})(?=.)/g, '$1-');
+function payStep2(k){
+  const o = P.OFFERS[k] || P.OFFERS.pass, what = o.k === 'pass' ? 'le pass' : 'les paliers', code = P.code(), nice = code.replace(/(.{4})(?=.)/g, '$1-');
   modal('💳 Paiement', '<p class="note">1. Copie ton code :</p><div class="codebox">' + nice + '</div><button class="btn ghost sm" id="payCopy" type="button">📋 Copier le code</button>' +
-    '<p class="note">2. Paie <b style="color:var(--txt)">' + P.PAY.price + '</b> avec Revolut et <b style="color:var(--gold)">colle ce code dans le message du paiement</b> (sinon on ne saura pas à qui activer le pass).</p>' +
-    '<a class="btn" href="' + esc(P.PAY.link) + '" target="_blank" rel="noopener">Payer avec ' + esc(P.PAY.name) + ' ↗</a>' +
-    '<p class="note">3. Ton pass s\'active automatiquement dès que le paiement est vérifié (en général dans la journée). Garde ton code : il sert aussi de preuve d\'achat.</p>',
-    [['J\'ai payé', () => { P.requestPay().then(r => toast(r === 'ok' ? '📨 Demande envoyée : le pass apparaîtra ici dès que le paiement sera vérifié.' : r === 'attente' ? 'Demande déjà envoyée, patiente un peu.' : 'Pas de connexion, réessaie.')); clearInterval(payWait); payWait = setInterval(async () => { if (await P.checkPaid()) { clearInterval(payWait); sfx.win(); toast('⭐ Ton Pass premium est activé !'); tab = 'pass'; render(); } }, 20000); }], ['Fermer', null, true]]);
+    '<p class="note">2. Paie <b style="color:var(--txt)">' + o.price + '</b> avec ' + esc(P.PAY.name) + ' et <b style="color:var(--gold)">colle ce code dans le message du paiement</b> (sinon on ne saura pas à qui activer ' + what + ').</p>' +
+    '<a class="btn" href="' + esc(P.payLink(o.k)) + '" target="_blank" rel="noopener">Payer avec ' + esc(P.PAY.name) + ' ↗</a>' +
+    '<p class="note">3. ' + (o.k === 'pass' ? 'Ton pass s\'active' : 'Tes paliers s\'ajoutent') + ' automatiquement dès que le paiement est vérifié (en général dans la journée). Garde ton code : il sert aussi de preuve d\'achat.</p>',
+    [['J\'ai payé', () => { const tb0 = P.tiersBought(); P.requestPay(o.k).then(r => toast(r === 'ok' ? '📨 Demande envoyée : ' + what + ' apparaîtr' + (o.k === 'pass' ? 'a' : 'ont') + ' ici dès que le paiement sera vérifié.' : r === 'attente' ? 'Demande déjà envoyée, patiente un peu.' : 'Pas de connexion, réessaie.')); clearInterval(payWait); payWait = setInterval(async () => { const done = o.k === 'pass' ? await P.checkPaid() : (await P.checkTiers()) > tb0; if (done) { clearInterval(payWait); sfx.win(); toast(o.k === 'pass' ? '⭐ Ton Pass premium est activé !' : '⏫ ' + o.label + ' ajoutés : niveau ' + P.level() + ' !'); tab = 'pass'; render(); } }, 20000); }], ['Fermer', null, true]]);
   $('payCopy').onclick = async () => { try { await navigator.clipboard.writeText(nice); toast('Code copié !'); } catch(e) { toast('Code : ' + nice); } };
 }
 // chaque visite : si l'admin a activé le pass, il apparaît
+P.checkTiers().then(n => { if (n && tab === 'pass' && $('pack').classList.contains('hide') && !$('modal')) render(); });
 P.checkPaid().then(ok => { if (ok && P.get().prem && $('pack').classList.contains('hide') && !$('modal')) render(); });
 P.on(() => { if ($('pack').classList.contains('hide') && !$('modal')) header(); });
 render();
