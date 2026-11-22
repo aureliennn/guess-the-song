@@ -97,6 +97,13 @@ function header(){
   $('lvl').innerHTML = '<b>Niv. ' + lv + '</b><div><div class="note" style="margin-bottom:4px">' + esc(P.SEASON.n) + ' · encore ' + P.daysLeft() + ' jours</div><div class="bar"><i style="width:' + (lv >= P.SEASON.levels ? 100 : P.xpIn()) + '%"></i></div></div><span class="note">' + (lv >= P.SEASON.levels ? 'MAX' : P.xpIn() + ' / ' + P.SEASON.xp + ' XP') + '</span>';
   $('tabs').innerHTML = TABS.map(([k, n]) => '<button type="button" data-t="' + k + '" class="' + (k === tab ? 'on' : '') + '">' + n + (k === 'rec' && P.canDaily() ? ' 🔴' : '') + '</button>').join('');
 }
+// achat de paliers du Pass (jetons ; gratuit pour l'admin)
+function tierRow(lv, S){
+  const left = P.SEASON.levels - lv, adm = P.isAdmin();
+  if (left < 1) return '<p class="note" style="margin-top:8px">🏆 Niveau maximum atteint !</p>';
+  const b = n => { const c = P.tierCost(n); return '<button class="btn ghost sm" data-tier="' + n + '" type="button"' + (!adm && S.j < c ? ' disabled' : '') + '>⏫ +' + n + ' palier' + (n > 1 ? 's' : '') + ' · ' + (adm ? 'gratuit' : fmt(c) + ' 💠') + '</button>'; };
+  return '<div class="row" style="margin-top:8px">' + b(1) + (left >= 5 ? b(5) : '') + (adm && left > 5 ? '<button class="btn ghost sm" data-tier="' + left + '" type="button">🚀 Niveau max · gratuit</button>' : '') + '</div>';
+}
 function render(){
   header(); const S = P.get(), V = $('view');
   if (tab === 'rec') {
@@ -108,7 +115,7 @@ function render(){
   } else if (tab === 'pass') {
     const lv = P.level();
     let h = '<div class="sec"><div class="box glass"><h3>🎫 ' + esc(P.SEASON.n) + '</h3><p class="note">Gagne de l\'XP en jouant pour monter de niveau. La voie gratuite est pour tout le monde ; la voie premium (cartes exclusives, plus de boosters) se débloque avec ' + P.PRICES.premium + ' 💠 gagnés en jouant' + (PAYON ? ', ou en l\'achetant (' + P.PAY.price + ', une seule fois par saison, jamais de cartes au hasard contre de l\'argent).' : ', jamais avec de l\'argent réel.') + '</p>' +
-      (S.prem ? '<span class="chip" style="margin-top:8px">⭐ Pass premium actif</span>' : '<div class="row" style="margin-top:8px"><button class="btn sm" id="prem" type="button"' + (S.j < P.PRICES.premium && !P.isAdmin() ? ' disabled' : '') + '>⭐ Débloquer · ' + P.PRICES.premium + ' 💠</button>' + (PAYON ? '<button class="btn ghost sm" id="payBtn" type="button">💳 Acheter · ' + P.PAY.price + '</button>' : '') + '</div>') + (PAYON ? '<p class="note" style="margin-top:6px"><a href="legal.html">Conditions de vente et mentions légales</a></p>' : '') + '</div><div class="passlab"><span>Ligne du haut : gratuit</span><span>Ligne du bas : ⭐ premium</span></div><div class="pass" id="passRow">';
+      (S.prem ? '<span class="chip" style="margin-top:8px">⭐ Pass premium actif</span>' : '<div class="row" style="margin-top:8px"><button class="btn sm" id="prem" type="button"' + (S.j < P.PRICES.premium && !P.isAdmin() ? ' disabled' : '') + '>⭐ Débloquer · ' + P.PRICES.premium + ' 💠</button>' + (PAYON ? '<button class="btn ghost sm" id="payBtn" type="button">💳 Acheter · ' + P.PAY.price + '</button>' : '') + '</div>') + tierRow(lv, S) + (PAYON ? '<p class="note" style="margin-top:6px"><a href="legal.html">Conditions de vente et mentions légales</a></p>' : '') + '</div><div class="passlab"><span>Ligne du haut : gratuit</span><span>Ligne du bas : ⭐ premium</span></div><div class="pass" id="passRow">';
     for (let l = 1; l <= P.SEASON.levels; l++) { const fr = P.passFree(l), pr = P.passPrem(l), gf = P.passClaimed(l, false), gp = P.passClaimed(l, true), ok = l <= lv;
       h += '<div class="pl"><div class="n' + (ok ? ' on' : '') + '">' + l + '</div>' +
         '<div class="rw' + (gf ? ' got' : !ok ? ' lock' : '') + '"><span class="ic">' + rwIcon(fr) + '</span><span>' + rwTxt(fr) + '</span>' + (ok && !gf ? '<button class="btn sm" data-pl="' + l + '" type="button">Prendre</button>' : '') + '</div>' +
@@ -155,6 +162,7 @@ document.addEventListener('click', async e => {
   if (e.target.id === 'openFree') { showPack(P.open(null, true), 'Booster offert'); return; }
   const pl = e.target.closest('[data-pl],[data-pp]'); if (pl) { const prem = !!pl.dataset.pp, l = +(pl.dataset.pl || pl.dataset.pp), r = P.claimPass(l, prem); if (r) { sfx.ok(); toast('Niveau ' + l + ' : ' + P.rewardText(r)); render(); } return; }
   if (e.target.id === 'payBtn') { payDialog(); return; }
+  if (e.target.dataset && e.target.dataset.tier) { const n = P.buyTiers(+e.target.dataset.tier); if (n) { sfx.win(); toast('⏫ +' + n + ' palier' + (n > 1 ? 's' : '') + ' : niveau ' + P.level() + ' ! Récupère tes récompenses.'); render(); } else toast('Pas assez de jetons 💠'); return; }
   if (e.target.id === 'prem') { if (P.buyPremium()) { sfx.win(); toast('⭐ Pass premium débloqué !'); render(); } return; }
   const b = e.target.closest('[data-buy]'); if (b) { const f = b.dataset.f, res = P.buy(b.dataset.buy, f); if (!res) { toast('Pas assez de jetons.'); return; } showPack(res, f ? 'Booster ' + P.FAM[f].n : 'Booster classique'); return; }
   const ff = e.target.closest('#famF [data-f]'); if (ff) { famF = ff.dataset.f; render(); return; }

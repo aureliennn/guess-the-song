@@ -26,7 +26,8 @@
   const passFree = l => l % 5 === 0 ? {b: 1} : {j: 20 + l * 2};
   const passPrem = l => l === 10 ? {c: 'ps2'} : l === 20 ? {c: 'ps1'} : l === 30 ? {c: 'ps3'} : l % 5 === 0 ? {b: 2} : l % 2 ? {j: 40 + l * 3} : {sh: 30 + l * 4};
   const DAILY = [{j: 20}, {j: 30}, {j: 40, sh: 20}, {j: 50}, {j: 60, b: 1}, {j: 80, sh: 50}, {j: 120, b: 2}];
-  const PRICES = {booster: 100, family: 160, premium: 500};
+  const PRICES = {booster: 100, family: 160, premium: 500, tier: 150, tier5: 650};
+  const tierCost = n => n >= 5 ? Math.round(PRICES.tier5 * n / 5) : PRICES.tier * n; // pack de 5 paliers moins cher
   const today = () => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
   const ls = {get(k, d){ try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch(e) { return d; } }, set(k, v){ try { localStorage.setItem(k, JSON.stringify(v)); } catch(e) {} }};
   const blank = () => ({j: 150, xp: 0, sh: 0, prem: false, pc: '', pp: '', d: {n: 0, last: ''}, b: 1, cards: {}, code: '', t: 0});
@@ -85,6 +86,11 @@
     claimPass(l, prem){ if ((l > level() && !ADMIN) || (prem && !S.prem)) return null; const k = prem ? 'pp' : 'pc'; const arr = S[k].padEnd(SEASON.levels, '0').split(''); if (arr[l - 1] === '1') return null; arr[l - 1] = '1'; S[k] = arr.join(''); const r = prem ? passPrem(l) : passFree(l); give(r); emit(); return r; },
     buyPremium(){ if (S.prem || (!ADMIN && S.j < PRICES.premium)) return false; if (!ADMIN) S.j -= PRICES.premium; S.prem = true; emit(); return true; },
     // mode admin : achats gratuits et illimités (vérifié par la base via FBA.isAdmin)
+    // achat de paliers du Pass avec des jetons (gratuit pour l'admin) : n paliers, limité au niveau max
+    tierCost,
+    buyTiers(n){ const lv = level(); n = Math.min(n | 0, SEASON.levels - lv); if (n < 1) return 0; const p = tierCost(n);
+      if (!ADMIN) { if (S.j < p) return 0; S.j -= p; }
+      S.xp = lv + n >= SEASON.levels ? SEASON.levels * SEASON.xp : (lv + n) * SEASON.xp + S.xp % SEASON.xp; emit(); return n; },
     isAdmin: () => ADMIN,
     unlockAll(){ if (!ADMIN) return 0; let n = 0; CARDS.forEach(c => { if (!S.cards[c.id]) { S.cards[c.id] = 1; n++; } }); S.prem = true; emit(); return n; },
     // demande de vérification de paiement envoyée à la console admin (payreq/<code>)
