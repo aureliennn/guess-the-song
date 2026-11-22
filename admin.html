@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://api.deezer.com; connect-src 'self' https://*.firebasedatabase.app wss://*.firebasedatabase.app https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://cdn.jsdelivr.net https://api.deezer.com; img-src 'self' data: blob: https:; media-src 'self' blob: https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<script>/* garde-fou : jamais de page blanche */(function(){/* anti-clickjacking : le site refuse d'être affiché dans le cadre d'un autre site */if(window.top!==window.self){var same=false;try{same=window.top.location.origin===location.origin}catch(e){}if(!same){document.documentElement.style.visibility='hidden';try{window.top.location.replace(location.href)}catch(e){}}}var t0=Date.now(),shown=0;function fix(){var p=[];try{if(navigator.serviceWorker)p.push(navigator.serviceWorker.getRegistrations().then(function(r){return Promise.all(r.map(function(x){return x.unregister()}))}));if(window.caches)p.push(caches.keys().then(function(k){return Promise.all(k.map(function(x){return caches.delete(x)}))}))}catch(e){}Promise.all(p).then(function(){location.reload()},function(){location.reload()})}window.__arcFix=fix;function show(msg){if(shown||Date.now()-t0>15000)return;shown=1;var d=document.createElement('div');d.setAttribute('role','alert');d.style.cssText='position:fixed;left:10px;right:10px;bottom:max(10px,env(safe-area-inset-bottom));z-index:99999;background:#1b1035;color:#f4f0ff;border:1px solid #b86bff;border-radius:14px;padding:12px 14px;font:14px system-ui,sans-serif;box-shadow:0 10px 30px rgba(0,0,0,.6);text-align:center';d.innerHTML='<b>Oups, la page n’a pas fini de charger.</b><div style="color:#a79fc4;font-size:12px;margin:4px 0 8px;overflow-wrap:anywhere"></div><button type="button" style="margin:3px;padding:9px 14px;border:0;border-radius:10px;background:#b86bff;color:#fff;font-weight:700">Recharger</button><button type="button" style="margin:3px;padding:9px 14px;border:1px solid #b86bff;border-radius:10px;background:none;color:#f4f0ff;font-weight:700">Réparer</button>';d.querySelector('div').textContent=String(msg).slice(0,140);var b=d.querySelectorAll('button');b[0].onclick=function(){location.reload()};b[1].onclick=fix;(document.body||document.documentElement).appendChild(d)}addEventListener('error',function(e){var g=e.target;if(g&&g!==window&&(g.tagName==='SCRIPT'||(g.tagName==='LINK'&&(g.href||'').indexOf(location.origin)===0)))show('Fichier introuvable : '+(g.src||g.href||'').split('/').pop());else if(e.message&&!/: 3d$/.test(e.message))show(e.message)},true)})();</script>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>Admin — Arcade Néon</title>
+<meta name="theme-color" content="#07040f">
+<link rel="icon" href="icon-192.png">
+<link rel="stylesheet" href="arcade.css">
+<style>
+.box{padding:16px;border-radius:18px;display:grid;gap:10px;max-width:520px;margin:0 auto 12px}
+.inp{width:100%;padding:13px 14px;border-radius:12px;border:1px solid var(--line);background:rgba(255,255,255,.06);font-size:18px;outline:0;text-transform:uppercase;letter-spacing:.1em;text-align:center}
+.uid{font-family:monospace;font-size:13px;word-break:break-all;padding:10px;border-radius:10px;background:rgba(255,255,255,.07);user-select:all;-webkit-user-select:all}
+.res{font-size:14px;line-height:1.5}
+.li{display:flex;justify-content:space-between;gap:8px;padding:8px 10px;border-radius:10px;background:rgba(255,255,255,.05);font-size:13px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top"><a class="back" href="./">← Arcade</a><h1>🔑 Admin</h1></div>
+  <div id="app" class="note">Connexion…</div>
+</div>
+<script src="arcade.js"></script>
+<script src="fbauth.js"></script>
+<script>
+const DB = 'https://guess-the-song-27134-default-rtdb.europe-west1.firebasedatabase.app';
+const norm = s => String(s || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+let UID = '';
+const get = async p => { const t = await FBA.token(); const r = await fetch(DB + p + '.json?auth=' + encodeURIComponent(t)); if (!r.ok) throw new Error(r.status); return r.json(); };
+async function init(){
+  UID = await FBA.ready(); let admin = false; try { admin = !!(await get('/admins/' + UID)); } catch(e) {}
+  if (!admin) { $('app').innerHTML = '<div class="box glass"><h3>Pas encore admin</h3><p class="note">Pour activer cet appareil comme admin, envoie cet identifiant au développeur du site (ce n\'est pas un secret, il sert juste à reconnaître ton téléphone) :</p><div class="uid">' + esc(UID) + '</div><button class="btn sm" id="cp" type="button">📋 Copier</button><p class="note">⚠️ Ouvre toujours cette page sur le même téléphone et le même navigateur, sinon il faudra recommencer.</p></div>';
+    $('cp').onclick = async () => { try { await navigator.clipboard.writeText(UID); toast('Copié !'); } catch(e) { toast(UID); } }; return; }
+  $('app').innerHTML = '<div class="box glass"><h3>✅ Activer un Pass premium</h3><p class="note">Quand tu reçois un paiement Revolut, copie le code de 12 caractères écrit dans le message, puis colle-le ici.</p>' +
+    '<input class="inp" id="code" maxlength="16" placeholder="XXXX-XXXX-XXXX" autocomplete="off"><div class="row"><button class="btn" id="chk" type="button">Vérifier</button><button class="btn" id="act" type="button">⭐ Activer le pass</button></div><div class="res" id="res"></div></div>' +
+    '<div class="box glass"><h3>Passes activés</h3><div id="list" class="note">Chargement…</div></div>' +
+    '<div class="box glass"><p class="note">Remboursement : vérifie le code puis appuie sur « Retirer le pass ». N\'active un pass qu\'après avoir vu le paiement arriver sur ton compte Revolut.</p></div>';
+  $('chk').onclick = check; $('act').onclick = activate; list();
+}
+async function check(){
+  const code = norm($('code').value); if (!/^[A-Z2-9]{12}$/.test(code)) { $('res').textContent = 'Code invalide : il faut 12 caractères.'; return null; }
+  const [save, prem] = await Promise.all([fetch(DB + '/save/' + code + '.json').then(r => r.json()).catch(() => null), get('/premium/' + code).catch(() => null)]);
+  $('res').innerHTML = save ? '👤 Joueur : <b>' + esc(save.n || 'sans pseudo') + '</b> · 💠 ' + (save.j | 0) + ' · niveau ' + Math.min(30, Math.floor((save.xp | 0) / 100)) + '<br>' + (prem ? '⭐ Pass déjà activé le ' + new Date(prem.t).toLocaleString('fr-FR') + ' <button class="btn ghost sm" id="del" type="button">Retirer le pass</button>' : 'Pass non activé.') : '⚠️ Aucune sauvegarde avec ce code : vérifie qu\'il est bien recopié.';
+  if (prem && $('del')) $('del').onclick = () => remove(code);
+  return {code, save, prem};
+}
+async function activate(){
+  const r = await check(); if (!r) return; if (!r.save) { toast('Code inconnu : rien n\'a été activé.'); return; } if (r.prem) { toast('Déjà activé.'); return; }
+  if (!confirm('As-tu bien reçu le paiement pour ce code ? Activer le pass ?')) return;
+  const t = await FBA.token(), res = await fetch(DB + '/premium/' + r.code + '.json?auth=' + encodeURIComponent(t), {method: 'PUT', body: JSON.stringify({season: 's1', t: {'.sv': 'timestamp'}, by: UID})});
+  if (res.ok) { sfx.win(); toast('⭐ Pass activé ! Le joueur le verra à sa prochaine visite.'); check(); list(); } else toast('Refusé par la base (droits admin ?).');
+}
+async function remove(code){ if (!confirm('Retirer le pass de ' + code + ' (remboursement) ?')) return; const t = await FBA.token(); const r = await fetch(DB + '/premium/' + code + '.json?auth=' + encodeURIComponent(t), {method: 'DELETE'}); toast(r.ok ? 'Pass retiré.' : 'Refusé.'); check(); list(); }
+async function list(){ try { const d = await get('/premium') || {}; const e = Object.entries(d).sort((a, b) => (b[1].t || 0) - (a[1].t || 0)); $('list').innerHTML = e.length ? e.slice(0, 50).map(([k, v]) => '<div class="li"><span>' + k.replace(/(.{4})(?=.)/g, '$1-') + '</span><span>' + new Date(v.t || 0).toLocaleDateString('fr-FR') + '</span></div>').join('') : 'Aucun pass activé pour l\'instant.'; } catch(e) { $('list').textContent = 'Liste indisponible.'; } }
+init().catch(() => { $('app').textContent = 'Connexion impossible, réessaie.'; });
+</script>
+</body>
+</html>

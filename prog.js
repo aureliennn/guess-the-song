@@ -56,7 +56,8 @@
     if (!S.code) return; try { const d = await (await fetch(DB + '/save/' + S.code + '.json')).json(); if (d && typeof d.t === 'number' && d.t > S.t + 2000) { const code = S.code; S = fromRemote(d); S.code = code; ls.set(KEY, S); subs.forEach(f => f(S)); } status = 'ok'; } catch(e) {}
   }
   /* ---------- paiement réel du Pass via Revolut Business (désactivé tant que le serveur n'est pas en ligne) ---------- */
-  const PAY = {enabled: false, url: 'https://europe-west1-guess-the-song-27134.cloudfunctions.net/creerPaiement', price: '2,99 €', season: 's1'};
+  // version simple : lien de paiement Revolut + activation par l'admin (admin.html). Mets le lien et passe enabled à true.
+  const PAY = {enabled: false, link: '', price: '2,99 €', season: 's1'};
   async function checkPaid(){ // le serveur écrit premium/<code> après un paiement confirmé par Stripe
     if (!S.code) return false;
     try { const d = await (await fetch(DB + '/premium/' + S.code + '.json')).json(); if (d && d.season === PAY.season) { if (!S.prem) { S.prem = true; emit(); } return true; } } catch(e) {}
