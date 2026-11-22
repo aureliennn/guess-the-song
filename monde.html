@@ -58,6 +58,7 @@ canvas#c{position:fixed;inset:0;width:100%;height:100%;display:block;touch-actio
 @media(pointer:coarse){#chatF{top:calc(max(10px,env(safe-area-inset-top)) + 52px);bottom:auto}#pal{top:calc(max(10px,env(safe-area-inset-top)) + 52px);bottom:auto}#prompt{bottom:calc(max(16px,env(safe-area-inset-bottom)) + 150px)}#log{top:auto;bottom:calc(max(16px,env(safe-area-inset-bottom)) + 150px);width:min(300px,calc(100vw - 130px))}}
 @media(pointer:fine){#joy,#jump{display:none}}
 @media(pointer:coarse){#chatF:not(.hide)~#pal{top:calc(max(10px,env(safe-area-inset-top)) + 104px)}#toast{bottom:auto;top:calc(max(10px,env(safe-area-inset-top)) + 112px)}}
+body.isadm #tl{max-width:calc(100% - 250px)}
 @media(max-width:420px){.lt{display:none}.pill{padding:7px 10px;font-size:12px}.ib{width:38px;height:38px;font-size:17px;border-radius:12px}#tl{max-width:calc(100% - 190px)}}
 </style>
 </head>
@@ -65,7 +66,7 @@ canvas#c{position:fixed;inset:0;width:100%;height:100%;display:block;touch-actio
 <div id="load">Chargement du monde…</div>
 <canvas id="c" tabindex="0" aria-label="Monde 3D"></canvas>
 <div class="hud" id="tl"><a class="pill" href="./" aria-label="Retour à l'arcade">←<span class="lt"> Arcade</span></a><button class="pill" id="coinsP" type="button" title="Boutique" aria-label="Mes pièces et la boutique">🪙 0 🛒</button><span class="pill" id="onlineP">👥 1</span></div>
-<div class="hud" id="tr"><button class="ib" id="avBtn" title="Mon avatar" aria-label="Mon avatar">👕</button><button class="ib" id="buildBtn" title="Construire (B)" aria-label="Construire">🧱</button><button class="ib" id="chatBtn" title="Discuter (T)" aria-label="Discuter">💬</button><button class="ib" id="helpBtn" title="Aide" aria-label="Aide">❓</button></div>
+<div class="hud" id="tr"><button class="ib" id="avBtn" title="Mon avatar" aria-label="Mon avatar">👕</button><button class="ib" id="buildBtn" title="Construire (B)" aria-label="Construire">🧱</button><button class="ib" id="chatBtn" title="Discuter (T)" aria-label="Discuter">💬</button><button class="ib" id="helpBtn" title="Aide" aria-label="Aide">❓</button><a class="ib hide" id="admBtn" href="admin.html" title="Console admin" aria-label="Console admin" style="text-decoration:none">🔑</a></div>
 <div id="log" aria-live="polite"></div>
 <form id="chatF" class="hide"><input id="chatI" maxlength="120" placeholder="Écris un message…" autocomplete="off" enterkeyhint="send" aria-label="Message"><button class="btn" type="submit">Envoyer</button></form>
 <button class="btn hide" id="prompt"></button>
@@ -297,7 +298,9 @@ function animate(a, speed, air, dt){
 const SPAWN = new THREE.Vector3(0, 0, 12);
 const me = {pos: SPAWN.clone(), vel: new THREE.Vector3(), ground: false, yaw: Math.PI, av: makeAvatar(AV), tag: null, cp: SPAWN.clone(), obby: null, speed: 0};
 scene.add(me.av.root);
-function setTag(){ if (me.tag) me.av.root.remove(me.tag); me.tag = label(NAME, '#ffffff', 512, .55); me.tag.position.y = 2.95; me.av.root.add(me.tag); }
+// badge admin : accordé seulement si la base confirme que ce compte est dans admins/ (le badge est aussi vérifié par les règles)
+let ISADM = false;
+function setTag(){ if (me.tag) me.av.root.remove(me.tag); me.tag = ISADM ? label('🛡️ ' + NAME + ' · ADMIN', '#ffd166', 768, .62) : label(NAME, '#ffffff', 512, .55); me.tag.position.y = 2.95; me.av.root.add(me.tag); }
 setTag();
 let camYaw = 0, camPitch = .38, camDist = 9;
 const keys = {}, joy = {x: 0, y: 0}; let jumpQ = false;
@@ -417,7 +420,7 @@ function net(method, path, body, keep){
   return FBA.url(DB, path).then(url => { if (body && typeof body === 'object' && !Array.isArray(body) && (method === 'PUT' || method === 'POST')) body = Object.assign({}, body, {u: FBA.uid()}); return fetch(url, {method, body: body === undefined ? undefined : JSON.stringify(body)}); }).catch(() => {});
 }
 const srvNow = () => Date.now() + offset;
-function myRecord(){ return {n: NAME, x: +me.pos.x.toFixed(2), y: +me.pos.y.toFixed(2), z: +me.pos.z.toFixed(2), r: +me.yaw.toFixed(2), a: me.ground ? (me.speed > .5 ? 1 : 0) : 2, s: AV.s, p: AV.p, k: AV.k, h: AV.h, o: AV.o || null, pet: AV.pet || null, tr: AV.tr || null, c: car.on ? AV.s : null, t: SV}; }
+function myRecord(){ return {n: NAME, x: +me.pos.x.toFixed(2), y: +me.pos.y.toFixed(2), z: +me.pos.z.toFixed(2), r: +me.yaw.toFixed(2), a: me.ground ? (me.speed > .5 ? 1 : 0) : 2, s: AV.s, p: AV.p, k: AV.k, h: AV.h, o: AV.o || null, pet: AV.pet || null, tr: AV.tr || null, c: car.on ? AV.s : null, adm: ISADM ? true : null, t: SV}; }
 function join(){ joined = true; sentAt = Date.now(); net('PUT', '/world/players/' + PID, myRecord()); }
 function sendPos(){
   if (!joined || inflight) return; const now = performance.now(), a = me.ground ? (me.speed > .5 ? 1 : 0) : 2;
@@ -470,8 +473,8 @@ function syncPlayers(){
     const fresh = typeof p.t === 'number' && now - p.t < 25000; let o = others.get(id);
     if (!fresh) { if (o) { scene.remove(o.av.root); if (o.car) scene.remove(o.car); petSync(o, null); others.delete(id); } continue; }
     n++;
-    const look = [p.s | 0, p.p | 0, p.k | 0, p.h || 'none', p.o || '', String(p.n).slice(0, 16)].join('|');
-    if (!o || o.look !== look) { if (o) scene.remove(o.av.root); const av = makeAvatar({s: p.s | 0, p: p.p | 0, k: p.k | 0, h: p.h || 'none', o: p.o}); const tag = label(String(p.n).slice(0, 16), '#38e1ff', 512, .55); tag.position.y = 2.95; av.root.add(tag); av.root.position.set(p.x, p.y, p.z); scene.add(av.root); o = {av, look, pos: new THREE.Vector3(p.x, p.y, p.z), yaw: p.r || 0, bubble: null, name: String(p.n).slice(0, 16)}; others.set(id, o); }
+    const look = [p.s | 0, p.p | 0, p.k | 0, p.h || 'none', p.o || '', String(p.n).slice(0, 16), p.adm === true ? 'A' : ''].join('|');
+    if (!o || o.look !== look) { if (o) scene.remove(o.av.root); const av = makeAvatar({s: p.s | 0, p: p.p | 0, k: p.k | 0, h: p.h || 'none', o: p.o}); const tag = p.adm === true ? label('🛡️ ' + String(p.n).slice(0, 16) + ' · ADMIN', '#ffd166', 768, .62) : label(String(p.n).slice(0, 16), '#38e1ff', 512, .55); tag.position.y = 2.95; av.root.add(tag); av.root.position.set(p.x, p.y, p.z); scene.add(av.root); o = {av, look, pos: new THREE.Vector3(p.x, p.y, p.z), yaw: p.r || 0, bubble: null, name: String(p.n).slice(0, 16)}; others.set(id, o); }
     o.target = new THREE.Vector3(p.x, p.y, p.z); o.tyaw = p.r || 0; o.a = p.a | 0; o.tr = typeof p.tr === 'string' ? p.tr : null; o.carC = typeof p.c === 'number' ? p.c | 0 : null; petSync(o, typeof p.pet === 'string' && p.pet.length < 12 ? p.pet : null);
   }
   for (const [id, o] of others) if (!W.players[id]) { scene.remove(o.av.root); if (o.car) scene.remove(o.car); petSync(o, null); others.delete(id); }
@@ -482,7 +485,7 @@ setInterval(syncPlayers, 5000);
 function drawChat(){
   const ks = Object.keys(W.chat || {}).sort(), now = srvNow(), rows = [];
   for (const k of ks) { const m = W.chat[k]; if (!m || typeof m.m !== 'string') continue; if (typeof m.t === 'number' && now - m.t > 15 * 60000) continue; rows.push([k, m]); }
-  $('log').innerHTML = rows.slice(-6).map(([k, m]) => '<div' + (m.sys ? ' class="sys"' : '') + '>' + (m.sys ? '' : '<b>' + esc(String(m.n).slice(0, 16)) + '</b> : ') + esc(m.m.slice(0, 120)) + '</div>').join('');
+  $('log').innerHTML = rows.slice(-6).map(([k, m]) => '<div' + (m.sys ? ' class="sys"' : '') + '>' + (m.sys ? '' : (m.adm === true ? '<b style="color:#ffd166">🛡️ ' + esc(String(m.n).slice(0, 16)) + ' (admin)</b> : ' : '<b>' + esc(String(m.n).slice(0, 16)) + '</b> : ')) + esc(m.m.slice(0, 120)) + '</div>').join('');
   for (const [k, m] of rows) { if (seenChat.has(k)) continue; seenChat.add(k); if (firstSnap || m.sys) continue; const o = m.p === PID ? me : others.get(m.p); if (o) bubble(o, m.m); if (m.p !== PID) tone(880, 0, .06, 'sine', .04); }
 }
 function bubble(o, text){
@@ -496,7 +499,7 @@ $('chatBtn').onclick = () => { if ($('chatF').classList.contains('hide')) openCh
 $('chatI').addEventListener('keydown', e => { if (e.key === 'Escape') { $('chatF').classList.add('hide'); $('chatI').blur(); } e.stopPropagation(); });
 // envoi d'un message : écrit en même temps le compteur anti-spam (world/rl), refusé par la base si < 1,5 s
 let lastSay = 0;
-function say(msg){ const k = 'k' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); return FBA.ready().then(u => net('PATCH', '/world', {['chat/' + k]: Object.assign({}, msg, {u, t: SV}), ['rl/' + u]: SV})); }
+function say(msg){ const k = 'k' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); return FBA.ready().then(u => net('PATCH', '/world', {['chat/' + k]: Object.assign({}, msg, {u, t: SV}, ISADM && !msg.sys ? {adm: true} : {}), ['rl/' + u]: SV})); }
 $('chatF').onsubmit = e => {
   e.preventDefault(); const m = $('chatI').value.replace(/\s+/g, ' ').trim().slice(0, 120); $('chatI').value = '';
   if (m && Date.now() - lastSay < 1600) toast('Doucement : un message toutes les 2 secondes.', 1600);
@@ -906,6 +909,7 @@ function frame(now){
   updateCam(); renderer.render(scene, cam); sendPos();
 }
 updCoins(); shadowize(scene);
+FBA.isAdmin().then(a => { if (!a) return; ISADM = true; $('admBtn').classList.remove('hide'); document.body.classList.add('isadm'); setTag(); if (joined) net('PUT', '/world/players/' + PID, myRecord()); });
 $('load').remove(); requestAnimationFrame(frame); connect();
 if (firstTime) editAvatar(true); else if (!ls.get('arc_world_help', 0)) showHelp();
 canvas.focus({preventScroll: true});

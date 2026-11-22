@@ -76,12 +76,13 @@
   <div class="grid" id="games"></div>
 
   <div class="foot">
-    <span><a href="#" id="notesLink">Nouveautés</a> · <a href="#" id="installLink">Installer l'application</a></span>
+    <span><a href="#" id="notesLink">Nouveautés</a> · <a href="#" id="installLink">Installer l'application</a> · <a href="legal.html">Mentions légales</a> · <a href="admin.html">🔑 Admin</a></span>
     <span>Extraits musicaux fournis par Deezer.</span>
   </div>
 </div>
 
 <script src="arcade.js"></script>
+<script src="fbauth.js"></script>
 <script>
 const NOTES_V = '5.3';
 const fmt = n => Number(n || 0).toLocaleString('fr-FR');
@@ -118,6 +119,8 @@ function render(){
 }
 document.addEventListener('click', e => { const a = e.target.closest('a[data-g]'); if (!a) return; const id = a.dataset.g, r = ls.get('arc_recent', []).filter(x => x !== id); r.unshift(id); ls.set('arc_recent', r.slice(0, 6)); });
 addEventListener('pageshow', render); render();
+// appareil admin : raccourci vers la console
+FBA.isAdmin().then(a => { if (a) { const c = document.createElement('a'); c.className = 'chip'; c.href = 'admin.html'; c.style.cssText = 'text-decoration:none;color:var(--gold)'; c.textContent = '🛡️ Console admin'; $('chips').appendChild(c); } });
 
 function showNotes(){
   modal('Quoi de neuf ? · v5.3', '<div id="notes"><ul>' +
