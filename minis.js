@@ -552,5 +552,194 @@ const MJ = (() => {
       next(); x.loop(dt => { time -= dt; x.hud('⏱ ' + Math.max(0, Math.ceil(time)) + ' s · ✅ ' + ok + ' · ❌ ' + ko); if (time <= 0) x.end(Math.max(0, ok * 20 - ko * 10), st3((ok - ko) / P.time * 30, 8, 14, 20), pl(ok, 'juste{s}') + ', ' + pl(ko, 'erreur{s}')); });
     }});
 
+  /* ================= v5.2 : 12 nouveaux jeux ================= */
+  const COLS = ['#ff4d6d', '#ffd166', '#3dffa2', '#38a9ff', '#b86bff', '#ff9f1c', '#ffffff', '#ff8ad8'], COLN = ['rouge', 'jaune', 'vert', 'bleu', 'violet', 'orange', 'blanc', 'rose'];
+  const swatch = (c, s) => '<span class="pg" style="background:' + (c === null ? 'transparent' : COLS[c]) + (s ? ';width:' + s + 'px;height:' + s + 'px' : '') + '"></span>';
+
+  def({id: 'inondation', n: 'Inondation', e: '🌊', cat: 'log', d: 'Envahis toute la grille d\'une seule couleur.', how: 'Choisis une couleur (bouton ou case) : la zone en haut à gauche la prend et absorbe les cases voisines identiques. Remplis tout avant la fin des coups.',
+    axes: [{k: 'n', o: [['10×10', 10], ['14×14', 14], ['18×18', 18]]}, {k: 'c', o: [['4 couleurs', 4], ['5 couleurs', 5], ['6 couleurs', 6]]}, {k: 't', o: TH}],
+    play(x){
+      const {P} = x, N = P.n, cv = x.canvas(360, 360), g = cv.g, cs = 360 / N, lim = Math.round(N * P.c / 3.1) + 1; let b = [...Array(N * N)].map(() => x.ri(0, P.c - 1)), moves = 0;
+      const region = () => { const col = b[0], seen = new Set([0]), st = [0]; while (st.length) { const i = st.pop(), r = i / N | 0, c = i % N; for (const [a, d] of [[r - 1, c], [r + 1, c], [r, c - 1], [r, c + 1]]) { if (a < 0 || d < 0 || a >= N || d >= N) continue; const j = a * N + d; if (!seen.has(j) && b[j] === col) { seen.add(j); st.push(j); } } } return seen; };
+      const draw = () => { b.forEach((v, i) => { g.fillStyle = COLS[v]; g.fillRect((i % N) * cs, (i / N | 0) * cs, cs + .6, cs + .6); }); x.hud('🌊 ' + moves + ' / ' + lim + ' coups · ' + Math.round(region().size / (N * N) * 100) + ' %'); };
+      const pick = k => { if (x.dead || k === b[0]) return; region().forEach(i => { b[i] = k; }); moves++; x.beep(300 + k * 80); draw(); const n = region().size;
+        if (n === N * N) return x.end(Math.max(50, (lim - moves + 1) * 100), moves <= lim - 4 ? 3 : moves <= lim - 2 ? 2 : 1, 'Grille remplie en ' + pl(moves, 'coup{s}'));
+        if (moves >= lim) x.end(Math.round(n / (N * N) * 500), 0, 'Plus de coups : ' + Math.round(n / (N * N) * 100) + ' % rempli'); };
+      x.on(cv.c, 'click', e => { const p = cv.pos(e), i = Math.floor(p.y / cs) * N + Math.floor(p.x / cs); if (b[i] !== undefined) pick(b[i]); });
+      x.stage.append(x.choices([...Array(P.c).keys()].map(k => swatch(k)), pick, 'colors')); draw();
+    }});
+
+  def({id: 'code', n: 'Code secret', e: '🔐', cat: 'log', d: 'Devine la combinaison de couleurs cachée.', how: 'Compose une combinaison puis valide. ● = bonne couleur bien placée, ○ = bonne couleur mal placée. 10 essais.',
+    axes: [{k: 'L', o: [['4 pions', 4], ['5 pions', 5]]}, {k: 'c', o: [['6 couleurs', 6], ['8 couleurs', 8]]}, {k: 'r', o: [['Sans répétition', 0], ['Avec répétitions', 1]]}, {k: 't', o: TH3}],
+    play(x){
+      const {P} = x; let secret = []; if (P.r) for (let i = 0; i < P.L; i++) secret.push(x.ri(0, P.c - 1)); else secret = x.shuf([...Array(P.c).keys()]).slice(0, P.L);
+      const hist = x.el('div', 'mj-hist'), cur = x.el('div', 'mj-cur'); let guess = [], tries = 0; x.stage.append(hist, cur);
+      const drawCur = () => { cur.innerHTML = [...Array(P.L)].map((_, i) => swatch(guess[i] === undefined ? null : guess[i])).join(''); };
+      const submit = () => { tries++; let black = 0, white = 0; const sc = [], gc = []; guess.forEach((v, i) => { if (v === secret[i]) black++; else { sc.push(secret[i]); gc.push(v); } }); gc.forEach(v => { const k = sc.indexOf(v); if (k >= 0) { white++; sc.splice(k, 1); } });
+        hist.prepend(x.el('div', 'mj-hrow', guess.map(v => swatch(v, 20)).join('') + '<b>' + ('●'.repeat(black) + '○'.repeat(white) || '–') + '</b>')); guess = []; x.beep(black === P.L ? 900 : 400 + black * 80); x.hud('🔐 Essai ' + Math.min(10, tries + 1) + ' / 10');
+        if (black === P.L) return x.end((11 - tries) * 100, tries <= 5 ? 3 : tries <= 7 ? 2 : 1, 'Code trouvé en ' + pl(tries, 'essai{s}'));
+        if (tries >= 10) x.end(0, 0, 'Perdu ! Le code était : ' + secret.map(c => COLN[c]).join(', ')); };
+      x.stage.append(x.choices([...Array(P.c).keys()].map(k => swatch(k)).concat(['⌫', 'OK']), i => { if (i < P.c) { if (guess.length < P.L && (P.r || !guess.includes(i))) { guess.push(i); x.beep(500); } } else if (i === P.c) guess.pop(); else if (guess.length === P.L) submit(); drawCur(); }, 'code'));
+      drawCur(); x.hud('🔐 Essai 1 / 10');
+    }});
+
+  def({id: 'hanoi', n: 'Tours de Hanoï', e: '🗼', cat: 'log', d: 'Déplace toute la pile sur la tour de droite.', how: 'Touche une tour pour prendre son disque du haut, puis une autre pour le poser. Jamais un grand disque sur un plus petit.',
+    axes: [{k: 'n', o: [['3 disques', 3], ['4 disques', 4], ['5 disques', 5], ['6 disques', 6], ['7 disques', 7]]}, {k: 'm', o: [['Libre', 'l'], ['Chrono', 'c']]}, {k: 't', o: TH}],
+    play(x){
+      const {P, T} = x, cv = x.canvas(360, 300), g = cv.g, opt = 2 ** P.n - 1, h = Math.min(22, 160 / P.n); let tw = [[...Array(P.n)].map((_, i) => P.n - i), [], []], sel = -1, moves = 0, t = 0;
+      const draw = () => { bg(cv, T); for (let k = 0; k < 3; k++) { const cx = 60 + k * 120; g.shadowBlur = 0; g.fillStyle = k === sel ? T.b : 'rgba(255,255,255,.35)'; g.fillRect(cx - 4, 80, 8, 190); g.fillRect(cx - 56, 268, 112, 8);
+        tw[k].forEach((d, j) => { const w = 22 + d * (88 / P.n), col = 'hsl(' + (d * 47) % 360 + ',85%,60%)'; glow(g, col, 8); g.fillStyle = col; g.fillRect(cx - w / 2, 268 - (j + 1) * h - (k === sel && j === tw[k].length - 1 ? 14 : 0), w, h - 2); }); } };
+      x.on(cv.c, 'pointerdown', e => { if (x.dead) return; const k = Math.max(0, Math.min(2, Math.floor(cv.pos(e).x / 120)));
+        if (sel < 0) { if (tw[k].length) { sel = k; x.beep(500); } } else { if (k !== sel) { const d = tw[sel][tw[sel].length - 1], top = tw[k][tw[k].length - 1]; if (!top || top > d) { tw[k].push(tw[sel].pop()); moves++; x.beep(650); } else x.beep(150, .2); } sel = -1; }
+        draw(); if (tw[2].length === P.n) x.end(Math.max(50, (opt * 2 - moves) * 20 + P.n * 100), moves <= opt ? 3 : moves <= opt * 1.5 ? 2 : 1, 'Terminé en ' + pl(moves, 'coup{s}') + ' (minimum ' + opt + ')'); });
+      x.loop(dt => { t += dt; if (P.m === 'c') { const left = opt * 2.2 + 10 - t; if (left <= 0) return x.end(tw[2].length * 50, 0, 'Temps écoulé'); x.hud('🗼 ' + pl(moves, 'coup{s}') + ' · ⏱ ' + Math.ceil(left) + ' s'); } else x.hud('🗼 ' + pl(moves, 'coup{s}') + ' · minimum ' + opt); });
+      draw();
+    }});
+
+  def({id: 'pixel', n: 'Pixel mystère', e: '🖼️', cat: 'log', d: 'Noircis les bonnes cases grâce aux indices chiffrés.', how: 'Les nombres donnent les blocs de cases pleines de chaque ligne et colonne, dans l\'ordre. Touche ✕ (en haut à gauche) pour marquer les cases vides.',
+    axes: [{k: 'n', o: [['5×5', 5], ['7×7', 7], ['10×10', 10]]}, {k: 'p', o: [['Aéré', .45], ['Normal', .55], ['Dense', .65]]}, {k: 't', o: TH}],
+    play(x){
+      const {P} = x, N = P.n, sol = [...Array(N * N)].map(() => Math.random() < P.p);
+      const clue = arr => { const o = []; let r = 0; arr.forEach(v => { if (v) r++; else if (r) { o.push(r); r = 0; } }); if (r) o.push(r); return o.length ? o : [0]; };
+      const rowC = [...Array(N)].map((_, r) => clue(sol.slice(r * N, r * N + N))), colC = [...Array(N)].map((_, c) => clue([...Array(N)].map((_, r) => sol[r * N + c])));
+      const G = x.grid(N + 1, N + 1, 'pix'); let fill = Array(N * N).fill(0), mark = false; const t0 = performance.now();
+      G.cells.forEach((c, i) => { const r = i / (N + 1) | 0, k = i % (N + 1); if (!r && !k) { c.textContent = '✕'; c.classList.add('mode'); } else if (!r) { c.innerHTML = colC[k - 1].join('<br>'); c.classList.add('clue', 'cc'); } else if (!k) { c.textContent = rowC[r - 1].join(' '); c.classList.add('clue', 'rc'); } });
+      const ok = () => { for (let r = 0; r < N; r++) if (clue(fill.slice(r * N, r * N + N).map(v => v === 1)).join() !== rowC[r].join()) return false; for (let c = 0; c < N; c++) if (clue([...Array(N)].map((_, r) => fill[r * N + c] === 1)).join() !== colC[c].join()) return false; return true; };
+      x.on(G.el, 'click', e => { const c = e.target.closest('.mj-cell'); if (!c || x.dead) return; if (c.classList.contains('mode')) { mark = !mark; c.classList.toggle('on', mark); return; }
+        const i = +c.dataset.i, r = i / (N + 1) | 0, k = i % (N + 1); if (!r || !k) return; const j = (r - 1) * N + (k - 1);
+        fill[j] = mark ? (fill[j] === 2 ? 0 : 2) : (fill[j] === 1 ? 0 : 1); c.classList.toggle('f', fill[j] === 1); c.classList.toggle('x', fill[j] === 2); c.textContent = fill[j] === 2 ? '✕' : ''; x.beep(fill[j] === 1 ? 520 : 300);
+        if (ok()) { const s = (performance.now() - t0) / 1000; x.end(Math.max(100, N * N * 20 - s * 3), s < N * N * 1.2 ? 3 : s < N * N * 2.5 ? 2 : 1, 'Image trouvée en ' + Math.round(s) + ' s'); } });
+      x.hud('🖼️ ' + N + '×' + N);
+    }});
+
+  def({id: 'bulles', n: 'Grappes', e: '🫧', cat: 'log', d: 'Éclate les groupes de bulles de même couleur.', how: 'Touche un groupe d\'au moins 2 bulles identiques pour l\'éclater. Plus le groupe est gros, plus il rapporte. Vide la grille !',
+    axes: [{k: 's', o: [['8×10', [8, 10]], ['10×12', [10, 12]]]}, {k: 'c', o: [['3 couleurs', 3], ['4 couleurs', 4], ['5 couleurs', 5]]}, {k: 't', o: TH}],
+    play(x){
+      const {P} = x, [Cc, Rr] = P.s, G = x.grid(Cc, Rr, 'bub'); let b = [...Array(Cc * Rr)].map(() => x.ri(0, P.c - 1)), sc = 0;
+      const at = (r, c) => r >= 0 && c >= 0 && r < Rr && c < Cc ? b[r * Cc + c] : -2;
+      const group = i => { const col = b[i]; if (col < 0) return []; const seen = new Set([i]), st = [i]; while (st.length) { const j = st.pop(), r = j / Cc | 0, c = j % Cc; for (const [a, d] of [[r - 1, c], [r + 1, c], [r, c - 1], [r, c + 1]]) if (at(a, d) === col) { const k = a * Cc + d; if (!seen.has(k)) { seen.add(k); st.push(k); } } } return [...seen]; };
+      const gravity = () => { for (let c = 0; c < Cc; c++) { const v = []; for (let r = Rr - 1; r >= 0; r--) if (b[r * Cc + c] >= 0) v.push(b[r * Cc + c]); for (let r = Rr - 1, k = 0; r >= 0; r--, k++) b[r * Cc + c] = k < v.length ? v[k] : -1; }
+        const keep = [...Array(Cc).keys()].filter(c => b[(Rr - 1) * Cc + c] >= 0), nb = Array(Cc * Rr).fill(-1); keep.forEach((c, k) => { for (let r = 0; r < Rr; r++) nb[r * Cc + k] = b[r * Cc + c]; }); b = nb; };
+      const any = () => b.some((v, i) => v >= 0 && group(i).length > 1);
+      const draw = () => G.cells.forEach((c, i) => { c.style.background = b[i] >= 0 ? COLS[b[i]] : 'transparent'; c.style.borderColor = b[i] >= 0 ? 'rgba(255,255,255,.3)' : 'transparent'; });
+      x.on(G.el, 'click', e => { const c = e.target.closest('.mj-cell'); if (!c || x.dead) return; const gr = group(+c.dataset.i); if (gr.length < 2) { x.beep(150, .1); return; }
+        gr.forEach(i => { b[i] = -1; }); sc += (gr.length - 1) ** 2; x.beep(300 + gr.length * 30); gravity(); draw(); const left = b.filter(v => v >= 0).length; x.hud('🫧 ' + sc + ' pts · ' + pl(left, 'bulle{s}'));
+        if (!any()) x.after(300, () => x.end(sc + (left ? 0 : 1000), !left ? 3 : left <= Cc * Rr * .08 ? 2 : left <= Cc * Rr * .2 ? 1 : 0, left ? pl(left, 'bulle{s} restante{s}') : 'Grille vidée !')); });
+      draw(); x.hud('🫧 0 pt');
+    }});
+
+  def({id: 'meles', n: 'Mots mêlés', e: '🔎', cat: 'mot', d: 'Retrouve les mots cachés dans la grille.', how: 'Touche la première lettre d\'un mot, puis sa dernière lettre. Les mots de la liste sont cachés en ligne droite.',
+    axes: [{k: 'n', o: [['8×8', 8], ['10×10', 10], ['12×12', 12]]}, {k: 'w', o: [['4 mots', 4], ['6 mots', 6], ['8 mots', 8]]}, {k: 'd', o: [['Droit (→ ↓)', 's'], ['Toutes directions', 'a']]}],
+    play(x){
+      const {P} = x, N = P.n, q = x.el('div', 'mj-q', 'Chargement du dictionnaire…'); x.stage.append(q);
+      words().then(W => { if (x.dead) return;
+        const D = P.d === 's' ? [[0, 1], [1, 0]] : [[0, 1], [1, 0], [1, 1], [-1, 1], [0, -1], [-1, 0], [-1, -1], [1, -1]], grid = Array(N * N).fill(''), placed = [];
+        for (const w of x.shuf(W.all.filter(w => w.length <= N).slice(0, 4000))) { if (placed.length >= P.w) break; for (let tr = 0; tr < 40; tr++) { const [dr, dc] = x.pick(D), r0 = x.ri(0, N - 1), c0 = x.ri(0, N - 1), re = r0 + dr * (w.length - 1), ce = c0 + dc * (w.length - 1); if (re < 0 || ce < 0 || re >= N || ce >= N) continue;
+            let fit = true; for (let k = 0; k < w.length; k++) { const ch = grid[(r0 + dr * k) * N + c0 + dc * k]; if (ch && ch !== w[k]) { fit = false; break; } } if (!fit) continue;
+            const cells = []; for (let k = 0; k < w.length; k++) { const i = (r0 + dr * k) * N + c0 + dc * k; grid[i] = w[k]; cells.push(i); } placed.push({w, cells, found: false}); break; } }
+        const AB = 'AAEEEIILNNORRSSTTUBCDGMP'; for (let i = 0; i < N * N; i++) if (!grid[i]) grid[i] = AB[Math.random() * AB.length | 0];
+        const list = x.el('div', 'mj-words'), drawList = () => { list.innerHTML = placed.map(p => '<span class="' + (p.found ? 'ok' : '') + '">' + p.w + '</span>').join(''); }; q.remove(); x.stage.append(list); drawList();
+        const G = x.grid(N, N, 'meles'); G.cells.forEach((c, i) => { c.textContent = grid[i]; }); let first = null, found = 0; const t0 = performance.now();
+        x.on(G.el, 'click', e => { const c = e.target.closest('.mj-cell'); if (!c || x.dead) return; const i = +c.dataset.i; if (first === null) { first = i; c.classList.add('sel'); x.beep(500, .04); return; }
+          G.cells[first].classList.remove('sel'); const a = first; first = null; const p = placed.find(p => !p.found && ((p.cells[0] === a && p.cells[p.cells.length - 1] === i) || (p.cells[0] === i && p.cells[p.cells.length - 1] === a)));
+          if (!p) { x.beep(150, .2); return; } p.found = true; found++; p.cells.forEach(k => G.cells[k].classList.add('ok')); x.beep(880); drawList(); x.hud('🔎 ' + found + ' / ' + placed.length);
+          if (found === placed.length) { const s = (performance.now() - t0) / 1000; x.end(Math.max(100, placed.length * 200 - s * 2), s < placed.length * 12 ? 3 : s < placed.length * 25 ? 2 : 1, pl(found, 'mot{s} trouvé{s}') + ' en ' + Math.round(s) + ' s'); } });
+        x.hud('🔎 0 / ' + placed.length); }).catch(() => x.end(0, 0, 'Dictionnaire indisponible.'));
+    }});
+
+  def({id: 'pendu', n: 'Le pendu', e: '🪢', cat: 'mot', d: 'Trouve le mot lettre par lettre.', how: 'Propose des lettres (boutons ou clavier). Chaque erreur coûte une vie. Trouve le mot avant de toutes les perdre.',
+    axes: [{k: 'L', o: [['5 lettres', 5], ['6 lettres', 6], ['7 lettres', 7]]}, {k: 'v', o: [['8 vies', 8], ['6 vies', 6], ['4 vies', 4]]}, {k: 'h', o: [['Première lettre donnée', 1], ['Sans indice', 0]]}],
+    play(x){
+      const {P} = x, w = x.el('div', 'mj-card big', '…'), life = x.el('div', 'mj-q', ''); x.stage.append(life, w);
+      words().then(W => { if (x.dead) return; const word = x.pick(W.by(P.L)), got = new Set(), AB = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split(''); let lives = P.v;
+        const draw = () => { w.textContent = word.split('').map(c => got.has(c) ? c : '_').join(' '); life.textContent = '❤️'.repeat(lives) + '🖤'.repeat(P.v - lives); x.hud('🪢 ' + pl(lives, 'vie{s}')); };
+        const kb = x.choices(AB, (i, b) => { if (x.dead) return; const L = AB[i]; b.disabled = true; if (word.includes(L)) { got.add(L); b.classList.add('ok'); x.beep(800); } else { lives--; b.classList.add('ko'); x.beep(150, .2); } draw();
+          if (word.split('').every(c => got.has(c))) return x.end(lives * 100 + P.L * 30, lives >= P.v * .6 ? 3 : lives >= P.v * .3 ? 2 : 1, 'Trouvé : ' + word); if (lives <= 0) x.end(0, 0, 'Perdu ! Le mot était ' + word); }, 'kb');
+        x.stage.append(kb); if (P.h) { got.add(word[0]); const b = kb.children[AB.indexOf(word[0])]; b.disabled = true; b.classList.add('ok'); }
+        x.key(e => { const i = AB.indexOf((e.key || '').toUpperCase()); if (i >= 0 && !kb.children[i].disabled) kb.children[i].click(); }); draw(); }).catch(() => x.end(0, 0, 'Dictionnaire indisponible.'));
+    }});
+
+  def({id: 'rythme', n: 'Rythme néon', e: '🥁', cat: 'ref', d: 'Touche les notes pile au bon moment.', how: 'Touche la colonne (ou D F J K L) quand une note passe sur la ligne lumineuse. 40 notes.',
+    axes: [{k: 'n', o: [['3 colonnes', 3], ['4 colonnes', 4], ['5 colonnes', 5]]}, {k: 'v', o: [['Lent', 200], ['Normal', 280], ['Rapide', 360], ['Fou', 450]]}, {k: 't', o: TH}],
+    play(x){
+      const {P, T} = x, cv = x.canvas(360, 540), g = cv.g, W = 360 / P.n, LY = 470, total = 40; let notes = [], sp = .6, spawned = 0, hit = 0, combo = 0, best = 0, sc = 0, msg = '', mt = 0; const fl = Array(P.n).fill(0);
+      const press = k => { fl[k] = .15; let bi = -1, bd = 1e9; notes.forEach((n, i) => { if (n.l === k) { const d = Math.abs(n.y - LY); if (d < bd) { bd = d; bi = i; } } });
+        if (bi >= 0 && bd < 44) { notes.splice(bi, 1); hit++; combo++; best = Math.max(best, combo); sc += (bd < 14 ? 100 : bd < 28 ? 70 : 40) + combo * 2; msg = bd < 14 ? 'PARFAIT' : bd < 28 ? 'BIEN' : 'OK'; mt = .45; x.beep(400 + k * 120, .06); } else { combo = 0; x.beep(140, .06); } };
+      x.on(cv.c, 'pointerdown', e => press(Math.max(0, Math.min(P.n - 1, Math.floor(cv.pos(e).x / W)))));
+      x.key(e => { const i = 'DFJKL'.slice(0, P.n).indexOf((e.key || '').toUpperCase()), j = ['Digit1', 'Digit2', 'Digit3', 'Digit4', 'Digit5'].indexOf(e.code), k = i >= 0 ? i : j; if (k >= 0 && k < P.n) { e.preventDefault(); press(k); } });
+      x.loop(dt => { sp -= dt; if (sp <= 0 && spawned < total) { sp = Math.max(.24, .8 - P.v / 900) * x.rnd(.6, 1.4); notes.push({l: x.ri(0, P.n - 1), y: -20}); spawned++; }
+        bg(cv, T); for (let k = 0; k < P.n; k++) { g.shadowBlur = 0; g.fillStyle = fl[k] > 0 ? 'rgba(255,255,255,.14)' : 'rgba(255,255,255,.03)'; g.fillRect(k * W + 2, 0, W - 4, 540); fl[k] -= dt; txt(g, 'DFJKL'[k], k * W + W / 2, 510, 14, 'rgba(255,255,255,.35)'); }
+        glow(g, T.b, 14); g.fillStyle = T.b; g.fillRect(0, LY - 2, 360, 4);
+        for (let i = notes.length - 1; i >= 0; i--) { const n = notes[i]; n.y += P.v * dt; if (n.y > LY + 46) { notes.splice(i, 1); combo = 0; continue; } glow(g, T.a, 14); g.fillStyle = T.a; g.fillRect(n.l * W + 8, n.y - 10, W - 16, 20); }
+        if (mt > 0) { mt -= dt; txt(g, msg, 180, 400, 24, T.c); } if (combo > 2) txt(g, '×' + combo, 180, 60, 22, '#fff');
+        x.hud('🥁 ' + hit + ' / ' + total + ' · combo ' + combo);
+        if (spawned >= total && !notes.length) x.end(sc, st3(hit / total, .5, .75, .92), hit + ' notes réussies sur ' + total + ' · combo max ' + best); });
+    }});
+
+  def({id: 'chaine', n: 'Réaction en chaîne', e: '💥', cat: 'ref', d: 'Une seule explosion pour en déclencher un maximum.', how: 'Touche l\'écran une seule fois par niveau : ton explosion fait éclater les bulles qu\'elle touche, qui explosent à leur tour. Atteins l\'objectif pour passer au niveau suivant.',
+    axes: [{k: 'n', o: [['Peu de bulles', .7], ['Normal', 1], ['Plein de bulles', 1.4]]}, {k: 'g', o: [['Objectif facile', .75], ['Objectif moyen', 1], ['Objectif dur', 1.25]]}, {k: 't', o: TH}],
+    play(x){
+      const {P, T} = x, cv = x.canvas(360, 540), g = cv.g; let lvl = 1, balls = [], booms = [], used = false, popped = 0, goal = 0, sc = 0, wait = 0;
+      const setup = () => { const total = Math.round((10 + lvl * 5) * P.n); goal = Math.min(total - 1, Math.round(total * Math.min(.9, (.15 + lvl * .08) * P.g))); balls = [...Array(total)].map(() => ({x: x.rnd(15, 345), y: x.rnd(15, 525), vx: x.rnd(-70, 70), vy: x.rnd(-70, 70), h: x.ri(0, 359), alive: true})); booms = []; used = false; popped = 0; wait = 0; };
+      setup(); x.on(cv.c, 'pointerdown', e => { if (used || x.dead) return; used = true; const p = cv.pos(e); booms.push({x: p.x, y: p.y, r: 0, t: 0}); x.beep(300, .2); });
+      x.loop(dt => { bg(cv, T); g.shadowBlur = 0; for (const b of balls) { if (!b.alive) continue; b.x += b.vx * dt; b.y += b.vy * dt; if (b.x < 8 || b.x > 352) b.vx *= -1; if (b.y < 8 || b.y > 532) b.vy *= -1; g.fillStyle = 'hsl(' + b.h + ',85%,62%)'; g.beginPath(); g.arc(b.x, b.y, 8, 0, 7); g.fill(); }
+        for (let i = booms.length - 1; i >= 0; i--) { const B = booms[i]; B.t += dt; B.r = B.t < .9 ? Math.min(38, B.r + dt * 120) : B.r - dt * 90; if (B.r <= 0) { booms.splice(i, 1); continue; } g.fillStyle = 'rgba(255,255,255,.18)'; g.strokeStyle = T.b; g.lineWidth = 2; g.beginPath(); g.arc(B.x, B.y, B.r, 0, 7); g.fill(); g.stroke();
+          for (const b of balls) if (b.alive && Math.hypot(b.x - B.x, b.y - B.y) < B.r + 8) { b.alive = false; popped++; sc += 10 * lvl; booms.push({x: b.x, y: b.y, r: 0, t: 0}); x.beep(400 + Math.min(popped, 60) * 15, .04); } }
+        if (!used) txt(g, 'Touche pour exploser !', 180, 30, 15, '#fff'); x.hud('💥 Niveau ' + lvl + ' · ' + popped + ' / ' + goal);
+        if (used && !booms.length && (wait += dt) > .3) { if (popped >= goal) { lvl++; x.beep(900); setup(); } else x.end(sc, st3(lvl - 1, 2, 4, 6), 'Niveau ' + lvl + ' : ' + popped + ' sur ' + goal + ' nécessaires'); } });
+    }});
+
+  def({id: 'traversee', n: 'Traversée', e: '🐸', cat: 'arc', d: 'Traverse les voies sans te faire percuter.', how: 'Glisse ou utilise les flèches pour avancer case par case. Atteins le haut pour marquer. 3 vies, 60 secondes.',
+    axes: [{k: 'v', o: D4}, {k: 'n', o: [['Circulation fluide', .7], ['Embouteillage', 1.15]]}, {k: 't', o: TH}],
+    play(x){
+      const {P, T} = x, cv = x.canvas(360, 540), g = cv.g, C = 12, cs = 30, ROWS = 18;
+      const lanes = [...Array(ROWS)].map((_, r) => { if (r === 0 || r === ROWS - 1 || r === 9) return null; const cars = [], n = Math.max(1, Math.round(x.rnd(1.5, 3) * P.n)); for (let i = 0; i < n; i++) cars.push({x: x.rnd(0, 360), w: cs * x.ri(1, 3)}); return {dir: r % 2 ? 1 : -1, sp: (40 + P.v * 22) * x.rnd(.7, 1.4), cars, hue: x.ri(0, 359)}; });
+      let px = 6, py = ROWS - 1, lives = 3, sc = 0, time = 60, inv = 0;
+      x.swipe(k => { if (x.dead) return; const d = {l: [-1, 0], r: [1, 0], u: [0, -1], d: [0, 1]}[k]; px = Math.max(0, Math.min(C - 1, px + d[0])); py = Math.max(0, Math.min(ROWS - 1, py + d[1])); x.beep(500, .03); if (py === 0) { sc++; x.beep(900); py = ROWS - 1; } });
+      x.loop(dt => { time -= dt; inv -= dt; bg(cv, T);
+        for (let r = 0; r < ROWS; r++) { const L = lanes[r]; g.shadowBlur = 0; g.fillStyle = L ? 'rgba(0,0,0,.35)' : 'rgba(61,255,162,.14)'; g.fillRect(0, r * cs, 360, cs); if (!L) continue;
+          for (const c of L.cars) { c.x += L.dir * L.sp * dt; if (c.x > 400) c.x = -c.w - 20; if (c.x < -c.w - 40) c.x = 380; g.fillStyle = 'hsl(' + L.hue + ',80%,60%)'; g.fillRect(c.x, r * cs + 5, c.w, cs - 10);
+            if (inv <= 0 && r === py && px * cs + cs * .8 > c.x && px * cs + cs * .2 < c.x + c.w) { lives--; inv = 1; x.beep(120, .3); px = 6; py = ROWS - 1; } } }
+        glow(g, T.b, 14); g.fillStyle = inv > 0 && Math.floor(inv * 10) % 2 ? 'rgba(255,255,255,.3)' : T.b; g.beginPath(); g.arc(px * cs + cs / 2, py * cs + cs / 2, cs * .38, 0, 7); g.fill();
+        x.hud('🐸 ' + sc + ' · ' + '❤️'.repeat(Math.max(0, lives)) + ' · ⏱ ' + Math.max(0, Math.ceil(time)));
+        if (lives <= 0 || time <= 0) x.end(sc * 100, st3(sc, 2, 5, 9), pl(sc, 'traversée{s} réussie{s}')); });
+    }});
+
+  def({id: 'autoroute', n: 'Autoroute', e: '🚗', cat: 'arc', d: 'Change de voie pour éviter les voitures.', how: 'Touche à gauche ou à droite de ta voiture (ou flèches) pour changer de voie. Tiens le plus longtemps possible.',
+    axes: [{k: 'n', o: [['3 voies', 3], ['4 voies', 4], ['5 voies', 5]]}, {k: 'v', o: D4}, {k: 't', o: TH3}],
+    play(x){
+      const {P, T} = x, cv = x.canvas(360, 540), g = cv.g, LW = 360 / P.n; let lane = P.n >> 1, cx = lane * LW + LW / 2, cars = [], sp = 1, d = 0, off = 0;
+      const shift = s => { lane = Math.max(0, Math.min(P.n - 1, lane + s)); x.beep(500, .03); };
+      x.on(cv.c, 'pointerdown', e => shift(cv.pos(e).x < cx ? -1 : 1)); x.key(e => { if (/ArrowLeft|KeyA|KeyQ/.test(e.code)) { e.preventDefault(); shift(-1); } if (/ArrowRight|KeyD/.test(e.code)) { e.preventDefault(); shift(1); } });
+      x.loop(dt => { const v = (220 + P.v * 70) * (1 + d / 6000); d += v * dt; off = (off + v * dt) % 60; cx += (lane * LW + LW / 2 - cx) * Math.min(1, dt * 14);
+        sp -= dt; if (sp <= 0) { sp = Math.max(.35, 1.1 - P.v * .15 - d / 20000); const k = Math.random() < .35 && P.n > 3 ? 2 : 1; x.shuf([...Array(P.n).keys()]).slice(0, k).forEach(l => cars.push({l, y: -60, hue: x.ri(0, 359), v: x.rnd(.3, .6)})); }
+        bg(cv, T); g.shadowBlur = 0; g.fillStyle = 'rgba(255,255,255,.25)'; for (let i = 1; i < P.n; i++) for (let y = -60 + off; y < 540; y += 60) g.fillRect(i * LW - 2, y, 4, 30);
+        for (let i = cars.length - 1; i >= 0; i--) { const c = cars[i]; c.y += v * c.v * dt; if (c.y > 600) { cars.splice(i, 1); continue; } g.fillStyle = 'hsl(' + c.hue + ',75%,58%)'; g.fillRect(c.l * LW + LW * .2, c.y, LW * .6, 56); g.fillStyle = 'rgba(0,0,0,.35)'; g.fillRect(c.l * LW + LW * .26, c.y + 10, LW * .48, 14);
+          if (Math.abs(c.l * LW + LW / 2 - cx) < LW * .5 && c.y + 56 > 442 && c.y < 498) { x.beep(110, .4); return x.end(d / 10, st3(d, 3000, 7000, 12000), Math.round(d / 10) + ' m parcourus'); } }
+        glow(g, T.a, 16); g.fillStyle = T.a; g.fillRect(cx - LW * .28, 440, LW * .56, 58); g.fillStyle = 'rgba(255,255,255,.6)'; g.fillRect(cx - LW * .2, 452, LW * .4, 12); x.hud('🚗 ' + Math.round(d / 10) + ' m'); });
+    }});
+
+  def({id: 'canon', n: 'Canonnier', e: '🧨', cat: 'arc', d: 'Vise et touche la cible malgré le vent.', how: 'Pose le doigt n\'importe où et tire vers l\'arrière (comme un lance-pierre), puis relâche. 10 tirs.',
+    axes: [{k: 'w', o: [['Sans vent', 0], ['Brise', 1], ['Tempête', 2]]}, {k: 'd', o: [['Cible proche', 'n'], ['Cible lointaine', 'f'], ['Cible mobile', 'm']]}, {k: 't', o: TH}],
+    play(x){
+      const {P, T} = x, cv = x.canvas(540, 320), g = cv.g, GR = 380, C0 = {x: 40, y: 286}; let shots = 0, hits = 0, ball = null, drag = null, wind = 0, tg = null, sc = 0, flash = 0, last = '';
+      const newT = () => { tg = {x: P.d === 'n' ? x.rnd(200, 330) : x.rnd(360, 510), w: 46, vx: P.d === 'm' ? x.rnd(60, 110) * (Math.random() < .5 ? -1 : 1) : 0}; wind = P.w ? x.rnd(-1, 1) * P.w * 70 : 0; }; newT();
+      const vel = p => { let vx = (drag.x - p.x) * 3.6, vy = (drag.y - p.y) * 3.6; const s = Math.hypot(vx, vy); if (s > 620) { vx *= 620 / s; vy *= 620 / s; } return {vx, vy}; };
+      x.on(cv.c, 'pointerdown', e => { if (!ball && !x.dead) { drag = cv.pos(e); drag.cur = drag; } });
+      x.on(cv.c, 'pointermove', e => { if (drag) drag.cur = cv.pos(e); });
+      x.on(cv.c, 'pointerup', e => { if (!drag || ball) { drag = null; return; } const v = vel(cv.pos(e)); drag = null; if (Math.hypot(v.vx, v.vy) < 80) return; ball = {x: C0.x, y: C0.y, vx: v.vx, vy: v.vy}; shots++; x.beep(200, .15); });
+      x.loop(dt => { if (P.d === 'm') { tg.x += tg.vx * dt; if (tg.x < 180 || tg.x > 515) tg.vx *= -1; }
+        if (ball) { ball.vx += wind * dt; ball.vy += GR * dt; ball.x += ball.vx * dt; ball.y += ball.vy * dt;
+          if (ball.y >= 290) { const hitT = Math.abs(ball.x - tg.x) < tg.w / 2; if (hitT) { hits++; const pts = Math.round(100 - Math.abs(ball.x - tg.x) / (tg.w / 2) * 50); sc += pts; last = '🎯 +' + pts; x.beep(900); } else { last = 'Raté de ' + Math.round(Math.abs(ball.x - tg.x)) + ' px'; x.beep(150, .2); } flash = 1.2; ball = null; newT();
+            if (shots >= 10) x.after(400, () => x.end(sc, st3(hits, 3, 6, 8), pl(hits, 'cible{s} touchée{s}') + ' sur 10')); }
+          else if (ball.x > 560 || ball.x < -20) { last = 'Trop loin !'; flash = 1.2; ball = null; newT(); if (shots >= 10) x.after(400, () => x.end(sc, st3(hits, 3, 6, 8), pl(hits, 'cible{s} touchée{s}') + ' sur 10')); } }
+        bg(cv, T); g.shadowBlur = 0; g.fillStyle = 'rgba(61,255,162,.18)'; g.fillRect(0, 292, 540, 28);
+        glow(g, T.c, 12); g.fillStyle = T.c; g.fillRect(tg.x - tg.w / 2, 284, tg.w, 8); g.fillStyle = '#fff'; g.fillRect(tg.x - 4, 284, 8, 8);
+        g.shadowBlur = 0; g.fillStyle = T.a; g.beginPath(); g.arc(C0.x, C0.y + 4, 16, Math.PI, 0); g.fill();
+        if (drag && drag.cur) { const v = vel(drag.cur); g.fillStyle = 'rgba(255,255,255,.55)'; for (let k = 1; k < 14; k++) { const t = k * .06; g.beginPath(); g.arc(C0.x + v.vx * t, C0.y + v.vy * t + GR * t * t / 2, 2.5, 0, 7); g.fill(); } }
+        if (ball) { glow(g, '#fff', 10); g.fillStyle = '#fff'; g.beginPath(); g.arc(ball.x, ball.y, 6, 0, 7); g.fill(); }
+        txt(g, P.w ? 'Vent ' + (wind > 0 ? '→ ' : '← ') + Math.round(Math.abs(wind) / 10) : 'Pas de vent', 450, 26, 14, '#a79fc4'); if (flash > 0) { flash -= dt; txt(g, last, 270, 120, 20, T.b); }
+        x.hud('🧨 Tir ' + Math.min(10, shots + (ball ? 0 : 1)) + ' / 10 · 🎯 ' + hits); });
+    }});
   return {ENG, CATS, PAL, run, variants};
 })();
